@@ -1,1 +1,0 @@
-from anotamela.vcf_to_dataframe import vcf_to_dataframe
