@@ -8,7 +8,7 @@ with open('README.md') as f:
     long_description = f.read()
 
 setup(
-    name='Anotamela',
+    name='anotamela',
     version='1.0',
     author='Juan Manuel Berros',
     author_email='juanma.berros@gmail.com',
