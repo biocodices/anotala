@@ -20,4 +20,3 @@ def pipeline(vcf_path):
     variants = vcf_to_dataframe(vcf_path)
     return variants
 
-
