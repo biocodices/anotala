@@ -4,7 +4,7 @@ import logging
 import coloredlogs
 
 from anotamela.helpers import make_chromosome_series_categorical
-from anotamela.vcf_to_dataframe import vcf_to_dataframe
+from vcf_to_dataframe import vcf_to_dataframe
 
 
 logger = logging.getLogger(__name__)
