@@ -9,7 +9,7 @@ with open('README.md') as f:
 
 setup(
     name='anotamela',
-    version='1.0',
+    version='1.0.1',
     author='Juan Manuel Berros',
     author_email='juanma.berros@gmail.com',
     url='https://github.com/biocodices/anotamela',
@@ -17,3 +17,4 @@ setup(
     install_requires=requirements,
     packages=find_packages(),
 )
+
