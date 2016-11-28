@@ -1,4 +1,3 @@
-from os import environ
 import sys
 import time
 import logging
@@ -32,7 +31,18 @@ class AnnotatorWithCache():
 
     def annotate(self, ids, parallel=10, sleep_time=10, use_cache=True,
                  use_web=True):
-        """Annotate a list of variant identifiers. Annotations are cached."""
+        """
+        Annotate one or more IDs. If use_cache is set, cached responses will
+        be prioritized and web will be only used for the missing annotations.
+        If use_web is set, web annotation will be used as a source, if not,
+        you will only get the annotations for the cached IDs. If use_cache is
+        False, then all the IDs will be fetched from web (this can be used to
+        update the cached data).
+
+        Some annotators implement extra parsing of the web response with
+        parse_info_dict(). This is enabled by default, but you can disable it
+        with parse_data=False.
+        """
         if isinstance(ids, str) or isinstance(ids, int):
             ids = [ids]
         ids = set(ids)
@@ -40,6 +50,8 @@ class AnnotatorWithCache():
         info_dict = {}
 
         if use_cache:
+            # FIXME: Convert ids to KEYS before calling cache
+            # keys = [self._key(key) for key in keys]
             info_dict.update(self._cache_get(ids))
             ids = ids - info_dict.keys()
         else:
@@ -56,13 +68,16 @@ class AnnotatorWithCache():
         if ids:
             logger.info(" No info for %s IDs" % len(ids))
 
-        self.parse_info_dict(info_dict)
+        if parse_data:
+            self.parse_info_dict(info_dict)
+
         return info_dict
 
     def _query_and_set_cache(self, id_):
         """Make a query for a single id, cache the response, and return it."""
         response = self._query(id_)
         if response:
+            # FIXME: Convert ids to KEYS before calling cache
             self._cache_set({id_: response})
         return response
 
@@ -74,8 +89,8 @@ class AnnotatorWithCache():
 
     def _batch_query(self, ids, parallel, sleep_time):
         """
-        Make a query for each id in ids in batches of <parallel>, sleeping
-        <sleep_time> between batches. It will cache the successful responses.
+        Query a group of IDs using <parallel> threads and cache the responses.
+        It returns a dict with the queried info per ID.
         """
         grouped_ids = list(grouped(ids, parallel))
 
@@ -97,5 +112,10 @@ class AnnotatorWithCache():
         # After caching all the responses, use the logic in #_cache_get()
         # to bring them from cache. The jsons will be json-loaded, the xml
         # will be left as they are, etc.
+
+        # FIXME: Convert ids to KEYS before calling cache
         return self._cache_get(ids, verbose=False)
 
+    def parse_info_dict(self, info_dict):
+        # Override this for extra parsing logic of the cached raw data
+        pass

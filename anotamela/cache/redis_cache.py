@@ -2,6 +2,8 @@ import logging
 
 import redis
 
+from anotamela.cache import Cache
+
 
 logger = logging.getLogger(__name__)
 

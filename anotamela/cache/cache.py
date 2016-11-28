@@ -35,7 +35,6 @@ class Cache:
 
         It will json-load the dicts and lists.
         """
-        keys = [self._key(key) for key in keys]
         info_dict = {k: v for k, v in zip(keys, self._client_get(keys)) if v}
 
         for key, raw_response in info_dict.items():
@@ -60,14 +59,13 @@ class Cache:
 
         It will json-dump the dicts and lists.
         """
-        # Remove empty responses
         data_to_cache = {}
         for key, value in info_dict.items():
             if not value:
                 continue
             if isinstance(value, dict) or isinstance(value, list):
                 value = json.dumps(value)
-            data_to_cache[self._key(key)] = value
+            data_to_cache[key] = value
 
         self._client_set(data_to_cache)
 
