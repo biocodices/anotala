@@ -1,10 +1,10 @@
 import requests
 from itertools import chain
 
-from biocodices.annotation import AnnotatorWithCache
+from anotamela.annotators import AnnotatorWithCache
 
 
-class DbSNP(AnnotatorWithCache):
+class DbSNPAnnotator(AnnotatorWithCache):
     @staticmethod
     def _key(rs):
         return 'dbsnp:%s' % rs

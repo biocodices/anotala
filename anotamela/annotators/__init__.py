@@ -1,0 +1,1 @@
+from dbsnp_annotator import DbSNPAnnotator
