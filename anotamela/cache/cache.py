@@ -42,8 +42,8 @@ class Cache:
             info_dict[key] = response
 
         if verbose and len(keys) > 1:
-            msg = '📂 %s found %s/%s in cache'
-            logger.info(msg % (self.name, len(info_dict), len(keys)))
+            msg = '📂 {} found {}/{} in cache'
+            logger.info(msg.format(self.name, len(info_dict), len(keys)))
 
         return info_dict
 
