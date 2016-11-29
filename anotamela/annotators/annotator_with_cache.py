@@ -23,20 +23,20 @@ class AnnotatorWithCache():
     `_batch_query()` for services that you want to parallelize in a different
     way.
     """
+    AVAILABLE_CACHES = {
+            'redis': RedisCache,
+        }
+
     def __init__(self, cache='redis'):
         self.name = self.__class__.__name__
 
         try:
-            self.cache = self._available_caches[cache]()
+            self.cache = self.AVAILABLE_CACHES[cache]()
         except KeyError:
             raise ValueError('Unknown cache type "{}"'.format(cache))
 
-    @staticmethod
-    def _available_caches():
-        return {'redis': RedisCache, None: None}
-
     def annotate(self, ids, parallel=10, sleep_time=10, use_cache=True,
-                 use_web=True):
+                 use_web=True, parse_data=True):
         """
         Annotate one or more IDs and return an info dictionary with one key per
         passed ID. If use_cache is set, cached responses will be prioritized
