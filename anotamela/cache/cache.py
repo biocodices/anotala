@@ -8,69 +8,73 @@ logger = logging.getLogger(__name__)
 class Cache:
     """
     Base class for caching that provides a common logic to set and retrieve
-    group of keys in the form of info dictionaries. Particularly, it will deal
+    group of ids in the form of info dictionaries. Particularly, it will deal
     with serializing and deserializing data during dump and load.
 
     Classes inheriting from this class should implement the methods:
 
-        - _client_get(keys)
+        - _client_get(ids)
         - _client_set(info_dict)
 
     """
-    def _client_get(keys):
+    def _client_get(ids, namespace):
         raise NotImplementedError
 
-    def _client_set(info_dict):
+    def _client_set(data_to_cache, namespace):
         raise NotImplementedError
 
-    def get(self, keys, verbose=True):
+    def get(self, ids, namespace=None, verbose=True):
         """
-        Get a list of keys data from cache. Returns an info dict with the form:
+        Get a list of ids data from cache. Returns an info dict with the form:
 
         {
-            key1: raw response of the service for key 1,
-            key2: raw response of the service for key 2,
+            id1: raw response of the service for id 1,
+            id2: raw response of the service for id 2,
             ...
         }
 
-        It will json-load the dicts and lists.
+        The namespace will be used as a tablename or id prefix according to
+        each particular Cache class. Dicts and lists will be json-loaded.
         """
-        info_dict = {k: v for k, v in self._client_get(keys).items() if v}
+        cached_data = self._client_get(ids, namespace=namespace)
+        info_dict = {k: v for k, v in cached_data.items() if v}
 
-        for key, raw_response in info_dict.items():
-            response = self._decode_and_try_to_deserialize(raw_response)
-            info_dict[key] = response  # Overwrite the raw response
+        for id_, raw_response in info_dict.items():
+            response = self._try_to_decode_and_deserialize(raw_response)
+            info_dict[id_] = response
 
-        if verbose and len(keys) > 1:
-            msg = '📂 {} found {}/{} in cache'
-            logger.info(msg.format(self.name, len(info_dict), len(keys)))
+        if verbose and len(ids) > 1:
+            msg = 'Found {}/{} ({})'
+            logger.info(msg.format(len(info_dict), len(ids),
+                                   self.__class__.__name__))
 
         return info_dict
 
-    def set(self, info_dict):
+    def set(self, info_dict, namespace=None):
         """
-        Set the cache for a list of keys. Expects a dict with the form:
+        Set the cache for a list of ids. Expects a dict with the form:
 
         {
-            key1: raw response of the service for key 1,
-            key2: raw response of the service for key 2,
+            id1: raw response of the service for id 1,
+            id2: raw response of the service for id 2,
             ...
         }
 
-        It will json-dump the dicts and lists.
+        The namespace will be used as a tablename or id prefix according to
+        each particular Cache class. Dicts and lists will be json-dumped.
         """
         data_to_cache = {}
-        for key, value in info_dict.items():
+        for id_, value in info_dict.items():
             if not value:
                 continue
             if isinstance(value, dict) or isinstance(value, list):
                 value = json.dumps(value)
-            data_to_cache[key] = value
+            data_to_cache[id_] = value
 
-        self._client_set(data_to_cache)
+        self._client_set(data_to_cache, namespace=namespace)
 
     @staticmethod
-    def _decode_and_try_to_deserialize(data):
+    def _try_to_decode_and_deserialize(data):
         try:
             decoded = data.decode('utf-8')
         except AttributeError:  # Already an UTF-8 str, leave as is

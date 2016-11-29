@@ -5,13 +5,11 @@ from anotamela.annotators import AnnotatorWithCache
 
 
 class DbSNPAnnotator(AnnotatorWithCache):
-    @staticmethod
-    def _key(rs):
-        return 'dbsnp:%s' % rs
+    SOURCE_NAME = 'dbsnp'
 
     @staticmethod
     def _url(rs):
-        path = 'http://www.ncbi.nlm.nih.gov/projects/SNP/snp_gene.cgi?rs={0}'
+        path = 'https://www.ncbi.nlm.nih.gov/projects/SNP/snp_gene.cgi?rs={0}'
         return path.format(rs)
 
     def _query(self, rs):

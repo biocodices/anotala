@@ -18,10 +18,10 @@ class AnnotatorWithCache():
     to provide a shared logic of caching the responses of remote APIs and of
     parallelizing requests.
 
-    To use this class, create a new annotator class that implements
-    `_query()` and `_key()` methods. Optionally, you can override
-    `_batch_query()` for services that you want to parallelize in a different
-    way.
+    To use this class, create a new annotator class that implements a
+    `_query()` method and has a SOURCE_NAME class variable. Optionally, you can
+    override `_batch_query()` for services that you want to parallelize in a
+    special way.
     """
     AVAILABLE_CACHES = {
             'redis': RedisCache,
@@ -35,6 +35,14 @@ class AnnotatorWithCache():
         except KeyError:
             raise ValueError('Unknown cache type "{}"'.format(cache))
 
+    #  @classmethod
+    #  def _id_to_key(cls, id_):
+        #  return '{}:{}'.format(cls.DB_TABLE, id_)
+
+    #  @classmethod
+    #  def _key_to_id(cls, key):
+        #  return key.replace(cls.DB_TABLE + ':', '')
+
     def annotate(self, ids, parallel=10, sleep_time=10, use_cache=True,
                  use_web=True, parse_data=True):
         """
@@ -47,26 +55,25 @@ class AnnotatorWithCache():
         data).
 
         Annotators can implement extra parsing of the data with
-        parse_info_dict(). This parsing is enabled by default, but you can
-        disable it with parse_data=False and get the raw web/cached responses.
+        parse_annotations_dict(). This parsing is enabled by default, but you
+        can disable it with parse_data=False and get the raw web/cached responses.
         """
-        if isinstance(ids, str) or isinstance(ids, int):
-            ids = [ids]
-        ids = set(ids)
+        ids = self._set_of_string_ids(ids)
 
-        info_dict = {}
+        annotations_dict = {}
 
         if use_cache:
-            info_dict.update(self.cache.get(ids))
-            ids = ids - info_dict.keys()
+            cached_data = self.cache.get(ids, namespace=self.SOURCE_NAME)
+            annotations_dict.update(cached_data)
+            ids = ids - annotations_dict.ids()
         else:
             logger.info('Not using cache')
 
         if use_web:
             if ids:
                 info_from_api = self._batch_query(ids, parallel, sleep_time)
-                info_dict.update(info_from_api)
-                ids = ids - info_dict.keys()
+                annotations_dict.update(info_from_api)
+                ids = ids - annotations_dict.ids()
         else:
             logger.info('Not using web')
 
@@ -74,21 +81,18 @@ class AnnotatorWithCache():
             logger.info('No info for {} IDs'.format(len(ids)))
 
         if parse_data:
-            self.parse_info_dict(info_dict)
+            self.parse_annotations_dict(annotations_dict)
 
-        return info_dict
+        return annotations_dit
 
     def _query_and_set_cache(self, id_):
         """Make a query for a single id, cache the response, and return it."""
         response = self._query(id_)
         if response:
-            self.cache.set({id_: response})
+            self.cache.set({id_: response}, namespace=self.SOURCE_NAME)
         return response
 
     def _query(self):
-        raise NotImplementedError()
-
-    def _key(self):
         raise NotImplementedError()
 
     def _batch_query(self, ids, parallel, sleep_time):
@@ -98,12 +102,11 @@ class AnnotatorWithCache():
         """
         grouped_ids = list(grouped(ids, parallel))
 
-        msg = ('🌎 Get {} {} entries in {} batches ({} items/batch), '
-               'sleeping {}s between batches')
-        msg = msg.format(len(ids), self.name, len(grouped_ids), parallel,
-                         sleep_time)
+        msg = '{}: get {} entries in {} batches ({} items/batch)'
+        msg = msg.format(self.name, len(ids), len(grouped_ids), parallel)
         logger.info(msg)
 
+        annotations_dict = {}
         with ThreadPoolExecutor(max_workers=parallel) as executor:
             sys.stdout.flush()  # Hack for tqdm progress bar correct display
             iterator = enumerate(tqdm(grouped_ids, total=len(grouped_ids)))
@@ -111,13 +114,18 @@ class AnnotatorWithCache():
                 if i > 0:
                     time.sleep(sleep_time)
 
-                executor.map(self._query_and_set_cache, ids_group)
+                annotations = executor.map(self._query_and_set_cache, ids_group)
+                annotations_dit.update(zip(ids_group, annotations))
 
-        # After caching all the responses, use the logic in #cache.get()
-        # to bring them from cache. The jsons will be json-loaded, the xml
-        # will be left as they are, etc.
-        return self.cache.get(ids, verbose=False)
+        return annotations_dict
 
-    def parse_info_dict(self, info_dict):
+    def parse_annotations_dict(self, info_dict):
         # Override this for extra parsing logic of the cached raw data
         pass
+
+    @staticmethod
+    def _set_of_string_ids(ids):
+        if isinstance(ids, str) or isinstance(ids, int):
+            ids = [ids]
+        return set(str(id_) for id_ in set(ids))
+
