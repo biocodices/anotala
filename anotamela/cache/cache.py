@@ -35,11 +35,11 @@ class Cache:
 
         It will json-load the dicts and lists.
         """
-        info_dict = {k: v for k, v in zip(keys, self._client_get(keys)) if v}
+        info_dict = {k: v for k, v in self._client_get(keys).items() if v}
 
         for key, raw_response in info_dict.items():
             response = self._decode_and_try_to_deserialize(raw_response)
-            info_dict[key] = response
+            info_dict[key] = response  # Overwrite the raw response
 
         if verbose and len(keys) > 1:
             msg = '📂 {} found {}/{} in cache'

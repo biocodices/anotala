@@ -21,6 +21,6 @@ class RedisCache(Cache):
     def _client_set(self, info_dict):
         self.client.mset(data_to_cache)
 
-    def _client_get(self, ids):
-        return self.client.mget(keys)
+    def _client_get(self, keys):
+        return {key: value for key, value in zip(keys, self.client.mget(keys))}
 
