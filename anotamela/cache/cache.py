@@ -13,8 +13,8 @@ class Cache:
 
     Classes inheriting from this class should implement the methods:
 
-        - _client_get(ids)  # => info_dict { id1: val1, id2: val2 ... }
-        - _client_set(info_dict)
+        - _client_get(ids, namespace)  # => info_dict { id1: val1, id2: val2 ... }
+        - _client_set(info_dict, namespace)
 
     """
     def get(self, ids, namespace=None, verbose=True):

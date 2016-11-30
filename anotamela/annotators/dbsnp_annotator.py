@@ -5,6 +5,14 @@ from anotamela.annotators import AnnotatorWithCache
 
 
 class DbSNPAnnotator(AnnotatorWithCache):
+    """
+    Provider of DbSNP annotations. Responses will be cached. Usage:
+
+        > dbsnp_annotator = DbSNPAnnotator()
+        > dbsnp_annotator.annotate('rs123 rs268'.split())
+        # => { 'rs123': ... , 'rs268': ... }
+
+    """
     SOURCE_NAME = 'dbsnp'
 
     @staticmethod
