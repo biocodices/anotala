@@ -22,18 +22,28 @@ class AnnotatorWithCache():
     `_query()` method and has a SOURCE_NAME class variable. Optionally, you can
     override `_batch_query()` for services that you want to parallelize in a
     special way.
+
+    SOURCE_NAME will work as a namespace or tablename according to each Cache
+    used. For instance, cache='redis' will use the SOURCE_NAME as a prefix
+    to the ID being cached (e.g. 'dbsnp:rs123'), whereas cache='postgres' will
+    use the SOURCE_NAME as the name of the table where to store the info.
     """
     AVAILABLE_CACHES = {
             'redis': RedisCache,
         }
 
-    def __init__(self, cache='redis'):
+    def __init__(self, cache='redis', **cache_kwargs):
         self.name = self.__class__.__name__
 
         try:
-            self.cache = self.AVAILABLE_CACHES[cache]()
-        except KeyError:
-            raise ValueError('Unknown cache type "{}"'.format(cache))
+            cache_class = self.AVAILABLE_CACHES[cache]
+        except KeyError as error:
+            known_caches = ', '.join(self.AVAILABLE_CACHES.keys())
+            msg = 'Unknown cache "{}". I only know: {}'.format(cache,
+                                                               known_caches)
+            raise ValueError(msg).with_traceback(error.__traceback__)
+
+        self.cache = cache_class(**cache_kwargs)
 
     def annotate(self, ids, parallel=10, sleep_time=10, use_cache=True,
                  use_web=True, parse_data=True):
@@ -95,12 +105,11 @@ class AnnotatorWithCache():
         grouped_ids = list(grouped(ids, parallel))
 
         msg = '{}: get {} entries in {} batches ({} items/batch)'
-        msg = msg.format(self.name, len(ids), len(grouped_ids), parallel)
-        logger.info(msg)
+        logger.info(msg.format(self.name, len(ids), len(grouped_ids), parallel))
 
         annotations_dict = {}
         with ThreadPoolExecutor(max_workers=parallel) as executor:
-            sys.stdout.flush()  # Hack for tqdm progress bar correct display
+            sys.stdout.flush()  # Hack to display tqdm progress bar correctly
             iterator = enumerate(tqdm(grouped_ids, total=len(grouped_ids)))
             for i, ids_group in iterator:
                 if i > 0:
@@ -112,7 +121,7 @@ class AnnotatorWithCache():
         return annotations_dict
 
     def parse_annotations_dict(self, info_dict):
-        # Override this for extra parsing logic of the cached raw data
+        # Override this for extra parsing logic
         pass
 
     @staticmethod
