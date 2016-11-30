@@ -22,16 +22,16 @@ class RedisCache(Cache):
                            'name': self.__class__.__name__})
 
     def _client_set(self, data_to_cache, namespace):
-        # Transform the ids to keys prefixing them with the given namespace
-        data_to_cache = {'{}:{}'.format(namespace, id_): value
+        data_to_cache = {self._id_to_key(id_, namespace): value
                          for id_, value in data_to_cache.items()}
         self.client.mset(data_to_cache)
 
-    def _client_get(self, ids_, namespace):
-        # Transform the ids to keys prefixing them with the given namespace
-        ids_, self.client.mget(['{}:{}'])
-        cached_data = {key: value for key, value in zip(keys, self.client.mget(keys))}
+    def _client_get(self, ids, namespace):
+        keys = [self._id_to_key(id_) for id_ in ids]
+        return dict(zip(ids, self.client.mget(keys)))
 
-    def _id_to_key(id_):
-        pass ####
+    @staticmethod
+    def _id_to_key(id_, namespace):
+        # Transform the ids to keys prefixing them with the given namespace
+        return '{}:{}'.format(namespace, id_)
 
