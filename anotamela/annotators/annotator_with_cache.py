@@ -35,14 +35,6 @@ class AnnotatorWithCache():
         except KeyError:
             raise ValueError('Unknown cache type "{}"'.format(cache))
 
-    #  @classmethod
-    #  def _id_to_key(cls, id_):
-        #  return '{}:{}'.format(cls.DB_TABLE, id_)
-
-    #  @classmethod
-    #  def _key_to_id(cls, key):
-        #  return key.replace(cls.DB_TABLE + ':', '')
-
     def annotate(self, ids, parallel=10, sleep_time=10, use_cache=True,
                  use_web=True, parse_data=True):
         """
@@ -65,7 +57,7 @@ class AnnotatorWithCache():
         if use_cache:
             cached_data = self.cache.get(ids, namespace=self.SOURCE_NAME)
             annotations_dict.update(cached_data)
-            ids = ids - annotations_dict.ids()
+            ids = ids - annotations_dict.keys()
         else:
             logger.info('Not using cache')
 
@@ -73,7 +65,7 @@ class AnnotatorWithCache():
             if ids:
                 info_from_api = self._batch_query(ids, parallel, sleep_time)
                 annotations_dict.update(info_from_api)
-                ids = ids - annotations_dict.ids()
+                ids = ids - annotations_dict.keys()
         else:
             logger.info('Not using web')
 
@@ -83,7 +75,7 @@ class AnnotatorWithCache():
         if parse_data:
             self.parse_annotations_dict(annotations_dict)
 
-        return annotations_dit
+        return annotations_dict
 
     def _query_and_set_cache(self, id_):
         """Make a query for a single id, cache the response, and return it."""
@@ -115,7 +107,7 @@ class AnnotatorWithCache():
                     time.sleep(sleep_time)
 
                 annotations = executor.map(self._query_and_set_cache, ids_group)
-                annotations_dit.update(zip(ids_group, annotations))
+                annotations_dict.update(zip(ids_group, annotations))
 
         return annotations_dict
 
