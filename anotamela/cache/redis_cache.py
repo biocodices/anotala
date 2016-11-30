@@ -13,6 +13,7 @@ class RedisCache(Cache):
         self.client = redis.StrictRedis(host=host, port=port, db=db)
         self.connection_data = self.client.connection_pool.connection_kwargs
 
+        self.client.ping()  # Raises ConnectionError if server is not there
         logger.info('Connected to Redis @{host}:{port} db={db}'.format(
                 **self.connection_data))
 
@@ -27,7 +28,7 @@ class RedisCache(Cache):
         self.client.mset(data_to_cache)
 
     def _client_get(self, ids, namespace):
-        keys = [self._id_to_key(id_) for id_ in ids]
+        keys = [self._id_to_key(id_, namespace) for id_ in ids]
         return dict(zip(ids, self.client.mget(keys)))
 
     @staticmethod
