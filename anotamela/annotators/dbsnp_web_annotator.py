@@ -4,12 +4,12 @@ from itertools import chain
 from anotamela.annotators import AnnotatorWithCache
 
 
-class DbSNPAnnotator(AnnotatorWithCache):
+class DbsnpWebAnnotator(AnnotatorWithCache):
     """
-    Provider of DbSNP annotations. Responses will be cached. Usage:
+    Provider of DbSNP annotations taken from their web. Responses are cached.
 
-        > dbsnp_annotator = DbSNPAnnotator()
-        > dbsnp_annotator.annotate('rs123 rs268'.split())
+        > dbsnp_web_annotator = DbsnpWebAnnotator()
+        > dbsnp_web_annotator.annotate('rs123 rs268'.split())
         # => { 'rs123': ... , 'rs268': ... }
 
     """

@@ -18,10 +18,12 @@ class AnnotatorWithCache():
     to provide a shared logic of caching the responses of remote APIs and of
     parallelizing requests.
 
-    To use this class, create a new annotator class that implements a
-    `_query()` method and has a SOURCE_NAME class variable. Optionally, you can
-    override `_batch_query()` for services that you want to parallelize in a
-    special way.
+    To use this class, create a new annotator class that has:
+        - a SOURCE_NAME class variable
+        - either a `_query()` method to fetch a single ID's data --the
+          annotation will be parallelized with multithread calls to that
+          method-- or a `_batch_query()` method to fetch a group of IDs, in
+          case you want to implement parallelization in a different way.
 
     SOURCE_NAME will work as a namespace or tablename according to each Cache
     used. For instance, cache='redis' will use the SOURCE_NAME as a prefix
@@ -58,25 +60,25 @@ class AnnotatorWithCache():
         data).
 
         Annotators can implement extra parsing of the data with
-        parse_annotations_dict(). This parsing is enabled by default, but you
+        parse_annotations(). This parsing is enabled by default, but you
         can disable it with parse_data=False and get the raw web/cached responses.
         """
         ids = self._set_of_string_ids(ids)
 
-        annotations_dict = {}
+        annotations = {}
 
         if use_cache:
             cached_data = self.cache.get(ids, namespace=self.SOURCE_NAME)
-            annotations_dict.update(cached_data)
-            ids = ids - annotations_dict.keys()
+            annotations.update(cached_data)
+            ids = ids - annotations.keys()
         else:
             logger.info('Not using cache')
 
         if use_web:
             if ids:
                 info_from_api = self._batch_query(ids, parallel, sleep_time)
-                annotations_dict.update(info_from_api)
-                ids = ids - annotations_dict.keys()
+                annotations.update(info_from_api)
+                ids = ids - annotations.keys()
         else:
             logger.info('Not using web')
 
@@ -84,9 +86,9 @@ class AnnotatorWithCache():
             logger.info('No info for {} IDs'.format(len(ids)))
 
         if parse_data:
-            self.parse_annotations_dict(annotations_dict)
+            self.parse_annotations(annotations)
 
-        return annotations_dict
+        return annotations
 
     def _query_and_set_cache(self, id_):
         """Make a query for a single id, cache the response, and return it."""
@@ -108,7 +110,7 @@ class AnnotatorWithCache():
         msg = '{}: get {} entries in {} batches ({} items/batch)'
         logger.info(msg.format(self.name, len(ids), len(grouped_ids), parallel))
 
-        annotations_dict = {}
+        annotations = {}
         with ThreadPoolExecutor(max_workers=parallel) as executor:
             sys.stdout.flush()  # Hack to display tqdm progress bar correctly
             iterator = enumerate(tqdm(grouped_ids, total=len(grouped_ids)))
@@ -117,11 +119,11 @@ class AnnotatorWithCache():
                     time.sleep(sleep_time)
 
                 annotations = executor.map(self._query_and_set_cache, ids_group)
-                annotations_dict.update(zip(ids_group, annotations))
+                annotations.update(zip(ids_group, annotations))
 
-        return annotations_dict
+        return annotations
 
-    def parse_annotations_dict(self, info_dict):
+    def parse_annotations(self, info_dict):
         # Override this for extra parsing logic
         pass
 
