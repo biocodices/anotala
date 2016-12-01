@@ -56,10 +56,9 @@ def test_redis_cache():
 
 def test_postgres_cache():
     try:
-        postgres_cache = PostgresCache()
-        # FIXME: This is hacky. It will just test Postgres if it finds it
-        # in can connect with credentials found in the default path
-        # ~/.postgres_credentials.yml. Ought to think of smth better.
+        # Tests will write to the same database, but in a different table
+        # (defined by the different namespace generated below)
+        postgres_cache = PostgresCache('~/.postgres_credentials.yml')
     except OperationalError:
         return
 

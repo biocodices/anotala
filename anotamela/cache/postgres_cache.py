@@ -24,16 +24,13 @@ class PostgresCache(Cache):
         """
         self._credentials = self._read_credentials(credentials_filepath)
         self._connect(self._credentials)
-
         logger.info('Connected to PostgreSQL ({!r})'.format(self.engine.url))
-
         self.tables = {}
 
     def _client_get(self, ids, namespace):
         table = self._get_table(namespace)
         selection = table.select().where(table.c.id.in_(ids))
         result = self.connection.execute(selection)
-
         return {row['id']: row['annotation'] for row in result}
 
     def _client_set(self, info_dict, namespace):
@@ -63,17 +60,6 @@ class PostgresCache(Cache):
 
         return self.tables[tablename]
 
-    @staticmethod
-    def _read_credentials(filepath):
-        try:
-            with open(expanduser(filepath)) as f:
-                return yaml.load(f.read())
-        except FileNotFoundError as error:
-            msg = "Couldn't find a YAML with PostgreSQL credentials in '{}'"
-            msg += '. It should include: host, user, pass, port, db.'
-            msg = msg.format(filepath)
-            raise FileNotFoundError(msg).with_traceback(error.__traceback__)
-
     def _create_table(self, tablename):
         """
         Create a SQLAlchemy Table for the given tablename. All tables created
@@ -81,7 +67,7 @@ class PostgresCache(Cache):
 
         If the table doesn't exist, it will be created in the process.
 
-        Returns a Table subclass.
+        Returns a Table instance.
         """
         metadata = MetaData()
         table = Table(tablename, metadata,
@@ -92,4 +78,15 @@ class PostgresCache(Cache):
                              default=datetime.now, nullable=False))
         metadata.create_all(self.engine)
         return table
+
+    @staticmethod
+    def _read_credentials(filepath):
+        try:
+            with open(expanduser(filepath)) as f:
+                return yaml.load(f.read())
+        except FileNotFoundError as error:
+            msg = "Couldn't find a YAML with PostgreSQL credentials in '{}'"
+            msg += '. It should include: host, user, pass, port, db.'
+            msg = msg.format(filepath)
+            raise FileNotFoundError(msg).with_traceback(error.__traceback__)
 
