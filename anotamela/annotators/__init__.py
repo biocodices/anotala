@@ -1,2 +1,4 @@
 from .annotator_with_cache import AnnotatorWithCache
-from .dbsnp_annotator import DbSNPAnnotator
+from .dbsnp_web_annotator import DbsnpWebAnnotator
+from .dbsnp_entrez_annotator import DbsnpEntrezAnnotator
+

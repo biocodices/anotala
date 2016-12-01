@@ -3,7 +3,8 @@ import logging
 
 import coloredlogs
 
-from .annotators import DbSNPAnnotator
+from .annotators import DbsnpWebAnnotator
+from .annotators import DbsnpEntrezAnnotator
 
 
 coloredlogs.DEFAULT_LOG_FORMAT = \
