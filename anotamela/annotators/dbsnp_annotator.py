@@ -13,7 +13,7 @@ class DbSNPAnnotator(AnnotatorWithCache):
         # => { 'rs123': ... , 'rs268': ... }
 
     """
-    SOURCE_NAME = 'dbsnp'
+    SOURCE_NAME = 'dbsnp_web'
 
     @staticmethod
     def _url(rs):

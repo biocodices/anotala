@@ -1,12 +1,16 @@
 from os.path import expanduser
 import yaml
 import reprlib
+import logging
 from datetime import datetime
 
 from sqlalchemy import create_engine, Table, Column, String, DateTime, MetaData
 from sqlalchemy.dialects.postgresql import JSONB
 
 from anotamela.cache import Cache
+
+
+logger = logging.getLogger(__name__)
 
 
 class PostgresCache(Cache):
@@ -18,8 +22,11 @@ class PostgresCache(Cache):
         db. It will try to connect to a PostgreSQL database with those
         credentials.
         """
-        self._credentials = self._read_credentials()
+        self._credentials = self._read_credentials(credentials_filepath)
         self._connect(self._credentials)
+
+        log_msg = 'Connected to Postgres ({user}:****@{host}:{port} db={db})'
+        logger.info(log_msg.format(**self._credentials))
 
         self.tables = {}
 
@@ -36,9 +43,8 @@ class PostgresCache(Cache):
         new_annotations = [{'id': id_, 'annotation': ann}
                            for id_, ann in info_dict.items()]
 
-        with self.connection.begin() as transaction:
-            self._client_del(ids_to_remove, namespace)
-            self.connection.execute(table.insert(), new_annotations)
+        self._client_del(ids_to_remove, namespace)
+        self.connection.execute(table.insert(), new_annotations)
 
     def _client_del(self, ids, namespace):
         table = self._get_table(namespace)
@@ -59,9 +65,15 @@ class PostgresCache(Cache):
         return self.tables[tablename]
 
     @staticmethod
-    def _read_credentials():
-        with open(expanduser('~/.postgres_credentials.yml')) as f:
-            return yaml.load(f.read())
+    def _read_credentials(filepath):
+        try:
+            with open(expanduser(filepath)) as f:
+                return yaml.load(f.read())
+        except FileNotFoundError as error:
+            msg = "Couldn't find a YAML with PostgreSQL credentials in '{}'"
+            msg += '. It should include: host, user, pass, port, db.'
+            msg = msg.format(filepath)
+            raise FileNotFoundError(msg).with_traceback(error.__traceback__)
 
     def _create_table(self, tablename):
         """
