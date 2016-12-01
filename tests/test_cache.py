@@ -1,10 +1,10 @@
-from os import getpid
 import logging
 
 import pytest
 import redis
+from sqlalchemy.exc import OperationalError
 
-from anotamela.cache import RedisCache
+from anotamela.cache import RedisCache, PostgresCache
 
 
 logger = logging.getLogger()
@@ -17,7 +17,7 @@ def test_get(mock_cache):
     namespace = 'foo'
     mock_cache.storage[namespace].update(TEST_INFO)
 
-    info_dict = mock_cache.get(keys, namespace=namespace)
+    info_dict = mock_cache.get(keys, namespace)
 
     assert all([key in info_dict for key in keys])
     assert all([k in info_dict[k] for k in keys])
@@ -26,8 +26,8 @@ def test_set(mock_cache):
     mock_cache = mock_cache
     namespace = 'bar'
 
-    mock_cache.set(TEST_INFO, namespace=namespace)
-    cached_info = mock_cache.get(TEST_INFO.keys(), namespace=namespace)
+    mock_cache.set(TEST_INFO, namespace)
+    cached_info = mock_cache.get(TEST_INFO.keys(), namespace)
 
     assert all(cached_info[k] == v for k, v in TEST_INFO.items())
 
@@ -39,18 +39,40 @@ def test_redis_cache():
     except redis.exceptions.ConnectionError:
         return
 
-    namespace = 'testing_anotamela_{}'.format(getpid())
+    namespace = get_test_namespace()
 
-    redis_cache._client_set(TEST_INFO, namespace=namespace)
+    redis_cache._client_set(TEST_INFO, namespace)
     cached_data = redis_cache.client.get('{}:key1'.format(namespace))
 
     assert cached_data == b'key1-val'
 
-    cached_data = redis_cache.get(TEST_INFO.keys(), namespace=namespace)
+    cached_data = redis_cache.get(TEST_INFO.keys(), namespace)
 
     assert cached_data == TEST_INFO
 
     # Cleanup
     testing_keys = redis_cache.client.keys('{}*'.format(namespace))
     redis_cache.client.delete(*testing_keys)
+
+def test_postgres_cache():
+    try:
+        postgres_cache = PostgresCache()
+        # FIXME: This is hacky. It will just test Postgres if it finds it
+        # in can connect with credentials found in the default path
+        # ~/.postgres_credentials.yml. Ought to think of smth better.
+    except OperationalError:
+        return
+
+    namespace = get_test_namespace()
+
+    postgres_cache._client_set(TEST_INFO, namespace)
+    cached_data = postgres_cache.get(TEST_INFO.keys(), namespace)
+
+    assert cached_data == TEST_INFO
+
+    # Cleanup
+    postgres_cache._client_del(TEST_INFO.keys(), namespace)
+
+def get_test_namespace():
+    return 'testing_anotamela'
 

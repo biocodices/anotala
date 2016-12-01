@@ -1,16 +1,18 @@
 from os.path import expanduser
 import yaml
 import reprlib
-import datetime
+from datetime import datetime
 
-from sqlalchemy import create_engine, Column, String, DateTime
+from sqlalchemy import create_engine, Table, Column, String, DateTime, MetaData
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+
+from anotamela.cache import Cache
 
 
-class PostgresCache():
-    def __init__(self, credentials_filepath):
+class PostgresCache(Cache):
+    CREDS_FILE = '~/.postgres_credentials.yml'
+
+    def __init__(self, credentials_filepath=CREDS_FILE):
         """
         Accepts a filepath to a YAML file with keys: host, user, pass, port,
         db. It will try to connect to a PostgreSQL database with those
@@ -19,65 +21,64 @@ class PostgresCache():
         self._credentials = self._read_credentials()
         self._connect(self._credentials)
 
-        self.models = {}
+        self.tables = {}
 
     def _client_get(self, ids, namespace):
-        pass
+        table = self._get_table(namespace)
+        selection = table.select().where(table.c.id.in_(ids))
+        result = self.connection.execute(selection)
+
+        return {row['id']: row['annotation'] for row in result}
 
     def _client_set(self, info_dict, namespace):
-        pass
+        table = self._get_table(namespace)
+        ids_to_remove = info_dict.keys()
+        new_annotations = [{'id': id_, 'annotation': ann}
+                           for id_, ann in info_dict.items()]
 
-    def get_model(self, tablename):
-        """Get a SQLAlchemy model for the given table."""
-        if not tablename in self.models:
-            self.models[tablename] = self._create_model(tablename)
+        with self.connection.begin() as transaction:
+            self._client_del(ids_to_remove, namespace)
+            self.connection.execute(table.insert(), new_annotations)
 
-        return self.models[tablename]
+    def _client_del(self, ids, namespace):
+        table = self._get_table(namespace)
+        deletion = table.delete().where(table.c.id.in_(ids))
+        self.connection.execute(deletion)
 
-    @staticmethod
-    def _connect(credentials):
+    def _connect(self, credentials):
         url = 'postgresql://{user}:{pass}@{host}:{port}/{db}'.format(
                 **credentials)
-        self.connection = create_engine(url)
-        self.session = sessionmaker().configure(bind=self.connection)
+        self.engine = create_engine(url)
+        self.connection = self.engine.connect()
+
+    def _get_table(self, tablename):
+        """Get a SQLAlchemy Table for the given tablename."""
+        if not tablename in self.tables:
+            self.tables[tablename] = self._create_table(tablename)
+
+        return self.tables[tablename]
 
     @staticmethod
     def _read_credentials():
         with open(expanduser('~/.postgres_credentials.yml')) as f:
             return yaml.load(f.read())
 
-    def _create_model(self, tablename):
+    def _create_table(self, tablename):
         """
-        Create a SQLAlchemy model for the given tablename. All models created
+        Create a SQLAlchemy Table for the given tablename. All tables created
         have the same columns: id, annotation, synonyms, and last_updated.
 
         If the table doesn't exist, it will be created in the process.
 
-        Returns the model class, which you can use to query the table.
+        Returns a Table subclass.
         """
-        def _model_repr(self):
-            rep = "{}(id='{}', annotation='{}', synonyms='{}')"
-            return rep.format(self.name.capitalize(), self.id,
-                            reprlib.repr(self.annotation), self.synonyms)
-
-        class_attributes = {
-                '__tablename__': tablename,
-
-                # Table columns:
-                'id': Column(String(60), primary_key=True, nullable=False),
-                'annotation': Column(JSONB),
-                'synonyms': Column(JSONB),
-                'last_updated': Column(DateTime(timezone=True), nullable=False,
-                                       default=datetime.datetime.utcnow),
-
-                '__repr__': _model_repr,
-            }
-
-        Base = declarative_base()
-        model_class = type(tablename.capitalize(), (Base, ), class_attributes)
-
-        # This step creates the table if it doesn't exist
-        Base.metadata.create_all(self.connection)
-
-        return model_class
+        metadata = MetaData()
+        table = Table(tablename, metadata,
+                      Column('id', String(60), primary_key=True),
+                      Column('annotation', JSONB),
+                      Column('synonyms', JSONB),
+                      Column('last_updated', DateTime(timezone=True),
+                             default=datetime.now, nullable=False))
+        metadata.create_all(self.engine)
+        return table
 
