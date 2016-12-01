@@ -6,7 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 from tqdm import tqdm
 
 from anotamela.helpers import grouped
-from anotamela.cache import RedisCache
+from anotamela.cache import RedisCache, PostgresCache
 
 
 logger = logging.getLogger(__name__)
@@ -30,6 +30,7 @@ class AnnotatorWithCache():
     """
     AVAILABLE_CACHES = {
             'redis': RedisCache,
+            'postgres': PostgresCache
         }
 
     def __init__(self, cache='redis', **cache_kwargs):
