@@ -25,8 +25,7 @@ class PostgresCache(Cache):
         self._credentials = self._read_credentials(credentials_filepath)
         self._connect(self._credentials)
 
-        log_msg = 'Connected to Postgres ({user}:****@{host}:{port} db={db})'
-        logger.info(log_msg.format(**self._credentials))
+        logger.info('Connected to PostgreSQL ({!r})'.format(self.engine.url))
 
         self.tables = {}
 
