@@ -105,7 +105,7 @@ class DbsnpEntrezAnnotator(AnnotatorWithCache):
         for hgvs in e.select('hgvs'):
             ann['hgvs'].append(hgvs.text)
 
-        ann['frequency'] = e.frequency.attrs
+        ann['frequency'] = e.frequency and e.frequency.attrs
         ann['fxn'] = [fx.attrs for fx in e.select('fxnset')]
 
         return ann
