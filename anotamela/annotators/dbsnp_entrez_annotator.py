@@ -13,15 +13,14 @@ logger = logging.getLogger(__name__)
 
 class DbsnpEntrezAnnotator(AnnotatorWithCache):
     """
-    Provider of DbSNP annotations taken from the Entrez service. Responses are
-    cached. Usage:
+    Provider of DbSNP annotations taken from the Entrez service. XML responses
+    are cached and then parsed. Usage:
 
         > dbsnp_entrez_annotator = DbsnpEntrezAnnotator()
         > dbsnp_entrez_annotator.annotate('rs123 rs268'.split())
         # => { 'rs123': ... , 'rs268': ... }
     """
     SOURCE_NAME = 'dbsnp_entrez'
-    ANNOTATION_TYPE = 'XML'
     LINKOUT_NAMES = {'1': 'snp', '5': 'pubmed'}
 
     def _batch_query(self, ids, parallel, sleep_time):
@@ -53,13 +52,11 @@ class DbsnpEntrezAnnotator(AnnotatorWithCache):
             # Split the XML per variant
             group_annotations = {}
             soup = self._make_xml_soup(xml)
-            for rs_element in soup.select('rs'):
-                xml_fragment = str(rs_element)
-                rs_id = 'rs' + rs_element['rsid']
-                group_annotations[rs_id] = xml_fragment
+            for rs_xml_element in soup.select('rs'):
+                rs_id = 'rs' + rs_xml_element['rsid']
+                group_annotations[rs_id] = str(rs_xml_element)
 
             self.cache.set(group_annotations, namespace=self.SOURCE_NAME)
-
             annotations.update(group_annotations)
             time.sleep(sleep_time)
 
