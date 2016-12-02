@@ -144,7 +144,6 @@ class AnnotatorWithCache():
                 for id_, annotation in annotations.items():
                     future = executor.submit(self._parse_annotation, annotation)
                     future_to_id[future] = id_
-
                 for future in as_completed(future_to_id):
                     id_ = future_to_id[future]
                     parsed_annotations[id_] = future.result()
