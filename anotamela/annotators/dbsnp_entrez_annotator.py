@@ -1,7 +1,7 @@
 import logging
 
 from anotamela.annotators import AnnotatorWithCache
-from anotamela.helpers import make_xml_soup, entrez_post_query
+from anotamela.helpers import make_xml_soup, EntrezHelper
 
 
 logger = logging.getLogger(__name__)
@@ -30,7 +30,8 @@ class DbsnpEntrezAnnotator(AnnotatorWithCache):
                 'xml_element_tag': 'rs',
                 'xml_id_attribute': 'rsid'
             }
-        results = entrez_post_query(**entrez_params)
+        entrez_helper = EntrezHelper()
+        results = entrez_helper.post_query(**entrez_params)
         annotations = {}
         for id_, annotation in results:
             self.cache.set({id_: annotation}, namespace=self.SOURCE_NAME)
