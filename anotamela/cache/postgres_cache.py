@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 class PostgresCache(Cache):
     CREDS_FILE = '~/.postgres_credentials.yml'
+    JSON_ANNOTATIONS = ['dbsnp_web']
 
     def __init__(self, credentials_filepath=CREDS_FILE):
         """
@@ -70,9 +71,10 @@ class PostgresCache(Cache):
         Returns a Table instance.
         """
         metadata = MetaData()
+        ann_type = JSONB if tablename in self.JSON_ANNOTATIONS else String
         table = Table(tablename, metadata,
                       Column('id', String(60), primary_key=True),
-                      Column('annotation', JSONB),
+                      Column('annotation', ann_type),
                       Column('synonyms', JSONB),
                       Column('last_updated', DateTime(timezone=True),
                              default=datetime.now, nullable=False))

@@ -1,9 +1,15 @@
 import sys
 import time
 import logging
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import (
+        ThreadPoolExecutor,
+        ProcessPoolExecutor,
+        as_completed
+    )
+from functools import lru_cache
 
 from tqdm import tqdm
+from bs4 import BeautifulSoup
 
 from anotamela.helpers import grouped
 from anotamela.cache import RedisCache, PostgresCache
@@ -60,7 +66,7 @@ class AnnotatorWithCache():
         data).
 
         Annotators can implement extra parsing of the data with
-        parse_annotations(). This parsing is enabled by default, but you
+        _parse_annotation(). This parsing is enabled by default, but you
         can disable it with parse_data=False and get the raw web/cached responses.
         """
         ids = self._set_of_string_ids(ids)
@@ -86,7 +92,7 @@ class AnnotatorWithCache():
             logger.info('No info for {} IDs'.format(len(ids)))
 
         if parse_data:
-            self.parse_annotations(annotations)
+            annotations = self._parse_annotations(annotations)
 
         return annotations
 
@@ -123,13 +129,36 @@ class AnnotatorWithCache():
 
         return annotations
 
-    def parse_annotations(self, info_dict):
-        # Override this for extra parsing logic
-        pass
+    def _parse_annotations(self, annotations):
+        """
+        Parse a dict of annotations in parallel. Return a dictionary with the
+        same keys and the parsed annotations.
+        """
+        if not hasattr(self, '_parse_annotation'):
+            return annotations
+
+        for id_, annotation in annotations.items():
+            parsed_annotations = {}
+            with ProcessPoolExecutor() as executor:
+                future_to_id = {}
+                for id_, annotation in annotations.items():
+                    future = executor.submit(self._parse_annotation, annotation)
+                    future_to_id[future] = id_
+
+                for future in as_completed(future_to_id):
+                    id_ = future_to_id[future]
+                    parsed_annotations[id_] = future.result()
+
+            return parsed_annotations
 
     @staticmethod
     def _set_of_string_ids(ids):
         if isinstance(ids, str) or isinstance(ids, int):
             ids = [ids]
         return set(str(id_) for id_ in set(ids))
+
+    @staticmethod
+    @lru_cache(maxsize=2000)
+    def _make_xml_soup(xml):
+        return BeautifulSoup(xml, 'lxml')
 

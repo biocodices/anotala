@@ -3,7 +3,6 @@ import time
 import logging
 
 from Bio import Entrez
-from bs4 import BeautifulSoup
 from tqdm import tqdm
 
 from anotamela.annotators import AnnotatorWithCache
@@ -20,16 +19,12 @@ class DbsnpEntrezAnnotator(AnnotatorWithCache):
         > dbsnp_entrez_annotator = DbsnpEntrezAnnotator()
         > dbsnp_entrez_annotator.annotate('rs123 rs268'.split())
         # => { 'rs123': ... , 'rs268': ... }
-
-    You may change the batch size of requests to Entrez by modifying once:
-
-        > DbsnpEntreAnnotator.BATCH_SIZE = 1500  # Default is 1000
-
     """
     SOURCE_NAME = 'dbsnp_entrez'
-    BATCH_SIZE = 1000
+    ANNOTATION_TYPE = 'XML'
+    LINKOUT_NAMES = {'1': 'snp', '5': 'pubmed'}
 
-    def _batch_query(self, ids, parallel=BATCH_SIZE, sleep_time=0):
+    def _batch_query(self, ids, parallel, sleep_time):
         if not Entrez.email:
             self.set_email_for_entrez
 
@@ -57,7 +52,7 @@ class DbsnpEntrezAnnotator(AnnotatorWithCache):
 
             # Split the XML per variant
             group_annotations = {}
-            soup = BeautifulSoup(xml, 'lxml')
+            soup = self._make_xml_soup(xml)
             for rs_element in soup.select('rs'):
                 xml_fragment = str(rs_element)
                 rs_id = 'rs' + rs_element['rsid']
@@ -69,6 +64,51 @@ class DbsnpEntrezAnnotator(AnnotatorWithCache):
             time.sleep(sleep_time)
 
         return annotations
+
+    @classmethod
+    def _parse_annotation(cls, annotation):
+        """
+        Parse an XML for a single rs ID from by Entrez. Return a dict.
+        """
+        ann = {}
+        soup = cls._make_xml_soup(annotation)
+
+        rs_elements = soup.select('rs')
+        assert len(rs_elements) == 1
+        e = rs_elements[0]
+
+        ann['rs_id'] = 'rs' + e['rsid']
+        ann['type'] = e['snpclass']
+
+        seq = [child for child in e.children if child.name == 'sequence']
+        assert len(seq) == 1
+        seq = seq[0]
+        ann['alleles'] = seq.observed.text
+
+        ann['links'] = {}
+        for link in e.select('rslinkout'):
+            resource = link['resourceid']
+            resource_name = cls.LINKOUT_NAMES.get(resource, resource)
+            value = link['linkvalue']
+            ann['links'][resource_name] = ann['links'].get(resource_name) or []
+            ann['links'][resource_name].append(value)
+
+        ann['synonyms'] = []
+        for synonym in e.select('mergehistory'):
+            ann['synonyms'].append('rs' + synonym['rsid'])
+
+        clinsigs = [sig.text
+                    for sig in e.select('phenotype clinicalsignificance')]
+        ann['clinical_significance'] = ','.join(clinsigs) or None
+
+        ann['hgvs'] = []
+        for hgvs in e.select('hgvs'):
+            ann['hgvs'].append(hgvs.text)
+
+        ann['frequency'] = e.frequency.attrs
+        ann['fxn'] = [fx.attrs for fx in e.select('fxnset')]
+
+        return ann
 
     def set_email_for_entrez(self):
         email_filepath = expanduser('~/.mail_address_for_Entrez')

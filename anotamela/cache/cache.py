@@ -17,7 +17,7 @@ class Cache:
         - _client_set(info_dict, namespace)
 
     """
-    def get(self, ids, namespace=None, verbose=True):
+    def get(self, ids, namespace, verbose=True):
         """
         Get data for a list of ids from cache. Returns an info dict like:
 
@@ -46,7 +46,7 @@ class Cache:
 
         return info_dict
 
-    def set(self, info_dict, namespace=None):
+    def set(self, info_dict, namespace):
         """
         Set the cache for a list of ids. Expects a dict with the form:
 
