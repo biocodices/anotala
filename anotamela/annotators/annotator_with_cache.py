@@ -118,8 +118,8 @@ class AnnotatorWithCache():
                 if i > 0:
                     time.sleep(sleep_time)
 
-                annotations = executor.map(self._query_and_set_cache, ids_group)
-                annotations.update(zip(ids_group, annotations))
+                group_annotations = executor.map(self._query_and_set_cache, ids_group)
+                annotations.update(zip(ids_group, group_annotations))
 
         return annotations
 
