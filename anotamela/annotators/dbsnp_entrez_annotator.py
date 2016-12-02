@@ -1,11 +1,7 @@
-from os.path import isfile, expanduser
-import time
 import logging
 
-from Bio import Entrez
-from tqdm import tqdm
-
 from anotamela.annotators import AnnotatorWithCache
+from anotamela.helpers import make_xml_soup, entrez_post_query
 
 
 logger = logging.getLogger(__name__)
@@ -24,42 +20,21 @@ class DbsnpEntrezAnnotator(AnnotatorWithCache):
     LINKOUT_NAMES = {'1': 'snp', '5': 'pubmed'}
 
     def _batch_query(self, ids, parallel, sleep_time):
-        if not Entrez.email:
-            self.set_email_for_entrez
-
-        # Entrez POST queries are a two step process. You first POST your query
-        # and get a WebEnv identifier and a QueryKey. Then you query using
-        # those IDs in batches. More info:
-        # http://biopython.org/DIST/docs/tutorial/Tutorial.html#sec:entrez-webenv
-        logger.info('Create a serverside Job and get its ID')
         ids = [id_.replace('rs', '') for id_ in ids]
-        handle = Entrez.epost(db='snp', id=','.join(ids))
-        job = Entrez.read(handle)
-
-        total = len(ids)
-        msg = 'Fetch {} entries from Entrez DbSNP in batches of {}'
-        logger.info(msg.format(total, parallel))
-
+        entrez_params = {
+                'db_name': 'snp',
+                'ids': ids,
+                'rettype': 'xml',
+                'batch_size': parallel,
+                'sleep_time': sleep_time,
+                'xml_element_tag': 'rs',
+                'xml_id_attribute': 'rsid'
+            }
+        results = entrez_post_query(**entrez_params)
         annotations = {}
-        for offset in tqdm(list(range(0, total, parallel))):
-            # Fetch the XML
-            fetch_handle = Entrez.efetch(db='snp', rettype='xml',
-                    retstart=offset, retmax=parallel,
-                    webenv=job['WebEnv'], query_key=job['QueryKey'])
-            xml = fetch_handle.read()
-            fetch_handle.close()
-
-            # Split the XML per variant
-            group_annotations = {}
-            soup = self._make_xml_soup(xml)
-            for rs_xml_element in soup.select('rs'):
-                rs_id = 'rs' + rs_xml_element['rsid']
-                group_annotations[rs_id] = str(rs_xml_element)
-
-            self.cache.set(group_annotations, namespace=self.SOURCE_NAME)
-            annotations.update(group_annotations)
-            time.sleep(sleep_time)
-
+        for id_, annotation in results:
+            self.cache.set({id_: annotation}, namespace=self.SOURCE_NAME)
+            annotations[id_] = annotation
         return annotations
 
     @classmethod
@@ -68,7 +43,7 @@ class DbsnpEntrezAnnotator(AnnotatorWithCache):
         Parse an XML for a single rs ID from by Entrez. Return a dict.
         """
         ann = {}
-        soup = cls._make_xml_soup(annotation)
+        soup = make_xml_soup(annotation)
 
         rs_elements = soup.select('rs')
         assert len(rs_elements) == 1
@@ -107,13 +82,3 @@ class DbsnpEntrezAnnotator(AnnotatorWithCache):
 
         return ann
 
-    def set_email_for_entrez(self):
-        email_filepath = expanduser('~/.mail_address_for_Entrez')
-
-        if not isfile(email_filepath):
-            msg = ('Please set a mail for Entrez in {}. Entrez will notify '
-                   'that mail before banning you if your usage is too high.')
-            raise Exception(msg)
-
-        with open(email_filepath) as f:
-            Entrez.email = f.read().strip()

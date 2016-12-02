@@ -9,7 +9,6 @@ from concurrent.futures import (
 from functools import lru_cache
 
 from tqdm import tqdm
-from bs4 import BeautifulSoup
 
 from anotamela.helpers import grouped
 from anotamela.cache import RedisCache, PostgresCache
@@ -155,9 +154,4 @@ class AnnotatorWithCache():
         if isinstance(ids, str) or isinstance(ids, int):
             ids = [ids]
         return set(str(id_) for id_ in set(ids))
-
-    @staticmethod
-    @lru_cache(maxsize=2000)
-    def _make_xml_soup(xml):
-        return BeautifulSoup(xml, 'lxml')
 
