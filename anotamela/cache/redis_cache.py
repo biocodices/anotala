@@ -14,7 +14,7 @@ class RedisCache(Cache):
         self.connection_data = self.client.connection_pool.connection_kwargs
 
         self.client.ping()  # Raises ConnectionError if server is not there
-        logger.info('Connected to Redis @{host}:{port} db={db}'.format(
+        logger.info('Connected to Redis ({host}:{port}/db={db})'.format(
                     **self.connection_data))
 
     def __repr__(self):

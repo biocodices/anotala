@@ -26,15 +26,19 @@ test_params = [
     ]
 
 @pytest.mark.parametrize('annotator_class,params', test_params)
-
 def test_generic_annotator(annotator_class, params):
     ids_to_annotate = params['ids_to_annotate'].split()
     annotator = annotator_class(cache='mock_cache')
-    info_dict = annotator.annotate(ids_to_annotate)
+    info_dict = annotator.annotate(ids_to_annotate, use_cache=False)
 
     for id_ in ids_to_annotate:
         assert info_dict[id_]
         for key in params['keys_to_check'].split():
             print(id_, key)
             assert info_dict[id_][key]
+
+    # Test the info was correctly cached after the first query
+    cached_data = annotator.annotate(ids_to_annotate, use_web=False)
+    for id_ in ids_to_annotate:
+        assert cached_data[id_]
 

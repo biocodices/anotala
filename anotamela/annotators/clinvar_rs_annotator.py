@@ -14,6 +14,8 @@ class ClinvarRsAnnotator(AnnotatorWithCache):
     def _batch_query(self, ids, _, __):
         mv = MyVariantInfo()
         hits = mv.querymany(ids, scopes='clinvar.rsid', fields='clinvar')
-        return {hit['query']: hit['clinvar'] for hit in hits
-                if 'clinvar' in hit}
+        annotations = {hit['query']: hit['clinvar'] for hit in hits
+                       if 'clinvar' in hit}
+        self.cache.set(annotations, namespace=self.SOURCE_NAME)
+        return annotations
 
