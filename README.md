@@ -35,16 +35,16 @@ call `annotate` with a list of identifiers.
 
 ### Postgres
 If you are to use Postgres, make sure you have it installed and create a 
-database (e.g. `variants` would be an appropiate name for it) and a user with
+database (e.g. `variants` would be an appropriate name) and a user with
 privileges on it for `anotamela` to use. Then create a file (by default it will
-be searched in `~/.postgres_credentials.yml`) with your credentials:
+be looked for in `~/.postgres_credentials.yml`) with your credentials:
 
 ```yaml
 user: <your psql user>
 pass: <your psql pass>
 host: <where the server is, localhost if it's local>
 port: <default for psql is 5432>
-db: <the name of the db you created in psql>
+db: <the name of the db you created>
 ```
 
 Then, you will have to `pip install sqlalchemy pyscopg2` and you will probably
@@ -52,11 +52,16 @@ have to `sudo apt-get install libpq-dev` for the last package. After this, you
 are good to go.
 
 ### Redis
-If you have a redis server running on the default settings, you needn't do
-anything extra to make the caching work. `anotamela` will try to connect
-at `localhost`'s port 6379.
-
 You will need to `pip install redis`.
+
+If you have a redis server running with default settings, you needn't do
+anything extra. `anotamela` will try to connect at `localhost`'s port 6379.
+If the server is running with non-default settings, specify those when
+initializating each annotator:
+
+```python
+DbsnpWebAnnotator(cache='redis', host='localhost', port=5678)
+```
 
 ## Tests
 
