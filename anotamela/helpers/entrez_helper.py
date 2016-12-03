@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class EntrezHelper():
-    def post_query(ids, db_name, batch_size, sleep_time, rettype='json',
+    def post_query(self, ids, db_name, batch_size, sleep_time, rettype='json',
                    xml_element_tag=None, xml_id_attribute=None):
         """
         Use Entrez POST query service to fetch a list of IDs in the given
@@ -48,14 +48,16 @@ class EntrezHelper():
             fetch_handle.close()
 
             if rettype == 'xml':
-                yield from self.extract_id_annotation_from_xml(raw_response)
+                yield from self.extract_id_annotation_from_xml(
+                    raw_response, xml_element_tag, xml_id_attribute, db_name)
             else:
                 raise NotImplementedError('No extraction method '
                                           'for rettype={}'.format(rettype))
 
             time.sleep(sleep_time)
 
-    def extract_id_annotation_from_xml(raw_response):
+    def extract_id_annotation_from_xml(self, raw_response, xml_element_tag,
+                                       xml_id_attribute, db_name):
         """Splits the XML per variant and yields (id, XML) tuples."""
         soup = make_xml_soup(raw_response)
         for xml_element in soup.select(xml_element_tag):
@@ -67,7 +69,7 @@ class EntrezHelper():
 
             yield (id_, annotation)
 
-    def set_email_for_entrez():
+    def set_email_for_entrez(self):
         email_filepath = expanduser('~/.mail_address_for_Entrez')
         if not isfile(email_filepath):
             msg = ('Please set a mail for Entrez in {}. Entrez will notify '

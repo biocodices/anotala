@@ -5,6 +5,7 @@ import coloredlogs
 
 from .annotators import DbsnpWebAnnotator
 from .annotators import DbsnpEntrezAnnotator
+from .annotators import ClinvarRsAnnotator
 
 
 coloredlogs.DEFAULT_LOG_FORMAT = \
