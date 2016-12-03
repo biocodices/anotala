@@ -67,7 +67,8 @@ class Cache:
                 value = json.dumps(value)
             data_to_cache[id_] = value
 
-        self._client_set(data_to_cache, namespace=namespace)
+        if data_to_cache:
+            self._client_set(data_to_cache, namespace=namespace)
 
     @staticmethod
     def _try_to_decode_and_deserialize(data):

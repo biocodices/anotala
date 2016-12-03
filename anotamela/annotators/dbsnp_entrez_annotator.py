@@ -19,14 +19,13 @@ class DbsnpEntrezAnnotator(AnnotatorWithCache):
     SOURCE_NAME = 'dbsnp_entrez'
     LINKOUT_NAMES = {'1': 'snp', '5': 'pubmed'}
 
-    def _batch_query(self, ids, parallel, sleep_time):
+    def _batch_query(self, ids, parallel, _):
         ids = [id_.replace('rs', '') for id_ in ids]
         entrez_params = {
                 'db_name': 'snp',
                 'ids': ids,
                 'rettype': 'xml',
                 'batch_size': parallel,
-                'sleep_time': sleep_time,
                 'xml_element_tag': 'rs',
                 'xml_id_attribute': 'rsid'
             }

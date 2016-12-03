@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class EntrezHelper():
-    def post_query(self, ids, db_name, batch_size, sleep_time, rettype='json',
+    def post_query(self, ids, db_name, batch_size, rettype='json',
                    xml_element_tag=None, xml_id_attribute=None):
         """
         Use Entrez POST query service to fetch a list of IDs in the given
@@ -53,8 +53,6 @@ class EntrezHelper():
             else:
                 raise NotImplementedError('No extraction method '
                                           'for rettype={}'.format(rettype))
-
-            time.sleep(sleep_time)
 
     def extract_id_annotation_from_xml(self, raw_response, xml_element_tag,
                                        xml_id_attribute, db_name):
