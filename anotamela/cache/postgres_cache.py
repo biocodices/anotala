@@ -1,6 +1,5 @@
 from os.path import expanduser
 import yaml
-import reprlib
 import logging
 from datetime import datetime
 
@@ -15,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class PostgresCache(Cache):
     CREDS_FILE = '~/.postgres_credentials.yml'
-    JSON_ANNOTATIONS = ['dbsnp_web']
+    JSON_TABLES = ['dbsnp_web', 'clinvar_rs']
 
     def __init__(self, credentials_filepath=CREDS_FILE):
         """
@@ -56,7 +55,7 @@ class PostgresCache(Cache):
 
     def _get_table(self, tablename):
         """Get a SQLAlchemy Table for the given tablename."""
-        if not tablename in self.tables:
+        if tablename not in self.tables:
             self.tables[tablename] = self._create_table(tablename)
 
         return self.tables[tablename]
@@ -71,7 +70,7 @@ class PostgresCache(Cache):
         Returns a Table instance.
         """
         metadata = MetaData()
-        ann_type = JSONB if tablename in self.JSON_ANNOTATIONS else String
+        ann_type = JSONB if tablename in self.JSON_TABLES else String
         table = Table(tablename, metadata,
                       Column('id', String(60), primary_key=True),
                       Column('annotation', ann_type),

@@ -9,7 +9,6 @@ from concurrent.futures import (
 from functools import lru_cache
 
 from tqdm import tqdm
-from bs4 import BeautifulSoup
 
 from anotamela.helpers import grouped
 from anotamela.cache import RedisCache, PostgresCache
@@ -30,6 +29,8 @@ class AnnotatorWithCache():
           annotation will be parallelized with multithread calls to that
           method-- or a `_batch_query()` method to fetch a group of IDs, in
           case you want to implement parallelization in a different way.
+        - an optional @classmethod _parse_annotation() that takes the
+          annotation for one id and transforms it in any way.
 
     SOURCE_NAME will work as a namespace or tablename according to each Cache
     used. For instance, cache='redis' will use the SOURCE_NAME as a prefix
@@ -155,9 +156,4 @@ class AnnotatorWithCache():
         if isinstance(ids, str) or isinstance(ids, int):
             ids = [ids]
         return set(str(id_) for id_ in set(ids))
-
-    @staticmethod
-    @lru_cache(maxsize=2000)
-    def _make_xml_soup(xml):
-        return BeautifulSoup(xml, 'lxml')
 

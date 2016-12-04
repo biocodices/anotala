@@ -14,7 +14,6 @@ class DbsnpWebAnnotator(AnnotatorWithCache):
 
     """
     SOURCE_NAME = 'dbsnp_web'
-    ANNOTATION_TYPE = 'JSON'
 
     @staticmethod
     def _url(rs):
