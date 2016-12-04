@@ -19,9 +19,10 @@ class EntrezHelper():
         database. Yields tuples of (id, annotation).
 
         If rettype='xml', set xml_element_tag and xml_id_attribute to let the
-        XML parser which XML elements are associated to each ID. For instance,
-        for the db 'snp', set xml_element_tag='rs' and xml_id_attribute='rsid'.
-        You have to manually explore the XML once to know those values.
+        XML parser know which XML elements are associated to each ID. For
+        instance, for the db 'snp', set xml_element_tag='rs' and
+        xml_id_attribute='rsid'. You have to manually explore the XML once
+        to know theese values.
         """
         if not Entrez.email:
             self.set_email_for_entrez()
@@ -32,12 +33,12 @@ class EntrezHelper():
         handle = Entrez.epost(db=db_name, id=','.join(ids))
         job = Entrez.read(handle)
 
-        # Then you do a second query using those IDs in batches. More info:
+        # Then you do a second query using those IDs, and you get the results
+        # in batches. More info:
         # http://biopython.org/DIST/docs/tutorial/Tutorial.html#sec:entrez-webenv
         total = len(ids)
         msg = 'Fetch {} entries from Entrez DbSNP in batches of {}'
         logger.info(msg.format(total, batch_size))
-
         annotations = {}
         for offset in tqdm(list(range(0, total, batch_size))):
             # Fetch the raw response (XML or JSON)
