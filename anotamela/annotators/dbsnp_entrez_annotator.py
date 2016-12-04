@@ -39,9 +39,8 @@ class DbsnpEntrezAnnotator(AnnotatorWithCache):
 
     @classmethod
     def _parse_annotation(cls, annotation):
-        """
-        Parse an XML for a single rs ID from by Entrez. Return a dict.
-        """
+        """Parse the XML of a single rs ID from by Entrez. Return a dict of
+        annotations for the given rs."""
         ann = {}
         soup = make_xml_soup(annotation)
 

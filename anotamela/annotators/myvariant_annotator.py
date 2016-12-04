@@ -3,7 +3,7 @@ from myvariant import MyVariantInfo
 
 class MyVariantAnnotator():
     """This class is meant as a second parent class for AnnotatorWithCache
-    subclasses that also happen to use myvariant to get the data."""
+    subclasses that use myvariant.info to get the data."""
 
     def annotate(self, ids, use_cache=True, use_web=True, parse_data=True):
         # This wrapper around AnnotatorWithCache.annotate is meant to remove
