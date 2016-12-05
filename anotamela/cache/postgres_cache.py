@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class PostgresCache(Cache):
     CREDS_FILE = '~/.postgres_credentials.yml'
-    JSON_TABLES = ['dbsnp_web', 'clinvar_rs', 'hgvs', 'snpeff_via_myvariant']
+    SAVE_AS_JSON = False  # Don't assume JSON types unless it's explicitely set
 
     def __init__(self, credentials_filepath=CREDS_FILE):
         """
@@ -48,8 +48,8 @@ class PostgresCache(Cache):
         self.connection.execute(deletion)
 
     def _connect(self, credentials):
-        url = 'postgresql://{user}:{pass}@{host}:{port}/{db}'.format(
-                **credentials)
+        url_template = 'postgresql://{user}:{pass}@{host}:{port}/{db}'
+        url = url_template.format(**credentials)
         self.engine = create_engine(url)
         self.connection = self.engine.connect()
 
@@ -65,16 +65,16 @@ class PostgresCache(Cache):
         Create a SQLAlchemy Table for the given tablename. All tables created
         have the same columns: id, annotation, synonyms, and last_updated.
 
-        If the table doesn't exist, it will be created in the process.
+        If the table doesn't exist already in the database, it will be created.
 
-        Returns a Table instance.
+        Returns a sqlalchemy.Table instance.
         """
         metadata = MetaData()
-        ann_type = JSONB if tablename in self.JSON_TABLES else String
+        annotation_column_type = JSONB if self.SAVE_AS_JSON else String
         table = Table(tablename, metadata,
                       Column('id', String(60), primary_key=True),
-                      Column('annotation', ann_type),
-                      Column('synonyms', JSONB),
+                      Column('annotation', annotation_column_type),
+                      Column('synonyms', JSONB),  # Just a list of IDs
                       Column('last_updated', DateTime(timezone=True),
                              default=datetime.now, nullable=False))
         metadata.create_all(self.engine)
