@@ -7,7 +7,9 @@ from anotamela.annotators import (
         ClinvarRsAnnotator,
         HgvsAnnotator,
         SnpeffAnnotator,
-        MafAnnotator
+        MafAnnotator,
+        OmimGeneAnnotator,
+        OmimVariantAnnotator
     )
 
 
@@ -60,6 +62,20 @@ test_params = [
                               'exac_fin_af 1000gp3_afr_af esp6500_aa_af '
                               'esp6500_ea_af exac_sas_af 1000gp3_amr_af '
                               '1000gp3_eur_af')
+        }),
+        (OmimGeneAnnotator, {
+            'ids_to_annotate': '605557',
+            'keys_to_check': ('gene_id gene_name gene_symbol linked_mim_ids '
+                              'phenotypes pubmeds review sub_id variant rsid '
+                              'prot_change variant_id')
+        }),
+        (OmimVariantAnnotator, {
+            'ids_to_annotate': '605557.0003',
+            'keys_to_check': ('gene_id gene_name gene_symbol linked_mim_ids '
+                              'phenotypes.id phenotypes.inheritance '
+                              'phenotypes.name prot_change pubmeds.authors '
+                              'pubmeds.pmid pubmeds.title pubmeds.publication '
+                              'pubmeds_summary review rsid sub_id variant')
         })
     ]
 
@@ -98,5 +114,7 @@ def check_dict_key(dictionary, key_to_check):
             top_key, sub_key = key_to_check.split('.', maxsplit=1)
             check_dict_key(dictionary[top_key], sub_key)
         else:
-            assert dictionary[key_to_check] not in [None, [], {}]
+            assert dictionary[key_to_check] is not None
+            assert dictionary[key_to_check] is not []
+            assert dictionary[key_to_check] is not {}
 

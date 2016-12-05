@@ -1,4 +1,5 @@
 from itertools import zip_longest
+from functools import lru_cache
 
 from bs4 import BeautifulSoup
 
@@ -12,6 +13,11 @@ def grouped(iterable, group_size):
 
 def make_xml_soup(xml):
     return BeautifulSoup(xml, 'lxml')
+
+
+@lru_cache(maxsize=50)
+def make_html_soup(html):
+    return BeautifulSoup(html, 'html.parser')
 
 
 def listify(maybe_list):
