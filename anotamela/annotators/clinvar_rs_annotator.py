@@ -48,10 +48,11 @@ class ClinvarRsAnnotator(MyVariantAnnotator, AnnotatorWithCache):
             rcv['conditions'] = listify(rcv['conditions'])
 
             for condition in rcv['conditions']:
-                for db, id_ in condition['identifiers'].items():
-                    new_key = '{}_id'.format(db)
-                    condition[new_key] = id_
-                del(condition['identifiers'])
+                if 'identifiers' in condition:
+                    for db, id_ in condition['identifiers'].items():
+                        new_key = '{}_id'.format(db)
+                        condition[new_key] = id_
+                    del(condition['identifiers'])
 
             rcv['url'] = cls.url(rcv['accession'])
             rcv.update(cls._parse_preferred_name(rcv['preferred_name']))

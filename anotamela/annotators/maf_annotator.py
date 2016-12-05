@@ -3,7 +3,7 @@ from anotamela.annotators import AnnotatorWithCache, MyVariantAnnotator
 
 class MafAnnotator(MyVariantAnnotator, AnnotatorWithCache):
     SOURCE_NAME = 'maf'
-    SCOPES = 'dbnsfp.rsid'
+    SCOPES = 'dbsnp.rsid'
     FIELDS = 'dbsnp.gmaf dbnsfp.1000gp3 dbnsfp.exac dbnsfp.esp6500'.split()
 
     @staticmethod
