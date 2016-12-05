@@ -40,7 +40,7 @@ class OmimVariantAnnotator(AnnotatorWithCache):
         gene_dataframes = self.omim_gene_annotator.annotate(gene_ids)
         df = pd.concat(gene_dataframes.values()).set_index('variant_id')
         # Check each variant has a single row in the dataframe:
-        assert len(df['variant_id']) == len(set(df['variant_id']))
+        assert len(df.index) == len(set(df.index))
 
         # From all the gene variants, only keep the ones that were queried
         annotations = df.loc[ids].to_dict('index')
