@@ -5,7 +5,8 @@ from anotamela.annotators import (
         DbsnpEntrezAnnotator,
         ClinvarRsAnnotator,
         HgvsAnnotator,
-        SnpeffAnnotator
+        SnpeffAnnotator,
+        MafAnnotator
     )
 
 
@@ -21,7 +22,7 @@ test_params = [
                               'clinical_significance synonyms frequency')
         }),
         (SnpeffAnnotator, {
-            'ids_to_annotate': 'rs268',
+            'ids_to_annotate': 'rs268 rs199473059',
             'keys_to_check': ('ann.feature_id ann.feature_type ann.gene_id '
                               'ann.genename ann.putative_impact ann.hgvs_c '
                               'ann.transcript_biotype')
@@ -33,9 +34,17 @@ test_params = [
         }),
         (HgvsAnnotator, {
             'ids_to_annotate': 'rs268 rs199473059',
-            'keys_to_check': ('clinvar_hgvs_g clinvar_hgvs_c '
-                              'myvariant_hgvs_g '
-                              'snpeff_hgvs_c snpeff_hgvs_p ')
+            'keys_to_check': ('clinvar_hgvs_g clinvar_hgvs_c myvariant_hgvs_g '
+                              'snpeff_hgvs_c snpeff_hgvs_p')
+        }),
+        (MafAnnotator, {
+            'ids_to_annotate': 'rs268',
+            'keys_to_check': ('1000gp3_sas_af 1000gp3_af exac_eas_af '
+                              'exac_adj_af 1000gp3_gmaf exac_nfe_af exac_af '
+                              'exac_amr_af 1000gp3_eas_af exac_afr_af '
+                              'exac_fin_af 1000gp3_afr_af esp6500_aa_af '
+                              'esp6500_ea_af exac_sas_af 1000gp3_amr_af '
+                              '1000gp3_eur_af')
         })
     ]
 
@@ -61,8 +70,16 @@ def test_generic_annotator(annotator_class, params):
 
 def check_dict_key(dictionary, key_to_check):
     if '.' in key_to_check:
+        # If the key_to_check has a dot in it, split it and recall this
+        # function going one level deeper, until there are no dots left
         top_key, sub_key = key_to_check.split('.', maxsplit=1)
         check_dict_key(dictionary[top_key], sub_key)
     else:
-        assert dictionary[key_to_check]
+        # Some annotations are a list of dicts instead of a single dict
+        # Handle those cases calling this function for each dict in the list:
+        if isinstance(dictionary, list):
+            for dict_item in dictionary:
+                check_dict_key(dict_item, key_to_check)
+        else:
+            assert dictionary[key_to_check] not in [None, [], {}]
 

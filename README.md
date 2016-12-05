@@ -25,7 +25,7 @@ dbsnp_web.annotate(rs_list, use_cache=False)
 ```
 
 There are plenty of annotators: `DbsnpWebAnnotator`, `DbsnpEntrezAnnotator`,
-`ClinvarRsAnnotator`, `HgvsAnnotator`, `SnpeffAnnotator`.
+`ClinvarRsAnnotator`, `HgvsAnnotator`, `SnpeffAnnotator`, `MafAnnotator`.
 All of them have the same API, just instantiate choosing a `cache` option and
 call `annotate` with a list of identifiers.
 

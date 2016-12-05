@@ -5,4 +5,5 @@ from .dbsnp_entrez_annotator import DbsnpEntrezAnnotator
 from .clinvar_rs_annotator import ClinvarRsAnnotator
 from .hgvs_annotator import HgvsAnnotator
 from .snpeff_annotator import SnpeffAnnotator
+from .maf_annotator import MafAnnotator
 
