@@ -49,8 +49,8 @@ class ClinvarRsAnnotator(MyVariantAnnotator, AnnotatorWithCache):
 
             for condition in rcv['conditions']:
                 if 'identifiers' in condition:
-                    for db, id_ in condition['identifiers'].items():
-                        new_key = '{}_id'.format(db)
+                    for resource_name, id_ in condition['identifiers'].items():
+                        new_key = '{}_id'.format(resource_name)
                         condition[new_key] = id_
                     del(condition['identifiers'])
 
@@ -61,7 +61,6 @@ class ClinvarRsAnnotator(MyVariantAnnotator, AnnotatorWithCache):
             for key, value in variant_data.items():
                 if key == 'rcv':
                     continue
-
                 # Flatten the dicts one level
                 if isinstance(value, dict):
                     for key2, val2 in value.items():
