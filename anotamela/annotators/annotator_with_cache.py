@@ -127,11 +127,12 @@ class AnnotatorWithCache():
                 if i > 0:
                     time.sleep(sleep_time)
                 group_annotations = executor.map(self._query, ids_group)
-                group_annotations = {id_: annotation for id_, annotation
-                                     in zip(ids_group, group_annotations)
-                                     if annotation}
-                self.cache.set(group_annotations, namespace=self.SOURCE_NAME)
-                annotations.update(group_annotations)
+
+        group_annotations = {id_: annotation for id_, annotation
+                                in zip(ids_group, group_annotations)
+                                if annotation}
+        self.cache.set(group_annotations, namespace=self.SOURCE_NAME)
+        annotations.update(group_annotations)
 
         return annotations
 
