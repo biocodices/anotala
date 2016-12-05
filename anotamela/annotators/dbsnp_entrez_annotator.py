@@ -19,7 +19,9 @@ class DbsnpEntrezAnnotator(AnnotatorWithCache):
     SOURCE_NAME = 'dbsnp_entrez'
     LINKOUT_NAMES = {'1': 'snp', '5': 'pubmed'}
 
-    def _batch_query(self, ids, parallel, _):
+    def _batch_query_and_cache(self, ids, parallel, _):
+        # The ignored argument _ is there to handle the <sleep_time> argument
+        # that AnnotatorWithCache.annotate assumes.
         ids = [id_.replace('rs', '') for id_ in ids]
         entrez_params = {
                 'db_name': 'snp',
@@ -31,10 +33,8 @@ class DbsnpEntrezAnnotator(AnnotatorWithCache):
             }
         entrez_helper = EntrezHelper()
         results = entrez_helper.post_query(**entrez_params)
-        annotations = {}
-        for id_, annotation in results:
-            self.cache.set({id_: annotation}, namespace=self.SOURCE_NAME)
-            annotations[id_] = annotation
+        annotations = dict(results)
+        self.cache.set(annotations, namespace=self.SOURCE_NAME)
         return annotations
 
     @classmethod

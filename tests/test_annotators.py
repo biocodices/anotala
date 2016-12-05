@@ -4,7 +4,8 @@ from anotamela.annotators import (
         DbsnpWebAnnotator,
         DbsnpEntrezAnnotator,
         ClinvarRsAnnotator,
-        HgvsAnnotator
+        HgvsAnnotator,
+        SnpeffAnnotator
     )
 
 
@@ -19,6 +20,12 @@ test_params = [
             'keys_to_check': ('hgvs alleles type links fxn '
                               'clinical_significance synonyms frequency')
         }),
+        (SnpeffAnnotator, {
+            'ids_to_annotate': 'rs268',
+            'keys_to_check': ('ann.feature_id ann.feature_type ann.gene_id '
+                              'ann.genename ann.putative_impact ann.hgvs_c '
+                              'ann.transcript_biotype')
+        }),
         (ClinvarRsAnnotator, {
             'ids_to_annotate': 'rs268 rs199473059',
             'keys_to_check': ('alt gene rsid rcv type cytogenic hgvs '
@@ -29,9 +36,9 @@ test_params = [
             'keys_to_check': ('clinvar_hgvs_g clinvar_hgvs_c '
                               'myvariant_hgvs_g '
                               'snpeff_hgvs_c snpeff_hgvs_p ')
-
         })
     ]
+
 
 @pytest.mark.parametrize('annotator_class,params', test_params)
 def test_generic_annotator(annotator_class, params):
@@ -42,13 +49,20 @@ def test_generic_annotator(annotator_class, params):
     info_dict = annotator.annotate(ids_to_annotate, use_cache=False)
 
     for id_ in ids_to_annotate:
-        assert info_dict[id_]
         for key in params['keys_to_check'].split():
-            print(id_, key)
-            assert info_dict[id_][key]
+            check_dict_key(info_dict[id_], key)
 
     # Test the info was correctly cached after the first query
     cached_data = annotator.annotate(ids_to_annotate, use_web=False)
     for id_ in ids_to_annotate:
-        assert cached_data[id_]
+        for key in params['keys_to_check'].split():
+            check_dict_key(cached_data[id_], key)
+
+
+def check_dict_key(dictionary, key_to_check):
+    if '.' in key_to_check:
+        top_key, sub_key = key_to_check.split('.', maxsplit=1)
+        check_dict_key(dictionary[top_key], sub_key)
+    else:
+        assert dictionary[key_to_check]
 

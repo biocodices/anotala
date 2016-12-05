@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class PostgresCache(Cache):
     CREDS_FILE = '~/.postgres_credentials.yml'
-    JSON_TABLES = ['dbsnp_web', 'clinvar_rs', 'hgvs']
+    JSON_TABLES = ['dbsnp_web', 'clinvar_rs', 'hgvs', 'snpeff_via_myvariant']
 
     def __init__(self, credentials_filepath=CREDS_FILE):
         """

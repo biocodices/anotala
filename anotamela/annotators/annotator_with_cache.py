@@ -6,7 +6,6 @@ from concurrent.futures import (
         ProcessPoolExecutor,
         as_completed
     )
-from functools import lru_cache
 
 from tqdm import tqdm
 
@@ -27,8 +26,8 @@ class AnnotatorWithCache():
         - a SOURCE_NAME class variable
         - either a `_query()` method to fetch a single ID's data --the
           annotation will be parallelized with multithread calls to that
-          method-- or a `_batch_query()` method to fetch a group of IDs, in
-          case you want to implement parallelization in a different way.
+          method-- or a `_batch_query_and_cache()` method to fetch a group of
+          IDs, in case you want to implement parallelization in a different way
         - an optional @classmethod _parse_annotation() that takes the
           annotation for one id and transforms it in any way.
 
@@ -67,10 +66,12 @@ class AnnotatorWithCache():
         data).
 
         Annotators can implement extra parsing of the data with
-        _parse_annotation(). This parsing is enabled by default, but you
-        can disable it with parse_data=False and get the raw web/cached responses.
+        _parse_annotation(). This parsing is enabled by default, but you can
+        disable it with parse_data=False and get the raw web/cached responses.
         """
         ids = self._set_of_string_ids(ids)
+        logger.info('{} annotating {} ids'.format(self.__class__.__name__,
+                                                  len(ids)))
 
         annotations = {}
 
@@ -83,7 +84,8 @@ class AnnotatorWithCache():
 
         if use_web:
             if ids:
-                info_from_api = self._batch_query(ids, parallel, sleep_time)
+                info_from_api = self._batch_query_and_cache(ids, parallel,
+                                                            sleep_time)
                 annotations.update(info_from_api)
                 ids = ids - annotations.keys()
         else:
@@ -97,17 +99,10 @@ class AnnotatorWithCache():
 
         return annotations
 
-    def _query_and_set_cache(self, id_):
-        """Make a query for a single id, cache the response, and return it."""
-        response = self._query(id_)
-        if response:
-            self.cache.set({id_: response}, namespace=self.SOURCE_NAME)
-        return response
-
     def _query(self):
         raise NotImplementedError()
 
-    def _batch_query(self, ids, parallel, sleep_time):
+    def _batch_query_and_cache(self, ids, parallel, sleep_time):
         """
         Query a group of IDs using <parallel> threads and cache the responses.
         It returns a dict with the queried info per ID.
@@ -124,9 +119,12 @@ class AnnotatorWithCache():
             for i, ids_group in iterator:
                 if i > 0:
                     time.sleep(sleep_time)
-
-                group_annotations = executor.map(self._query_and_set_cache, ids_group)
-                annotations.update(zip(ids_group, group_annotations))
+                group_annotations = executor.map(self._query, ids_group)
+                group_annotations = {id_: annotation for id_, annotation
+                                     in zip(ids_group, group_annotations)
+                                     if annotation}
+                self.cache.set(group_annotations, namespace=self.SOURCE_NAME)
+                annotations.update(group_annotations)
 
         return annotations
 
