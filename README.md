@@ -6,7 +6,7 @@ from anotamela import (DbsnpMyvariantAnnotator,
                        ClinvarRsAnnotator,
                        OmimVariantAnnotator)
 
-dbsnp_annotator = DbsnpMyvariantAnnotator(cache='redis')  # or cache='postgres'
+dbsnp_annotator = DbsnpMyvariantAnnotator(cache='redis')
 dbsnp_annotator.annotate(['rs268', 'rs123'])
 # => {'rs268': { ... }, 'rs123': { ... }}
 
