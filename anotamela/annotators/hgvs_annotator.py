@@ -3,12 +3,9 @@ from anotamela.annotators import AnnotatorWithCache, MyVariantAnnotator
 
 class HgvsAnnotator(MyVariantAnnotator, AnnotatorWithCache):
     SOURCE_NAME = 'hgvs'
-
-    def _batch_query(self, ids, _, __):
-        hgvs_fields = ('clinvar.hgvs snpeff.ann.feature_id snpeff.ann.hgvs_c '
-                       'snpeff.ann.hgvs_p').split()
-        return self._myvariant_query_and_cache(ids, scopes='dbsnp.rsid',
-                                               fields=hgvs_fields)
+    SCOPES = 'dbsnp.rsid'
+    FIELDS = ('clinvar.hgvs snpeff.ann.feature_id snpeff.ann.hgvs_c '
+              'snpeff.ann.hgvs_p').split()
 
     @staticmethod
     def _parse_annotation(raw_annotation):
