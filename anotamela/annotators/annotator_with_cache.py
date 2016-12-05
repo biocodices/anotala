@@ -23,7 +23,7 @@ class AnnotatorWithCache():
     parallelizing requests.
 
     To use this class, create a new annotator class that has:
-        - a SOURCE_NAME class variable
+        - SOURCE_NAME [and ANNOTATIONS_ARE_JSON] class variables
         - either a `_query()` method to fetch a single ID's data --the
           annotation will be parallelized with multithread calls to that
           method-- or a `_batch_query_and_cache()` method to fetch a group of
@@ -35,6 +35,10 @@ class AnnotatorWithCache():
     used. For instance, cache='redis' will use the SOURCE_NAME as a prefix
     to the ID being cached (e.g. 'dbsnp:rs123'), whereas cache='postgres' will
     use the SOURCE_NAME as the name of the table where to store the info.
+
+    ANNOTATIONS_ARE_JSON should be set only if the annotations will be JSON
+    formatted. This lets PostgresCache know if the columns should be of type
+    JSONB. RedisCache ignores this value.
     """
     AVAILABLE_CACHES = {
             'redis': RedisCache,
@@ -53,6 +57,9 @@ class AnnotatorWithCache():
             raise ValueError(msg).with_traceback(error.__traceback__)
 
         self.cache = cache_class(**cache_kwargs)
+        # Tell the cache if the annotations are going to be JSON
+        # PostgresCache will know it should create JSONB fields in the db:
+        self.cache.SAVE_AS_JSON = hasattr(self, 'ANNOTATIONS_ARE_JSON')
 
     def annotate(self, ids, parallel=10, sleep_time=10, use_cache=True,
                  use_web=True, parse_data=True):

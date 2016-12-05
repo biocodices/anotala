@@ -12,8 +12,9 @@ class MyVariantAnnotator():
         - SCOPES class variable (scopes to query)
         - FIELDS class variable (fields to retrieve)
         - an optional @staticmethod _parse_annotation(raw_annotation)
-
     """
+    ANNOTATIONS_ARE_JSON = True
+
     def annotate(self, ids, use_cache=True, use_web=True, parse_data=True):
         # This wrapper around AnnotatorWithCache.annotate is meant to remove
         # the parallel and sleep_time arguments from annotators that inherit
