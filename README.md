@@ -11,15 +11,15 @@ dbsnp_annotator.annotate(['rs268', 'rs123'])
 # => {'rs268': { ... }, 'rs123': { ... }}
 
 omim_annotator = OmimVariantAnnotator(cache='postgres')
-dbsnp_entrez.annotate(['605557.0001', '605557.0003'])
+omim_annotator.annotate(['605557.0001', '605557.0003'])
 # => {'605557.0001': { ... }, '605557.003': { ... }}
 
 # Just fetch from cache, don't use the Internets:
-dbsnp_annotator.annotate(rs_list, use_web=False)
+omim_annotator.annotate(rs_list, use_web=False)
 
 # Fetch everything from the Net, don't use the cache.
 # This will also update the existing cache entries:
-dbsnp_annotator.annotate(rs_list, use_cache=False)
+omim_annotator.annotate(rs_list, use_cache=False)
 ```
 
 There are plenty of annotators: `DbsnpWebAnnotator`, `DbsnpEntrezAnnotator`,
