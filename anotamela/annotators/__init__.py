@@ -6,4 +6,5 @@ from .clinvar_rs_annotator import ClinvarRsAnnotator
 from .hgvs_annotator import HgvsAnnotator
 from .snpeff_annotator import SnpeffAnnotator
 from .maf_annotator import MafAnnotator
+from .dbsnp_myvariant_annotator import DbsnpMyvariantAnnotator
 

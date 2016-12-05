@@ -25,9 +25,16 @@ dbsnp_web.annotate(rs_list, use_cache=False)
 ```
 
 There are plenty of annotators: `DbsnpWebAnnotator`, `DbsnpEntrezAnnotator`,
-`ClinvarRsAnnotator`, `HgvsAnnotator`, `SnpeffAnnotator`, `MafAnnotator`.
-All of them have the same API, just instantiate choosing a `cache` option and
-call `annotate` with a list of identifiers.
+`DbsnpMyvariantAnnotator`, `ClinvarRsAnnotator`, `HgvsAnnotator`,
+`SnpeffAnnotator`, `MafAnnotator`.
+
+The many dbSNP annotators correspond to different ways of getting dbSNP data:
+kind of 'scrapping' the web (not exactly, though), using Entrez service, and
+using MyVariant.info service. Each gives a different piece of information, so
+I included them all as separate entities.
+
+All the annotators have the same API, just instantiate choosing a `cache` option
+and call `annotate` with a list of identifiers.
 
 ## Cache
 
