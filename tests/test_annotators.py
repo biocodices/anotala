@@ -71,7 +71,8 @@ test_params = [
         }),
         (OmimVariantAnnotator, {
             'ids_to_annotate': '605557.0003',
-            'keys_to_check': ('gene_id gene_name gene_symbol linked_mim_ids '
+            'keys_to_check': ('gene_id gene_name gene_symbol gene_url url '
+                              'linked_mim_ids phenotypes.url '
                               'phenotypes.id phenotypes.inheritance '
                               'phenotypes.name prot_change pubmeds.authors '
                               'pubmeds.pmid pubmeds.title pubmeds.publication '

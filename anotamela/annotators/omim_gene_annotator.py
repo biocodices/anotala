@@ -81,16 +81,22 @@ class OmimGeneAnnotator(AnnotatorWithCache):
         data = cls._extract_data_from_html(html)
 
         for variant in data['variants']:
+            variant['gene_url'] = ('http://www.omim.org/entry/' +
+                                   variant['gene_id'])
             # Add the references found in the page to each variant,
             # if mentioned in the variant's review text.
             pmids = [pmid for pmid in variant['pubmeds_summary'].values() if pmid]
             variant['pubmeds'] = [ref for ref in data['references']
                                   if 'pmid' in ref and ref['pmid'] in pmids]
+            for pubmed in variant['pubmeds']:
+                pubmed['url'] = ('https://www.ncbi.nlm.nih.gov/pubmed/' +
+                                 pubmed['pmid'])
 
             # Add the phenotypes cited in the table at the top of the page,
             # if they're mentioned in the variant's entry
             variant_phenotypes = []
             for pheno in data['phenotypes']:
+                pheno['url'] = 'http://www.omim.org/entry/' + pheno['id']
                 for mim_id in variant['linked_mim_ids']:
                     if pheno['id'] == mim_id:
                         variant_phenotypes.append(pheno)
@@ -142,6 +148,9 @@ class OmimGeneAnnotator(AnnotatorWithCache):
             df['prot_change'] = (df['prot_change'].fillna(False)
                                                   .map(parse_prot_change))
             df['variant_id'] = df['gene_id'] + '.' + df['sub_id']
+
+            base_url = 'http://www.omim.org/entry/'
+            df['url'] = base_url + df['variant_id'].str.replace('.', '#')
 
         return df
 
