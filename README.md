@@ -2,26 +2,24 @@
 
 ## Usage
 ```python
-from anotamela import DbsnpWebAnnotator
+from anotamela import (DbsnpMyvariantAnnotator,
+                       ClinvarRsAnnotator,
+                       OmimVariantAnnotator)
 
-dbsnp_web = DbsnpWebAnnotator(cache='redis')  # or cache='postgres'
-dbsnp_web.annotate(['rs268', 'rs123'])
+dbsnp_annotator = DbsnpMyvariantAnnotator(cache='redis')  # or cache='postgres'
+dbsnp_annotator.annotate(['rs268', 'rs123'])
 # => {'rs268': { ... }, 'rs123': { ... }}
 
-dbsnp_entrez = DbsnpEntrezAnnotator(cache='postgres')
-dbsnp_entrez.annotate(['rs268', 'rs123'])
-# => {'rs268': { ... }, 'rs123': { ... }}
+omim_annotator = OmimVariantAnnotator(cache='postgres')
+dbsnp_entrez.annotate(['605557.0001', '605557.0003'])
+# => {'605557.0001': { ... }, '605557.003': { ... }}
 
-# You can tune the parallelization options
-# Make 5 parallel requests each time, sleep 10s between batches:
-dbsnp_web.annotate(rs_list, parallel=5, sleep_time=10)
+# Just fetch from cache, don't use the Internets:
+dbsnp_annotator.annotate(rs_list, use_web=False)
 
-# Just fetch from cache, no web:
-dbsnp_web.annotate(rs_list, use_web=False)
-
-# Fetch everything from web, don't use the cache.
-# This will update the existing cache entries also:
-dbsnp_web.annotate(rs_list, use_cache=False)
+# Fetch everything from the Net, don't use the cache.
+# This will also update the existing cache entries:
+dbsnp_annotator.annotate(rs_list, use_cache=False)
 ```
 
 There are plenty of annotators: `DbsnpWebAnnotator`, `DbsnpEntrezAnnotator`,
@@ -58,6 +56,11 @@ Then, you will have to `pip install sqlalchemy pyscopg2` and you will probably
 have to `sudo apt-get install libpq-dev` for the last package. After this, you
 are good to go.
 
+```python
+creds = '~/.psql_creds.yml'
+annotator = DbsnpMyvariantAnnotator(cache='postgres', credentials_file=creds)
+```
+
 ### Redis
 You will need to `pip install redis`.
 
@@ -67,7 +70,25 @@ If the server is running with non-default settings, specify those when
 initializating each annotator:
 
 ```python
-DbsnpWebAnnotator(cache='redis', host='localhost', port=5678)
+annotator = DbsnpWebAnnotator(cache='redis', host='localhost', port=5678)
+```
+
+### Sharing Cache between annotators
+
+Several annotators can share the same Cache instance:
+
+```python
+psql_cache = PostgresCache(credentials_file='~/.psql_creds.yml')
+dbsnp_ann = DbsnpMyvariantAnnotator(cache=psql_cache)
+omim_ann = OmimVariantAnnotator(cache=psql_cache)
+```
+
+And you can later modify the cache of existing annotators:
+
+```python
+redis_cache = RedisCache(host='192.168.1.10')
+dbsnp_ann.cache = redis_cache
+omim_ann.cache = redis_cache
 ```
 
 ## Tests
@@ -76,5 +97,6 @@ DbsnpWebAnnotator(cache='redis', host='localhost', port=5678)
 
 Tests take some time to run, since I didn't mock the web annotation. I
 explicitely want to test the actual connection to each of the services and make
-sure that the assumptions done in the code are still sound when testing.
+sure that the assumptions done in the code that parses the responses are still
+sound.
 
