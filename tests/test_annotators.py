@@ -3,6 +3,7 @@ import pytest
 from anotamela.annotators import (
         DbsnpWebAnnotator,
         DbsnpEntrezAnnotator,
+        DbsnpMyvariantAnnotator,
         ClinvarRsAnnotator,
         HgvsAnnotator,
         SnpeffAnnotator,
@@ -20,6 +21,13 @@ test_params = [
             'ids_to_annotate': 'rs268',
             'keys_to_check': ('hgvs alleles type links fxn '
                               'clinical_significance synonyms frequency')
+        }),
+        (DbsnpMyvariantAnnotator, {
+            'ids_to_annotate': 'rs268 rs123',
+            'keys_to_check': ('allele_origin alleles.allele alleles.freq '
+                              'alt chrom class dbsnp_build flags gene.geneid '
+                              'gene.symbol gmaf hg19.end hg19.start ref rsid '
+                              'validated var_subtype vartype')
         }),
         (SnpeffAnnotator, {
             'ids_to_annotate': 'rs268 rs199473059',
