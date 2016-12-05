@@ -10,7 +10,7 @@ from concurrent.futures import (
 from tqdm import tqdm
 
 from anotamela.helpers import grouped
-from anotamela.cache import RedisCache, PostgresCache
+from anotamela.cache import Cache, RedisCache, PostgresCache
 
 
 logger = logging.getLogger(__name__)
@@ -46,17 +46,26 @@ class AnnotatorWithCache():
         }
 
     def __init__(self, cache='redis', **cache_kwargs):
+        """
+        Initialize this class with a cache name ('redis', 'postgres') or a
+        Cache instance (RedisCache, PostgresCache). Optional kwargs can be
+        passed to the cache initializer.
+        """
         self.name = self.__class__.__name__
 
-        try:
-            cache_class = self.AVAILABLE_CACHES[cache]
-        except KeyError as error:
-            known_caches = ', '.join(self.AVAILABLE_CACHES.keys())
-            msg = 'Unknown cache "{}". I only know: {}'.format(cache,
-                                                               known_caches)
-            raise ValueError(msg).with_traceback(error.__traceback__)
+        if isinstance(cache, Cache):
+            self.cache = cache
+        else:
+            try:
+                cache_class = self.AVAILABLE_CACHES[cache]
+            except KeyError as error:
+                known_caches = ', '.join(self.AVAILABLE_CACHES.keys())
+                msg = 'Unknown cache "{}". I only know: {}'.format(cache,
+                                                                   known_caches)
+                raise ValueError(msg).with_traceback(error.__traceback__)
+            else:
+                self.cache = cache_class(**cache_kwargs)
 
-        self.cache = cache_class(**cache_kwargs)
         # Tell the cache if the annotations are going to be JSON
         # PostgresCache will know it should create JSONB fields in the db:
         self.cache.SAVE_AS_JSON = hasattr(self, 'ANNOTATIONS_ARE_JSON')
