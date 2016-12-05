@@ -1,3 +1,5 @@
+myvariant
+mygene
 pandas
 redis
 sqlalchemy
