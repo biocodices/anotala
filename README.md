@@ -1,5 +1,3 @@
-## Annotation
-
 ## Usage
 ```python
 from anotamela import (DbsnpMyvariantAnnotator,
