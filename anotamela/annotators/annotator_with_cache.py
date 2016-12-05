@@ -28,8 +28,8 @@ class AnnotatorWithCache():
           annotation will be parallelized with multithread calls to that
           method-- or a `_batch_query_and_cache()` method to fetch a group of
           IDs, in case you want to implement parallelization in a different way
-        - an optional @classmethod _parse_annotation() that takes the
-          annotation for one id and transforms it in any way.
+        - an optional @classmethod or @staticmethod _parse_annotation() that
+          takes the annotation for one id and transforms it in any way.
 
     SOURCE_NAME will work as a namespace or tablename according to each Cache
     used. For instance, cache='redis' will use the SOURCE_NAME as a prefix

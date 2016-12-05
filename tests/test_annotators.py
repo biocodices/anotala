@@ -36,9 +36,16 @@ test_params = [
                               'ann.transcript_biotype')
         }),
         (ClinvarRsAnnotator, {
-            'ids_to_annotate': 'rs268 rs199473059',
-            'keys_to_check': ('alt gene rsid rcv type cytogenic hgvs '
-                              'variant_id hg19 ref chrom hg38 allele_id')
+            'ids_to_annotate': 'rs268',
+            'keys_to_check': ('accession allele_id alt cds_change chrom '
+                              'clinical_significance conditions.medgen_id '
+                              'conditions.name conditions.omim_id cytogenic '
+                              'gene gene_id gene_symbol hg19_end hg19_start '
+                              'hg38_end hg38_start hgvs_coding hgvs_genomic '
+                              'last_evaluated number_submitters omim '
+                              'origin preferred_name prot_change ref '
+                              'review_status rsid transcript type url '
+                              'variant_id')
         }),
         (HgvsAnnotator, {
             'ids_to_annotate': 'rs268 rs199473059',
@@ -77,17 +84,19 @@ def test_generic_annotator(annotator_class, params):
 
 
 def check_dict_key(dictionary, key_to_check):
-    if '.' in key_to_check:
-        # If the key_to_check has a dot in it, split it and recall this
-        # function going one level deeper, until there are no dots left
-        top_key, sub_key = key_to_check.split('.', maxsplit=1)
-        check_dict_key(dictionary[top_key], sub_key)
+    # Some annotations are a list of dicts instead of a single dict
+    # Handle those cases calling this function for each dict in the list:
+    if isinstance(dictionary, list):
+        for dict_item in dictionary:
+            check_dict_key(dict_item, key_to_check)
+
+    # If it's a dictionary
     else:
-        # Some annotations are a list of dicts instead of a single dict
-        # Handle those cases calling this function for each dict in the list:
-        if isinstance(dictionary, list):
-            for dict_item in dictionary:
-                check_dict_key(dict_item, key_to_check)
+        if '.' in key_to_check:
+            # If the key_to_check has a dot in it, split it and recall this
+            # function going one level deeper, until there are no dots left
+            top_key, sub_key = key_to_check.split('.', maxsplit=1)
+            check_dict_key(dictionary[top_key], sub_key)
         else:
             assert dictionary[key_to_check] not in [None, [], {}]
 
