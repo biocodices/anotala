@@ -9,6 +9,13 @@ def grouped(iterable, group_size):
     args = [iter(iterable)] * group_size
     return ([e for e in t if e is not None] for t in zip_longest(*args))
 
+
 def make_xml_soup(xml):
     return BeautifulSoup(xml, 'lxml')
+
+
+def listify(maybe_list):
+    if isinstance(maybe_list, list):
+        return maybe_list
+    return [maybe_list]
 
