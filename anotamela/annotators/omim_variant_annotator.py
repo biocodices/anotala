@@ -10,7 +10,7 @@ class OmimVariantAnnotator(AnnotatorWithCache):
     Responses are cached.
 
         > omim_variant_annotator = OmimVariantAnnotator()
-        > omim_variant_annotator.annotate('605557.0001)
+        > omim_variant_annotator.annotate('605557.0001')
         # => { '605557.0001': ... }
 
     The base sleep time between requests is 60s because OMIM is quite strict
@@ -28,18 +28,21 @@ class OmimVariantAnnotator(AnnotatorWithCache):
 
     def _batch_query_and_cache(self, ids, _, __):
         # This annotator uses OmimGeneAnnotator to get all the variants in a
-        # given gene only once, and then extract the single variant that was
-        # requested. The gene annotation step is necessary because the variant
-        # info is in the gene entry page, which has to be parsed completely
-        # before we can extract the variant bit.
+        # given gene, and then extract the variants that were requested.
+        # The gene annotation step is necessary because the variant info is in
+        # the gene entry page, which has to be parsed completely before we can
+        # extract the variant bit. In the process, the OmimGeneAnnotator
+        # caches its own gene raw data from OMIM.
         if not hasattr(self, 'omim_gene_annotator'):
             self.omim_gene_annotator = OmimGeneAnnotator(cache=self.cache)
 
         gene_ids = [id_.split('.')[0] for id_ in ids]
         gene_dataframes = self.omim_gene_annotator.annotate(gene_ids)
         df = pd.concat(gene_dataframes.values()).set_index('variant_id')
+        # Check each variant has a single row in the dataframe:
+        assert len(df['variant_id']) == len(set(df['variant_id']))
 
-        # From all the gene variants, keep only the ones queried
+        # From all the gene variants, only keep the ones that were queried
         annotations = df.loc[ids].to_dict('index')
         self.cache.set(annotations, namespace=self.SOURCE_NAME)
         return annotations

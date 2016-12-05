@@ -48,7 +48,7 @@ class AnnotatorWithCache():
     def __init__(self, cache='redis', **cache_kwargs):
         """
         Initialize this class with a cache name ('redis', 'postgres') or a
-        Cache instance (RedisCache, PostgresCache). Optional kwargs can be
+        Cache instance (RedisCache, PostgresCache). Extra kwargs can be
         passed to the cache initializer.
         """
         self.name = self.__class__.__name__
