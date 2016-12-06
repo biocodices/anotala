@@ -1,4 +1,5 @@
 from .annotator_with_cache import AnnotatorWithCache
+from .entrez_annotator import EntrezAnnotator
 from .myvariant_annotator import MyVariantAnnotator
 from .dbsnp_web_annotator import DbsnpWebAnnotator
 from .dbsnp_entrez_annotator import DbsnpEntrezAnnotator
@@ -10,4 +11,5 @@ from .dbsnp_myvariant_annotator import DbsnpMyvariantAnnotator
 from .omim_gene_annotator import OmimGeneAnnotator
 from .omim_variant_annotator import OmimVariantAnnotator
 from .mygene_annotator import MygeneAnnotator
+from .gene_entrez_annotator import GeneEntrezAnnotator
 
