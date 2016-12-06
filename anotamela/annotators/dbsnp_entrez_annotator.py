@@ -17,24 +17,28 @@ class DbsnpEntrezAnnotator(AnnotatorWithCache):
         # => { 'rs123': ... , 'rs268': ... }
     """
     SOURCE_NAME = 'dbsnp_entrez'
-    LINKOUT_NAMES = {'1': 'snp', '5': 'pubmed'}
 
-    def _batch_query_and_cache(self, ids, parallel, _):
-        # The ignored argument _ is there to handle the <sleep_time> argument
-        # that AnnotatorWithCache.annotate assumes.
+    LINKOUT_NAMES = {'1': 'snp', '5': 'pubmed'}
+    BATCH_SIZE = 1000
+
+    def _batch_query_and_cache(self, ids, _, __):
+        # The ignored arguments _ and _ _ are there to handle the <parallel>
+        # and <sleep_time> arguments that AnnotatorWithCache.annotate assumes.
+        # The Entrez ePOST service already handles batch queries.
         ids = [id_.replace('rs', '') for id_ in ids]
+        entrez_helper = EntrezHelper()
         entrez_params = {
                 'db_name': 'snp',
                 'ids': ids,
                 'rettype': 'xml',
-                'batch_size': parallel,
+                'batch_size': self.BATCH_SIZE,
                 'xml_element_tag': 'rs',
                 'xml_id_attribute': 'rsid'
             }
-        entrez_helper = EntrezHelper()
-        results = entrez_helper.post_query(**entrez_params)
-        annotations = dict(results)
-        self.cache.set(annotations, namespace=self.SOURCE_NAME)
+        annotations = {}
+        for batch_annotations in entrez_helper.post_query(**entrez_params):
+            annotations.update(batch_annotations)
+            self.cache.set(batch_annotations, namespace=self.SOURCE_NAME)
         return annotations
 
     @classmethod

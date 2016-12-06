@@ -39,7 +39,6 @@ class EntrezHelper():
         total = len(ids)
         msg = 'Fetch {} entries from Entrez DbSNP in batches of {}'
         logger.info(msg.format(total, batch_size))
-        annotations = {}
         for offset in tqdm(list(range(0, total, batch_size))):
             # Fetch the raw response (XML or JSON)
             fetch_handle = Entrez.efetch(db=db_name, rettype=rettype,
@@ -49,11 +48,12 @@ class EntrezHelper():
             fetch_handle.close()
 
             if rettype == 'xml':
-                yield from self.extract_id_annotation_from_xml(
+                batch_annotations = self.extract_id_annotation_from_xml(
                     raw_response, xml_element_tag, xml_id_attribute, db_name)
+                yield dict(batch_annotations)
             else:
-                raise NotImplementedError('No extraction method '
-                                          'for rettype={}'.format(rettype))
+                msg = 'No extraction method for rettype={}'.format(rettype)
+                raise NotImplementedError(msg)
 
     def extract_id_annotation_from_xml(self, raw_response, xml_element_tag,
                                        xml_id_attribute, db_name):
@@ -65,7 +65,6 @@ class EntrezHelper():
             if db_name == 'snp':
                 id_ = 'rs' + id_
             annotation = str(xml_element)
-
             yield (id_, annotation)
 
     def set_email_for_entrez(self):
