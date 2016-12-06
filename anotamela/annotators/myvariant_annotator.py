@@ -14,6 +14,7 @@ class MyVariantAnnotator():
         - an optional @staticmethod _parse_annotation(raw_annotation)
     """
     ANNOTATIONS_ARE_JSON = True
+    VERBOSE = False
 
     def annotate(self, ids, use_cache=True, use_web=True, parse_data=True):
         # This wrapper around AnnotatorWithCache.annotate is meant to remove
@@ -34,7 +35,8 @@ class MyVariantAnnotator():
         # results are also cached.
         if not hasattr(self, 'mv'):
             self.mv = MyVariantInfo()
-        hits = self.mv.querymany(ids, scopes=self.SCOPES, fields=self.FIELDS)
+        hits = self.mv.querymany(ids, scopes=self.SCOPES, fields=self.FIELDS,
+                                 verbose=self.VERBOSE)
         annotations = {hit['query']: hit for hit in hits
                        if 'notfound' not in hit}
         self.cache.set(annotations, namespace=self.SOURCE_NAME)
