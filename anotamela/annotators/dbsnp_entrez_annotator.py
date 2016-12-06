@@ -1,13 +1,8 @@
-import logging
-
-from anotamela.annotators import AnnotatorWithCache
-from anotamela.helpers import make_xml_soup, EntrezHelper
+from anotamela.annotators import AnnotatorWithCache, EntrezAnnotator
+from anotamela.helpers import make_xml_soup
 
 
-logger = logging.getLogger(__name__)
-
-
-class DbsnpEntrezAnnotator(AnnotatorWithCache):
+class DbsnpEntrezAnnotator(EntrezAnnotator, AnnotatorWithCache):
     """
     Provider of DbSNP annotations taken from the Entrez service. XML responses
     are cached and then parsed. Usage:
@@ -17,36 +12,23 @@ class DbsnpEntrezAnnotator(AnnotatorWithCache):
         # => { 'rs123': ... , 'rs268': ... }
     """
     SOURCE_NAME = 'dbsnp_entrez'
-
     LINKOUT_NAMES = {'1': 'snp', '5': 'pubmed'}
-    BATCH_SIZE = 1000
+    ENTREZ_PARAMS = {'db': 'snp', 'retmode': 'xml'}
 
-    def _batch_query_and_cache(self, ids, _, __):
-        # The ignored arguments _ and _ _ are there to handle the <parallel>
-        # and <sleep_time> arguments that AnnotatorWithCache.annotate assumes.
-        # The Entrez ePOST service already handles batch queries.
-        ids = [id_.replace('rs', '') for id_ in ids]
-        entrez_helper = EntrezHelper()
-        entrez_params = {
-                'db_name': 'snp',
-                'ids': ids,
-                'rettype': 'xml',
-                'batch_size': self.BATCH_SIZE,
-                'xml_element_tag': 'rs',
-                'xml_id_attribute': 'rsid'
-            }
-        annotations = {}
-        for batch_annotations in entrez_helper.post_query(**entrez_params):
-            annotations.update(batch_annotations)
-            self.cache.set(batch_annotations, namespace=self.SOURCE_NAME)
-        return annotations
+    def _annotations_by_id(self, xml_with_many_variants):
+        """Splits the XML per variant and returns a dicitonary with the form
+        { id-1: xml_fragment-1, id-2: ... }."""
+        soup = make_xml_soup(xml_with_many_variants)
+        for xml_element in soup.select('rs'):
+            id_ = 'rs' + xml_element['rsid']
+            yield (id_, str(xml_element))
 
     @classmethod
-    def _parse_annotation(cls, annotation):
+    def _parse_annotation(cls, xml_of_single_variant):
         """Parse the XML of a single rs ID from by Entrez. Return a dict of
         annotations for the given rs."""
+        soup = make_xml_soup(xml_of_single_variant)
         ann = {}
-        soup = make_xml_soup(annotation)
 
         rs_elements = soup.select('rs')
         assert len(rs_elements) == 1
@@ -84,4 +66,8 @@ class DbsnpEntrezAnnotator(AnnotatorWithCache):
         ann['fxn'] = [fx.attrs for fx in e.select('fxnset')]
 
         return ann
+
+    @staticmethod
+    def _parse_id(id_):
+        return id_.replace('rs', '')
 
