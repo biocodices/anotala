@@ -1,7 +1,7 @@
-from anotamela.annotators import AnnotatorWithCache, MyVariantAnnotator
+from anotamela.annotators import MyVariantAnnotator
 
 
-class DbsnpMyvariantAnnotator(MyVariantAnnotator, AnnotatorWithCache):
+class DbsnpMyvariantAnnotator(MyVariantAnnotator):
     SOURCE_NAME = 'dbsnp_myvariant'
     SCOPES = 'dbsnp.rsid'
     FIELDS = 'dbsnp'

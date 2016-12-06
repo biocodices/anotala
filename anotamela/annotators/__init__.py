@@ -1,6 +1,4 @@
-from .annotator_with_cache import AnnotatorWithCache
-from .entrez_annotator import EntrezAnnotator
-from .myvariant_annotator import MyVariantAnnotator
+from .base_classes import *
 from .dbsnp_web_annotator import DbsnpWebAnnotator
 from .dbsnp_entrez_annotator import DbsnpEntrezAnnotator
 from .clinvar_rs_annotator import ClinvarRsAnnotator

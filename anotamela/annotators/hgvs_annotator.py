@@ -1,7 +1,7 @@
-from anotamela.annotators import AnnotatorWithCache, MyVariantAnnotator
+from anotamela.annotators import MyVariantAnnotator
 
 
-class HgvsAnnotator(MyVariantAnnotator, AnnotatorWithCache):
+class HgvsAnnotator(MyVariantAnnotator):
     SOURCE_NAME = 'hgvs'
     SCOPES = 'dbsnp.rsid'
     FIELDS = ('clinvar.hgvs snpeff.ann.feature_id snpeff.ann.hgvs_c '
