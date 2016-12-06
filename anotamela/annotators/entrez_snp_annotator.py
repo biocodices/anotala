@@ -1,15 +1,16 @@
-from anotamela.annotators import AnnotatorWithCache, EntrezAnnotator
+from anotamela.annotators import EpostAnnotator
 from anotamela.helpers import make_xml_soup
 
 
-class DbsnpEntrezAnnotator(EntrezAnnotator, AnnotatorWithCache):
+class EntrezSnpAnnotator(EpostAnnotator):
     """
     Provider of DbSNP annotations taken from the Entrez service. XML responses
     are cached and then parsed. Usage:
 
-        > dbsnp_entrez_annotator = DbsnpEntrezAnnotator()
-        > dbsnp_entrez_annotator.annotate('rs123 rs268'.split())
+        > entrez_snp_annotator = EntrezSnpAnnotator()
+        > entrez_snp_annotator.annotate('rs123 rs268'.split())
         # => { 'rs123': ... , 'rs268': ... }
+
     """
     SOURCE_NAME = 'dbsnp_entrez'
     LINKOUT_NAMES = {'1': 'snp', '5': 'pubmed'}
@@ -22,6 +23,10 @@ class DbsnpEntrezAnnotator(EntrezAnnotator, AnnotatorWithCache):
         for xml_element in soup.select('rs'):
             id_ = 'rs' + xml_element['rsid']
             yield (id_, str(xml_element))
+
+    @staticmethod
+    def _parse_id(id_):
+        return id_.replace('rs', '')
 
     @classmethod
     def _parse_annotation(cls, xml_of_single_variant):
@@ -66,8 +71,4 @@ class DbsnpEntrezAnnotator(EntrezAnnotator, AnnotatorWithCache):
         ann['fxn'] = [fx.attrs for fx in e.select('fxnset')]
 
         return ann
-
-    @staticmethod
-    def _parse_id(id_):
-        return id_.replace('rs', '')
 

@@ -1,29 +1,33 @@
-from os.path import isfile, expanduser
+from os.path import expanduser
 import logging
 
 from Bio import Entrez
 from tqdm import tqdm
+
+from anotamela.annotators import AnnotatorWithCache
 
 
 logger = logging.getLogger(__name__)
 Entrez.tool = 'anotamela'
 
 
-class EntrezAnnotator():
+class EpostAnnotator(AnnotatorWithCache):
+    """Base class for annotators that use Entrez epost service."""
+
     BATCH_SIZE = 1000
 
-    def _batch_query_and_cache(self, ids, _, __):
-        # The ignored arguments _ and _ _ are there to handle the <parallel>
-        # and <sleep_time> arguments that AnnotatorWithCache.annotate assumes.
-        # The Entrez ePOST service already handles batch queries.
-        ids = [self._parse_id(id_) for id_ in ids]
+    def _batch_query_and_cache(self, ids):
+        if hasattr(self, '_parse_id'):
+            ids = [self._parse_id(id_) for id_ in ids]
+
         annotations = {}
-        for batch_annotations in self._epost_query(ids):
+        for batch_annotations in self._epost_batch_queries(ids):
             annotations.update(batch_annotations)
             self.cache.set(batch_annotations, namespace=self.SOURCE_NAME)
+
         return annotations
 
-    def _epost_query(self, ids):
+    def _epost_batch_queries(self, ids):
         """
         Use Entrez POST query service to fetch a list of IDs in the given
         database. Yields dictionaries with the annotations of each batch.
@@ -71,19 +75,14 @@ class EntrezAnnotator():
     @staticmethod
     def set_email_for_entrez():
         email_filepath = expanduser('~/.mail_address_for_Entrez')
-        if not isfile(email_filepath):
+
+        try:
+            with open(email_filepath) as f:
+                Entrez.email = f.read().strip()
+        except FileNotFoundError:
             msg = ('Please set a mail for Entrez in {}. Entrez will notify '
                    'that mail before banning you if your usage is too high.')
-            raise Exception(msg)
-
-        with open(email_filepath) as f:
-            Entrez.email = f.read().strip()
-
-    @staticmethod
-    def _parse_id(id_):
-        # Override this in a subclass to modify the ids in any way
-        # E.g. DbsnpEntrezAnnotator removes the 'rs' from 'rs268' kinf of IDs
-        return id_
+            raise FileNotFoundError(msg.format(email_filepath))
 
     @staticmethod
     def _annotations_by_id(raw_response):

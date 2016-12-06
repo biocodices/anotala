@@ -1,7 +1,7 @@
-from anotamela.annotators import AnnotatorWithCache, MyVariantAnnotator
+from anotamela.annotators import MyVariantAnnotator
 
 
-class SnpeffAnnotator(MyVariantAnnotator, AnnotatorWithCache):
+class SnpeffAnnotator(MyVariantAnnotator):
     SOURCE_NAME = 'snpeff_via_myvariant'
     SCOPES = 'dbsnp.rsid'
     FIELDS = 'snpeff'

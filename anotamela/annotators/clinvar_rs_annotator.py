@@ -1,15 +1,17 @@
 import re
 from copy import deepcopy
 
-from anotamela.annotators import AnnotatorWithCache, MyVariantAnnotator
+from anotamela.annotators import MyVariantAnnotator
 from anotamela.helpers import listify
 
 
 def _build_variant_regex():
-    # Helper method for ClinvarRsAnnotator: it compiles regular expresssions
-    # that will be used to extract the aminoacid change, transcript name,
-    # cds change and gene symbol from the 'preferred_name' that ClinVar gives
-    # to a variant.
+    """
+    Helper method for ClinvarRsAnnotator: it compiles regular expressions
+    that will be used to extract the aminoacid change, transcript name,
+    cds change and gene symbol from the 'preferred_name' that ClinVar gives
+    to a variant.
+    """
     patterns = {
         'cds': r'(?P<cds_change>c\..+)',
         'gene': r'(?P<gene>.+)',
@@ -29,19 +31,21 @@ def _build_variant_regex():
             for pattern_name in pattern_names}
 
 
-class ClinvarRsAnnotator(MyVariantAnnotator, AnnotatorWithCache):
+class ClinvarRsAnnotator(MyVariantAnnotator):
     SOURCE_NAME = 'clinvar_rs'
     SCOPES = 'clinvar.rsid'
     FIELDS = 'clinvar'
-
     VARIANT_REGEX = _build_variant_regex()
 
     @classmethod
     def _parse_annotation(cls, raw_annotation):
-        # Make the ClinVar annotation a list of RCV entries. Each describes
-        # an association of the given rs ID to a condition. The condition will
-        # vary between items in the list, but the variant info will be repeated
-        # (e.g. rsid, omim variant id, gene affected, genomic coordinates)
+        """
+        Transforms the ClinVar annotation returned by MyVariant to a list of
+        RCV entries. Each RCV describes an association of the given rs ID to a
+        condition. The condition will vary between items in the list, but the
+        variant info will be repeated (e.g. rsid, omim variant id,
+        gene affected, genomic coordinates).
+        """
         variant_data = deepcopy(raw_annotation['clinvar'])
         rcvs = listify(variant_data['rcv'])
         for rcv in rcvs:
