@@ -9,7 +9,8 @@ from anotamela.annotators import (
         SnpeffAnnotator,
         MafAnnotator,
         OmimGeneAnnotator,
-        OmimVariantAnnotator
+        OmimVariantAnnotator,
+        MygeneAnnotator
     )
 
 
@@ -77,6 +78,11 @@ test_params = [
                               'phenotypes.name prot_change pubmeds.authors '
                               'pubmeds.pmid pubmeds.title pubmeds.publication '
                               'pubmeds_summary review rsid sub_id variant')
+        }),
+        (MygeneAnnotator, {
+            'ids_to_annotate': '4023',
+            'keys_to_check': ('name symbol entrezgene MIM HGNC '
+                              'uniprot.Swiss-Prot type_of_gene'),
         })
     ]
 

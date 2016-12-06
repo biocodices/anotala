@@ -9,4 +9,5 @@ from .maf_annotator import MafAnnotator
 from .dbsnp_myvariant_annotator import DbsnpMyvariantAnnotator
 from .omim_gene_annotator import OmimGeneAnnotator
 from .omim_variant_annotator import OmimVariantAnnotator
+from .mygene_annotator import MygeneAnnotator
 

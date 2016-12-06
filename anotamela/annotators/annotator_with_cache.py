@@ -108,7 +108,8 @@ class AnnotatorWithCache():
             logger.info('Not using web')
 
         if ids:
-            logger.info('No info for {} IDs'.format(len(ids)))
+            msg = '{} had no info for {} IDs'
+            logger.info(msg.format(self.__class__.__name__, len(ids)))
 
         if parse_data:
             annotations = self._parse_annotations(annotations)
