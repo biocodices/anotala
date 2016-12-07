@@ -12,27 +12,30 @@ logger = logging.getLogger(__name__)
 
 class AnnotatorWithCache():
     """
-    Abstract Base Class for Annotators. The point of this class is to provide
-    a shared logic of caching the responses of remote APIs.
+    Abstract Base Class for annotators. The point of this class is to provide
+    a shared logic of annotating a list of IDs with the cache and/or with a web
+    service, and then cache the new data retrieved from the latter.
 
     To use this class, create a new annotator class that has:
 
-        - SOURCE_NAME [and ANNOTATIONS_ARE_JSON] class variables
+        - a SOURCE_NAME class variable that will work as a namespace or
+          tablename according to each Cache used. For instance, RedisCache
+          will use the SOURCE_NAME as a prefix to the ID being cached (e.g.
+          'dbsnp:rs123'), whereas PostgresCache will use the SOURCE_NAME as the
+          name of the table where to store the info.
+
         - either a `_query()` method to fetch a single ID's data --the
           annotation will be parallelized with multithread calls to that
           method-- or a `_batch_query_and_cache()` method to fetch a group of
           IDs, in case you want to implement parallelization in a different way
+
         - an optional @classmethod or @staticmethod _parse_annotation() that
           takes the annotation for one id and transforms it in any way.
 
-    SOURCE_NAME will work as a namespace or tablename according to each Cache
-    used. For instance, cache='redis' will use the SOURCE_NAME as a prefix
-    to the ID being cached (e.g. 'dbsnp:rs123'), whereas cache='postgres' will
-    use the SOURCE_NAME as the name of the table where to store the info.
+        - an optional ANNOTATIONS_ARE_JSON class variable if the annotations
+          retrieved from the web will be in JSON format. This lets
+          PostgresCache know it can create a JSONB field in the database.
 
-    ANNOTATIONS_ARE_JSON should be set only if the annotations will be JSON
-    formatted. This lets PostgresCache know if the columns should be of type
-    JSONB. RedisCache ignores this value.
     """
     AVAILABLE_CACHES = {
             'redis': RedisCache,
@@ -105,6 +108,7 @@ class AnnotatorWithCache():
             logger.info(msg.format(self.__class__.__name__, len(ids)))
 
         if parse_data and hasattr(self, '_parse_annotation'):
+            logger.info('Parsing {} annotations'.format(len(annotations)))
             annotations = self._parse_annotations(annotations)
 
         return annotations
