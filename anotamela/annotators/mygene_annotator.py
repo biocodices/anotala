@@ -9,21 +9,20 @@ class MygeneAnnotator(AnnotatorWithCache):
     """
     SOURCE_NAME = 'mygene'
     ANNOTATIONS_ARE_JSON = True
+    TAXID = 9606  # Human taxon ID, used to annotate the gene of this species
 
-    def _batch_query_and_cache(self, ids):
+    def _batch_query(self, ids):
         """
-        Uses mygene.info service to query many entrez gene IDs. It returns a
-        dict of {id: result, ... } with the IDs that were found (i.e. leaves
-        out the not found ones). The successful results are also cached.
+        Uses mygene.info service to query many Entrez gene IDs. It returns a
+        dict of {id-1: result-1, id-2: ... } with the IDs that were found (i.e.
+        leaves out the not found ones).
         """
         if not hasattr(self, 'mg'):
             self.mg = MyGeneInfo()
-        hits = self.mg.querymany(ids, fields='all')
-        human_taxid = 9606
-        annotations = {hit['query']: hit for hit in hits
-                       if 'notfound' not in hit and hit['taxid'] == human_taxid}
-        self.cache.set(annotations, namespace=self.SOURCE_NAME)
-        return annotations
+
+        for hit in self.mg.querymany(ids, fields='all'):
+            if 'notfound' not in hit and hit['taxid'] == self.TAXID:
+                yield hit['query'], hit
 
     @staticmethod
     def _parse_annotation(raw_annotation):

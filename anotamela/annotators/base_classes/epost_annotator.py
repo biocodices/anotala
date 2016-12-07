@@ -15,6 +15,7 @@ class EpostAnnotator(AnnotatorWithCache):
     Base class for annotators that use Entrez epost service. Classes that
     inherit from this one should have:
 
+        - class variable SOURCE_NAME
         - class variable ENTREZ_PARAMS = {'db': ..., 'retmode': ... }
         - a method _annotations_by_id(raw_response) that takes the raw
           response with info for many ids and yields tuples of (id, data) for
@@ -29,25 +30,18 @@ class EpostAnnotator(AnnotatorWithCache):
 
     BATCH_SIZE = 1000
 
-    def _batch_query_and_cache(self, ids):
-        if hasattr(self, '_parse_id'):
-            ids = [self._parse_id(id_) for id_ in ids]
-
-        annotations = {}
-        for batch_annotations in self._epost_batch_queries(ids):
-            annotations.update(batch_annotations)
-            self.cache.set(batch_annotations, namespace=self.SOURCE_NAME)
-
-        return annotations
-
-    def _epost_batch_queries(self, ids):
+    def _batch_query(self, ids):
         """
-        Use Entrez POST query service to fetch a list of IDs in the given
-        database. Yields dictionaries with the annotations of each batch.
+        Use Entrez POST query service to fetch a list of IDs in batches, in the
+        database defined in self.ENTREZ_PARAMS['db']. Yields dictionaries with
+        the annotations of each batch.
 
         If self.USE_ENTREZ_READER is set, the raw response will be handled by
         Entrez.read() method, instead of returned as is.
         """
+        if hasattr(self, '_parse_id'):
+            ids = [self._parse_id(id_) for id_ in ids]
+
         if not Entrez.email:
             set_email_for_entrez()
 
@@ -57,8 +51,8 @@ class EpostAnnotator(AnnotatorWithCache):
         handle = Entrez.epost(db=self.ENTREZ_PARAMS['db'], id=','.join(ids))
         job_data = Entrez.read(handle)
 
-        # Then you do a second query using those IDs, and you get the results
-        # in batches. More info:
+        # Then you do a second query using the job data, and you get the
+        # results in batches. More info:
         # http://biopython.org/DIST/docs/tutorial/Tutorial.html#sec:entrez-webenv
         total = len(ids)
         batch_size = min(self.BATCH_SIZE, total)
@@ -76,8 +70,8 @@ class EpostAnnotator(AnnotatorWithCache):
             else:
                 raw_response = fetch_handle.read()
             fetch_handle.close()
-            batch_annotations = self._annotations_by_id(raw_response)
-            yield dict(batch_annotations)
+
+            yield from self._annotations_by_id(raw_response)
 
     @staticmethod
     def _annotations_by_id(raw_response):

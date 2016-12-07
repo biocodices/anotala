@@ -23,7 +23,7 @@ class DbsnpEntrezAnnotator(EpostAnnotator):
         soup = make_xml_soup(xml_with_many_variants)
         for xml_element in soup.select('rs'):
             id_ = 'rs' + xml_element['rsid']
-            yield (id_, str(xml_element))
+            yield id_, str(xml_element)
 
     @staticmethod
     def _parse_id(id_):

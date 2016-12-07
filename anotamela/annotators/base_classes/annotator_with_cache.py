@@ -92,9 +92,11 @@ class AnnotatorWithCache():
 
         if use_web:
             if ids:
-                info_from_web = self._batch_query_and_cache(ids)
-                annotations.update(info_from_web)
-                ids = ids - annotations.keys()
+                for id_, annotation in self._batch_query(ids):
+                    self.cache.set({id_: annotation},
+                                   namespace=self.SOURCE_NAME)
+                    annotations.update({id_: annotation})
+                    ids.remove(id_)
         else:
             logger.info('Not using web')
 

@@ -1,7 +1,5 @@
 import re
-import requests
 
-from fake_useragent import UserAgent
 import pandas as pd
 
 from anotamela.annotators.base_classes import ParallelAnnotator
@@ -35,13 +33,8 @@ class OmimGeneAnnotator(ParallelAnnotator):
     RANDOMIZE_SLEEP_TIME = True
 
     def _query(self, mim_id):
-        if not hasattr(self, 'user_agent_generator'):
-            self.user_agent_generator = UserAgent()
-        headers = {'user-agent': self.user_agent_generator.random}
-        response = requests.get(self._url(mim_id), headers=headers)
-        if not response.ok:
-            print(response.status_code, 'response for id "{0}"'.format(mim_id))
-        return response.text
+        url = self._url(mim_id)
+        return self._query_with_random_user_agent(url)
 
     @staticmethod
     def _url(mim_id):

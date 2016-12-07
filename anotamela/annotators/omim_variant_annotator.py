@@ -26,7 +26,7 @@ class OmimVariantAnnotator(AnnotatorWithCache):
 
     SLEEP_TIME = 60
 
-    def _batch_query_and_cache(self, ids):
+    def _batch_query(self, ids):
         """
         This annotator uses OmimGeneAnnotator to get all the variants in a
         given gene, and then extract the variants that were requested.
@@ -49,7 +49,6 @@ class OmimVariantAnnotator(AnnotatorWithCache):
 
         # From all the gene variants, only keep the ones that were queried
         annotations = df.loc[ids].to_dict('index')
-        self.cache.set(annotations, namespace=self.SOURCE_NAME)
-
-        return annotations
+        for id_, annotation in annotations.items():
+            yield id_, annotation
 
