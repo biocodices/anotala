@@ -1,10 +1,10 @@
 import requests
 from itertools import chain
 
-from anotamela.annotators import AnnotatorWithCache
+from anotamela.annotators.base_classes import ParallelAnnotator
 
 
-class DbsnpWebAnnotator(AnnotatorWithCache):
+class DbsnpWebAnnotator(ParallelAnnotator):
     """
     Provider of DbSNP annotations taken from their web. Responses are cached.
 
@@ -14,6 +14,8 @@ class DbsnpWebAnnotator(AnnotatorWithCache):
 
     """
     SOURCE_NAME = 'dbsnp_web'
+    BATCH_SIZE = 15
+    SLEEP_TIME = 10
     ANNOTATIONS_ARE_JSON = True
 
     @staticmethod

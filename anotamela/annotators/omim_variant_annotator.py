@@ -1,7 +1,7 @@
 import pandas as pd
 
-from anotamela.annotators import (AnnotatorWithCache,
-                                  OmimGeneAnnotator)
+from anotamela.annotators.base_classes import AnnotatorWithCache
+from anotamela.annotators import OmimGeneAnnotator
 
 
 class OmimVariantAnnotator(AnnotatorWithCache):
@@ -26,24 +26,30 @@ class OmimVariantAnnotator(AnnotatorWithCache):
 
     SLEEP_TIME = 60
 
-    def _batch_query_and_cache(self, ids, _, __):
-        # This annotator uses OmimGeneAnnotator to get all the variants in a
-        # given gene, and then extract the variants that were requested.
-        # The gene annotation step is necessary because the variant info is in
-        # the gene entry page, which has to be parsed completely before we can
-        # extract the variant bit. In the process, the OmimGeneAnnotator
-        # caches its own gene raw data from OMIM.
+    def _batch_query_and_cache(self, ids):
+        """
+        This annotator uses OmimGeneAnnotator to get all the variants in a
+        given gene, and then extract the variants that were requested.
+        The gene annotation step is necessary because OMIM variant info is in
+        that variant's gene entry, which has to be parsed completely before we
+        can extract the variant bit. In the process, the OmimGeneAnnotator
+        will cache the gene data, so annotating many variants from a single
+        gene will be a fast process.
+        """
         if not hasattr(self, 'omim_gene_annotator'):
             self.omim_gene_annotator = OmimGeneAnnotator(cache=self.cache)
 
-        gene_ids = [id_.split('.')[0] for id_ in ids]
+        # OMIM variant IDs are like 605557.0001, where 605557 is a gene ID
+        gene_ids = {id_.split('.')[0] for id_ in ids}
         gene_dataframes = self.omim_gene_annotator.annotate(gene_ids)
         df = pd.concat(gene_dataframes.values()).set_index('variant_id')
+
         # Check each variant has a single row in the dataframe:
         assert len(df.index) == len(set(df.index))
 
         # From all the gene variants, only keep the ones that were queried
         annotations = df.loc[ids].to_dict('index')
         self.cache.set(annotations, namespace=self.SOURCE_NAME)
+
         return annotations
 

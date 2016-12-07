@@ -82,7 +82,7 @@ test_params = [
         (MygeneAnnotator, {
             'ids_to_annotate': '4023',
             'keys_to_check': ('name symbol entrezgene MIM HGNC '
-                              'uniprot.Swiss-Prot type_of_gene'),
+                              'swissprot type_of_gene'),
         })
     ]
 

@@ -1,6 +1,6 @@
 from myvariant import MyVariantInfo
 
-from anotamela.annotators import AnnotatorWithCache
+from anotamela.annotators.base_classes import AnnotatorWithCache
 
 
 class MyVariantAnnotator(AnnotatorWithCache):

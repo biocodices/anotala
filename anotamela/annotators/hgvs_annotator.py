@@ -1,4 +1,4 @@
-from anotamela.annotators import MyVariantAnnotator
+from anotamela.annotators.base_classes import MyVariantAnnotator
 
 
 class HgvsAnnotator(MyVariantAnnotator):

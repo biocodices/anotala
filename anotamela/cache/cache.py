@@ -17,7 +17,7 @@ class Cache:
         - _client_set(info_dict, namespace)
 
     """
-    def get(self, ids, namespace, verbose=True):
+    def get(self, ids, namespace):
         """
         Get data for a list of ids from cache. Returns an info dict like:
 
@@ -39,11 +39,8 @@ class Cache:
             response = self._try_to_decode_and_deserialize(raw_response)
             info_dict[id_] = response
 
-        if verbose and len(ids) > 1:
-            msg = 'Found {}/{} ({})'
-            logger.info(msg.format(len(info_dict), len(ids),
-                                   self.__class__.__name__))
-
+        logger.info('{} found {}/{}'.format(self.__class__.__name__,
+                                            len(info_dict), len(ids)))
         return info_dict
 
     def set(self, info_dict, namespace):

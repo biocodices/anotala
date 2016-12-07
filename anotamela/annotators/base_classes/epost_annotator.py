@@ -4,7 +4,7 @@ import logging
 from Bio import Entrez
 from tqdm import tqdm
 
-from anotamela.annotators import AnnotatorWithCache
+from anotamela.annotators.base_classes import AnnotatorWithCache
 
 
 logger = logging.getLogger(__name__)

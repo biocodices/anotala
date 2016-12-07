@@ -1,19 +1,14 @@
-import sys
 import re
-import time
 import requests
 
-from numpy.random import random_sample
 from fake_useragent import UserAgent
 import pandas as pd
 
-from tqdm import tqdm
-
-from anotamela.annotators import AnnotatorWithCache
+from anotamela.annotators.base_classes import ParallelAnnotator
 from anotamela.helpers import make_html_soup
 
 
-class OmimGeneAnnotator(AnnotatorWithCache):
+class OmimGeneAnnotator(ParallelAnnotator):
     """
     Provider of OMIM annotations for genes (e.g. 605557).
     Responses are cached.
@@ -32,30 +27,12 @@ class OmimGeneAnnotator(AnnotatorWithCache):
     """
     SOURCE_NAME = 'omim_genes'
 
+    # OMIM is quite strict against web crawlers and it will ban your IP.
+    # That's why we just avoid parallelization (BATCH_SIZE = 1) and we make
+    # sure that there's a high random sleep time between requests:
+    BATCH_SIZE = 1
     SLEEP_TIME = 60
-
-    def _batch_query_and_cache(self, ids, _, __):
-        # OMIM is quite strict against web crawlers and it will ban your IP.
-        # That's why we just avoid parallelization here and we make sure that
-        # there's a highly random sleep time between requests.
-        annotations = {}
-
-        sys.stdout.flush()  # Necesary for tqdm stdout correctly
-        for i, id_ in enumerate(tqdm(ids)):
-            if i > 0:
-                # To further simulate real human behavior when visiting a page,
-                # we randomize the sleeping time here.
-                random_sleep_time = (self.SLEEP_TIME +
-                                     random_sample() * self.SLEEP_TIME)
-                time.sleep(random_sleep_time)
-
-            annotation = self._query(id_)
-            if annotation:
-                self.cache.set({id_: annotation},
-                               namespace=self.SOURCE_NAME)
-                annotations[id_] = annotation
-
-        return annotations
+    RANDOMIZE_SLEEP_TIME = True
 
     def _query(self, mim_id):
         if not hasattr(self, 'user_agent_generator'):

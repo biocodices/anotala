@@ -3,7 +3,7 @@ from collections import defaultdict
 import pytest
 
 from anotamela.cache import Cache
-from anotamela.annotators import AnnotatorWithCache
+from anotamela.annotators.base_classes import AnnotatorWithCache
 
 
 class MockCache(Cache):
