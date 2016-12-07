@@ -3,7 +3,9 @@ import time
 import logging
 from concurrent.futures import ThreadPoolExecutor
 
+import requests
 from numpy.random import random_sample
+from fake_useragent import UserAgent
 from tqdm import tqdm
 
 from anotamela.annotators.base_classes import AnnotatorWithCache
@@ -17,7 +19,7 @@ class ParallelAnnotator(AnnotatorWithCache):
     """
     Base class for annotators that have a _query(id) method but no
     parallelization. This class implements a 'manual' parallelization with
-    Threads. Modify <class>.BATCH_SIZE and <class>.SLEEP_TIME to tweak the
+    Threads. Modify class variables BATCH_SIZE and SLEEP_TIME to tweak the
     parallelization behavior.
     """
     BATCH_SIZE = 10
@@ -27,15 +29,24 @@ class ParallelAnnotator(AnnotatorWithCache):
     def _query(self):
         raise NotImplementedError()
 
-    def _batch_query_and_cache(self, ids):
+    def _query_with_random_user_agent(self, url):
+        if not hasattr(self, 'user_agent_generator'):
+            self.user_agent_generator = UserAgent()
+        headers = {'user-agent': self.user_agent_generator.random}
+        response = requests.get(url, headers=headers)
+        if not response.ok:
+            print(response.status_code, 'response at {}'.format(url))
+        return response.text
+
+    def _batch_query(self, ids):
         """
-        Query a group of IDs using <class>.BATCH_SIZE threads, sleep
-        <class>.SLEEP_TIME between batches, and cache the responses.
+        Query a group of IDs using <class>.BATCH_SIZE threads, sleeping
+        <class>.SLEEP_TIME between batches.
 
         Set <class>.RANDOMIZE_SLEEP_TIME = True to make the sleep time between
         batches random, in order to fool crawler detection.
 
-        Returns a dict with the queried info per ID.
+        Yields tuples of (id_, annotation).
         """
         grouped_ids = list(grouped(ids, self.BATCH_SIZE))
         msg = ('{}: get {} entries in {} batches '
@@ -43,7 +54,6 @@ class ParallelAnnotator(AnnotatorWithCache):
         logger.info(msg.format(self.name, len(ids), len(grouped_ids),
                                self.BATCH_SIZE, self.SLEEP_TIME))
 
-        annotations = {}
         with ThreadPoolExecutor(max_workers=self.BATCH_SIZE) as executor:
             sys.stdout.flush()  # Hack to display tqdm progress bar correctly
             iterator = tqdm(grouped_ids, total=len(grouped_ids))
@@ -51,13 +61,9 @@ class ParallelAnnotator(AnnotatorWithCache):
                 if i > 0:
                     time.sleep(self.sleep_time)
                 group_annotations = executor.map(self._query, ids_group)
-                group_annotations = {id_: annotation for id_, annotation
-                                     in zip(ids_group, group_annotations)
-                                     if annotation}
-                self.cache.set(group_annotations, namespace=self.SOURCE_NAME)
-                annotations.update(group_annotations)
-
-        return annotations
+                for id_, annotation in zip(ids_group, group_annotations):
+                    if annotation:
+                        yield id_, annotation
 
     @property
     def sleep_time(self):
