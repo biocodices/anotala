@@ -1,7 +1,7 @@
 import re
 from copy import deepcopy
 
-from anotamela.annotators import MyVariantAnnotator
+from anotamela.annotators.base_classes import MyVariantAnnotator
 from anotamela.helpers import listify
 
 

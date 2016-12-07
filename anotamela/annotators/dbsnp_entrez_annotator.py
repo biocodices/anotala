@@ -1,14 +1,14 @@
-from anotamela.annotators import EpostAnnotator
+from anotamela.annotators.base_classes import EpostAnnotator
 from anotamela.helpers import make_xml_soup
 
 
-class EntrezSnpAnnotator(EpostAnnotator):
+class DbsnpEntrezAnnotator(EpostAnnotator):
     """
     Provider of DbSNP annotations taken from the Entrez service. XML responses
     are cached and then parsed. Usage:
 
-        > entrez_snp_annotator = EntrezSnpAnnotator()
-        > entrez_snp_annotator.annotate('rs123 rs268'.split())
+        > dbsnp_entrez_annotator = DbsnpEntrezAnnotator()
+        > dbsnp_entrez_annotator.annotate('rs123 rs268'.split())
         # => { 'rs123': ... , 'rs268': ... }
 
     """
