@@ -16,7 +16,8 @@ class DbsnpEntrezAnnotator(EpostAnnotator):
     LINKOUT_NAMES = {'1': 'snp', '5': 'pubmed'}
     ENTREZ_PARAMS = {'db': 'snp', 'retmode': 'xml'}
 
-    def _annotations_by_id(self, xml_with_many_variants):
+    @staticmethod
+    def _annotations_by_id(xml_with_many_variants):
         """Splits the XML per variant and returns a dicitonary with the form
         { id-1: xml_fragment-1, id-2: ... }."""
         soup = make_xml_soup(xml_with_many_variants)
