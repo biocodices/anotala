@@ -1,18 +1,31 @@
-from os.path import expanduser
 import logging
 
 from Bio import Entrez
 from tqdm import tqdm
 
 from anotamela.annotators.base_classes import AnnotatorWithCache
+from anotamela.helpers import set_email_for_entrez
 
 
 logger = logging.getLogger(__name__)
-Entrez.tool = 'anotamela'
 
 
 class EpostAnnotator(AnnotatorWithCache):
-    """Base class for annotators that use Entrez epost service."""
+    """
+    Base class for annotators that use Entrez epost service. Classes that
+    inherit from this one should have:
+
+        - class variable ENTREZ_PARAMS = {'db': ..., 'retmode': ... }
+        - a method _annotations_by_id(raw_response) that takes the raw
+          response with info for many ids and yields tuples of (id, data) for
+          each of the queried IDs, thus splitting the response per ID.
+        - optionally, a _parse_id(id_) method that will transform the IDs in
+          any way prior to the query. This is useful, for instance, to remove
+          'rs' from rs IDs.
+        - optionally, a USE_ENTREZ_READER class variable to indicate that the
+          response from Entrez should be handled by Entrez.read(). This works
+          for some but not all DBs.
+    """
 
     BATCH_SIZE = 1000
 
@@ -32,17 +45,11 @@ class EpostAnnotator(AnnotatorWithCache):
         Use Entrez POST query service to fetch a list of IDs in the given
         database. Yields dictionaries with the annotations of each batch.
 
-        If parse_xml=True, set xml_element_tag and xml_id_attribute to let the
-        XML parser know which XML elements are associated to each ID. For
-        instance, for the db 'snp', set xml_element_tag='rs' and
-        xml_id_attribute='rsid'. You have to manually explore the XML once
-        to know theese values.
-
         If self.USE_ENTREZ_READER is set, the raw response will be handled by
         Entrez.read() method, instead of returned as is.
         """
         if not Entrez.email:
-            self.set_email_for_entrez()
+            set_email_for_entrez()
 
         # Entrez POST queries are a two step process. You first POST your query
         # and get a WebEnv identifier and a QueryKey.
@@ -71,18 +78,6 @@ class EpostAnnotator(AnnotatorWithCache):
             fetch_handle.close()
             batch_annotations = self._annotations_by_id(raw_response)
             yield dict(batch_annotations)
-
-    @staticmethod
-    def set_email_for_entrez():
-        email_filepath = expanduser('~/.mail_address_for_Entrez')
-
-        try:
-            with open(email_filepath) as f:
-                Entrez.email = f.read().strip()
-        except FileNotFoundError:
-            msg = ('Please set a mail for Entrez in {}. Entrez will notify '
-                   'that mail before banning you if your usage is too high.')
-            raise FileNotFoundError(msg.format(email_filepath))
 
     @staticmethod
     def _annotations_by_id(raw_response):
