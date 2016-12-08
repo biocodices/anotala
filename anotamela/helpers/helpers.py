@@ -1,3 +1,4 @@
+import re
 from os.path import expanduser
 from itertools import zip_longest
 from functools import lru_cache
@@ -36,6 +37,11 @@ def set_email_for_entrez():
             Entrez.email = f.read().strip()
     except FileNotFoundError:
         msg = ('Please set a mail for Entrez in {}. Entrez will notify '
-                'that mail before banning you if your usage is too high.')
+               'that mail before banning you if your usage is too high.')
         raise FileNotFoundError(msg.format(email_filepath))
+
+
+def camel_to_snake(s):
+    """Convert a CamelCase string to a snake_case string."""
+    return re.sub("([A-Z])", "_\\1", s).lower().lstrip('_')
 

@@ -1,11 +1,10 @@
-from anotamela.annotators.base_classes import EpostAnnotator
+from anotamela.annotators.base_classes import EntrezAnnotator
 from anotamela.helpers import make_xml_soup
 
 
-class DbsnpEntrezAnnotator(EpostAnnotator):
+class DbsnpEntrezAnnotator(EntrezAnnotator):
     """
-    Provider of DbSNP annotations taken from the Entrez service. XML responses
-    are cached and then parsed. Usage:
+    Provider Entrez SNP annotations. Usage:
 
         > dbsnp_entrez_annotator = DbsnpEntrezAnnotator()
         > dbsnp_entrez_annotator.annotate('rs123 rs268'.split())
@@ -14,12 +13,14 @@ class DbsnpEntrezAnnotator(EpostAnnotator):
     """
     SOURCE_NAME = 'dbsnp_entrez'
     LINKOUT_NAMES = {'1': 'snp', '5': 'pubmed'}
-    ENTREZ_PARAMS = {'db': 'snp', 'retmode': 'xml'}
+    ENTREZ_PARAMS = {'db': 'snp', 'retmode': 'xml', 'service': 'epost'}
 
     @staticmethod
-    def _annotations_by_id(xml_with_many_variants):
+    def _annotations_by_id(_, xml_with_many_variants):
         """Splits the XML per variant and returns a dicitonary with the form
         { id-1: xml_fragment-1, id-2: ... }."""
+        # The _ ignored argument is the list of IDs, which here is not used
+        # because the ID is taken from the xml element itself.
         soup = make_xml_soup(xml_with_many_variants)
         for xml_element in soup.select('rs'):
             id_ = 'rs' + xml_element['rsid']
