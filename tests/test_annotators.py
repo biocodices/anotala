@@ -10,7 +10,8 @@ from anotamela.annotators import (
         MafAnnotator,
         OmimGeneAnnotator,
         OmimVariantAnnotator,
-        MygeneAnnotator
+        MygeneAnnotator,
+        GeneEntrezAnnotator
     )
 
 
@@ -83,6 +84,13 @@ test_params = [
             'ids_to_annotate': '4023',
             'keys_to_check': ('name symbol entrezgene MIM HGNC '
                               'swissprot type_of_gene'),
+        }),
+        (GeneEntrezAnnotator, {
+            'ids_to_annotate': '4023',
+            'keys_to_check': ('chromosome description name nomenclature_name '
+                              'nomenclature_symbol organism_common_name '
+                              'organism_scientific_name organism_tax_id '
+                              'other_designations summary'),
         })
     ]
 
