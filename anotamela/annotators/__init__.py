@@ -10,4 +10,5 @@ from .omim_variant_annotator import OmimVariantAnnotator
 from .mygene_annotator import MygeneAnnotator
 from .gene_entrez_annotator import GeneEntrezAnnotator
 from .uniprot_annotator import UniprotAnnotator
+from .pubmed_annotator import PubmedAnnotator
 
