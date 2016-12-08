@@ -12,7 +12,8 @@ from anotamela.annotators import (
         OmimVariantAnnotator,
         MygeneAnnotator,
         GeneEntrezAnnotator,
-        UniprotAnnotator
+        UniprotAnnotator,
+        PubmedAnnotator
     )
 
 
@@ -98,6 +99,12 @@ test_params = [
             'keys_to_check': ('desc gene_symbol new_aa old_aa pmids pos '
                               'pos_stop prot_change prot_id prot_url review '
                               'rsid variant_id variant_url')
+        }),
+        (PubmedAnnotator, {
+            'ids_to_annotate': '24387995 24008257 24387996',
+            'keys_to_check': ('AMA_citation ArticleIds.pubmed '
+                              'AuthorList DOI FullJournalName Id Issue Pages'
+                              'PubDate References SO Source Title Volume')
         })
     ]
 
