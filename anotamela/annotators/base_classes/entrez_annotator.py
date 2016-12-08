@@ -49,7 +49,6 @@ class EntrezAnnotator(AnnotatorWithCache):
             set_email_for_entrez()
 
         total = len(ids)
-        self.batch_size = 1000 if self.ENTREZ_PARAMS['service'] == 'epost' else 200
         msg = 'Fetch {} entries from Entrez "{}" in batches of {}'.format(
             total, self.ENTREZ_PARAMS['db'], min(self.batch_size, total))
         logger.info(msg)
@@ -70,6 +69,14 @@ class EntrezAnnotator(AnnotatorWithCache):
             'esummary': self._esummary_query
         }
         return query_methods[self.ENTREZ_PARAMS['service']]
+
+    @property
+    def batch_size(self):
+        batch_sizes = {
+            'epost': 1000,
+            'esummary': 200,
+        }
+        return batch_sizes[self.ENTREZ_PARAMS['service']]
 
     def _esummary_query(self, ids):
         for ids_group in grouped(ids, self.batch_size):
