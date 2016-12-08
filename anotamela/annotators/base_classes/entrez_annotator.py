@@ -4,7 +4,7 @@ from Bio import Entrez
 from tqdm import tqdm
 
 from anotamela.annotators.base_classes import AnnotatorWithCache
-from anotamela.helpers import set_email_for_entrez
+from anotamela.helpers import set_email_for_entrez, grouped
 
 
 logger = logging.getLogger(__name__)
@@ -19,7 +19,6 @@ class EntrezAnnotator(AnnotatorWithCache):
 
         - class variable ENTREZ_PARAMS =
             { 'db': ..., 'retmode': 'json' , 'service': (epost|esummary) }
-
             'service' lets you choose between epost and esummary services.
 
         - a method _annotations_by_id(raw_response) that takes the raw
@@ -55,15 +54,7 @@ class EntrezAnnotator(AnnotatorWithCache):
             total, self.ENTREZ_PARAMS['db'], min(self.batch_size, total))
         logger.info(msg)
 
-        if self.ENTREZ_PARAMS['service'] == 'epost':
-            handles = self._epost_query(ids)
-        elif self.ENTREZ_PARAMS['service'] == 'esummary':
-            handles = self._esummary_query(ids)
-        else:
-            msg = "I don't have a query method for '{}'"
-            raise NotImplementedError(msg.format(self.ENTREZ_PARAMS['service']))
-
-        for handle in handles:
+        for handle in self._query_method(ids):
             if hasattr(self, 'USE_ENTREZ_READER'):
                 raw_response = Entrez.read(handle)
             else:
@@ -72,9 +63,19 @@ class EntrezAnnotator(AnnotatorWithCache):
             handle.close()
             yield from self._annotations_by_id(ids, raw_response)
 
+    @property
+    def _query_method(self):
+        query_methods = {
+            'epost': self._epost_query,
+            'esummary': self._esummary_query
+        }
+        return query_methods[self.ENTREZ_PARAMS['service']]
+
     def _esummary_query(self, ids):
-        handle = Entrez.esummary(db=self.ENTREZ_PARAMS['db'], id=','.join(ids))
-        yield handle
+        for ids_group in grouped(ids, self.batch_size):
+            handle = Entrez.esummary(db=self.ENTREZ_PARAMS['db'],
+                                     id=','.join(ids_group))
+            yield handle
 
     def _epost_query(self, ids):
         # Entrez POST queries are a two step process. You first POST your query

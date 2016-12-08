@@ -28,7 +28,7 @@ IDs, and OMIM annotators take MIM IDs.
 
 The many dbSNP annotators correspond to different ways of getting dbSNP data:
 kind of 'scrapping' the web, using Entrez service, and using MyVariant.info
-service. Each gives a different piece of information, so I included them all as
+service. Each gives a different piece of information, so I included them as
 separate entities.
 
 All the annotators have the same API, just instantiate choosing a `cache` option

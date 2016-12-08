@@ -8,6 +8,7 @@ from Bio import Entrez
 
 
 def grouped(iterable, group_size):
+    """Split an iterable in lists of <group_size> elements."""
     # Python recipe taken from:
     # https://docs.python.org/3.1/library/itertools.html#recipes
     args = [iter(iterable)] * group_size
