@@ -11,7 +11,8 @@ from anotamela.annotators import (
         OmimGeneAnnotator,
         OmimVariantAnnotator,
         MygeneAnnotator,
-        GeneEntrezAnnotator
+        GeneEntrezAnnotator,
+        UniprotAnnotator
     )
 
 
@@ -91,6 +92,12 @@ test_params = [
                               'nomenclature_symbol organism_common_name '
                               'organism_scientific_name organism_tax_id '
                               'other_designations summary'),
+        }),
+        (UniprotAnnotator, {
+            'ids_to_annotate': 'P06858',
+            'keys_to_check': ('desc gene_symbol new_aa old_aa pmids pos '
+                              'pos_stop prot_change prot_id prot_url review '
+                              'rsid variant_id variant_url')
         })
     ]
 
@@ -116,10 +123,9 @@ def test_generic_annotator(annotator_class, params):
 
 def check_dict_key(dictionary, key_to_check):
     # Some annotations are a list of dicts instead of a single dict
-    # Handle those cases calling this function for each dict in the list:
+    # Handle those cases calling this function for the first dict in the list:
     if isinstance(dictionary, list):
-        for dict_item in dictionary:
-            check_dict_key(dict_item, key_to_check)
+        check_dict_key(dictionary[0], key_to_check)
 
     # If it's a dictionary
     else:
