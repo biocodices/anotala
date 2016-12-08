@@ -20,16 +20,16 @@ class UniprotAnnotator(ParallelAnnotator):
         try:
             handle = ExPASy.get_sprot_raw(id_)
         except ValueError:
-            logger.warning('  "%s" not found in SwissProt' % id_)
+            logger.warning('"%s" not found in SwissProt' % id_)
         else:
             record = SwissProtReader.read(handle)
             # Make the record serializable for the database
-            references = []
-            for ref in record.references:
-                reference = ref.__dict__
-                reference['references'] = dict(ref.references)
-                references.append(reference)
-                record.references = references
+            new_references = []
+            for old_reference in record.references:
+                new_reference = old_reference.__dict__
+                new_reference['references'] = dict(old_reference.references)
+                new_references.append(new_reference)
+            record.references = new_references
             return record.__dict__
 
     @classmethod
@@ -38,18 +38,19 @@ class UniprotAnnotator(ParallelAnnotator):
         Returns a list of variants (each represented as a dictionary) for the
         given record. All variants belong to the same protein.
         """
-        variants = [cls._parse_variant_feature(feature)
-                    for feature in record['features']
-                    if feature[0] == 'VARIANT']
-
         prot_id = record['accessions'][0]
+        prot_url = 'http://www.uniprot.org/uniprot/%s' % prot_id
         gene_match = re.search(r'Name=(.+?)( \{.+\})?;( Synonyms)?',
                                record['gene_name'])
+        gene_symbol = (gene_match and gene_match.group(1)) or None
+
+        variants = [cls._parse_variant_feature(feature)
+                    for feature in record['features'] if feature[0] == 'VARIANT']
         for variant in variants:
             variant.update({
                     'prot_id': prot_id,
-                    'prot_url': 'http://www.uniprot.org/uniprot/%s' % prot_id,
-                    'gene_symbol': (gene_match and gene_match.group(1)) or None
+                    'prot_url': prot_url,
+                    'gene_symbol': gene_symbol
                 })
         return variants
 
@@ -70,7 +71,8 @@ class UniprotAnnotator(ParallelAnnotator):
         if match:
             variant['old_aa'], variant['new_aa'] = match.groups()
             variant['prot_change'] = 'p.{}{}{}'.format(seq3(variant['old_aa']),
-                    variant['pos'], seq3(variant['new_aa']))
+                                                       variant['pos'],
+                                                       seq3(variant['new_aa']))
 
         variant['pmids'] = re.findall(r'PubMed:(\d+)', variant['desc'])
 
