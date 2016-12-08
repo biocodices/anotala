@@ -35,7 +35,8 @@ class ParallelAnnotator(AnnotatorWithCache):
         headers = {'user-agent': self.user_agent_generator.random}
         response = requests.get(url, headers=headers)
         if not response.ok:
-            print(response.status_code, 'response at {}'.format(url))
+            logger.warning('{} response: {}'.format(response.status_code, url))
+            response.raise_for_status()
         return response.text
 
     def _batch_query(self, ids):
@@ -50,7 +51,7 @@ class ParallelAnnotator(AnnotatorWithCache):
         """
         grouped_ids = list(grouped(ids, self.BATCH_SIZE))
         msg = ('{}: get {} entries in {} batches '
-               '({} items/batch & sleep {} between batches)')
+               '({} items/batch & sleep {}s between batches)')
         logger.info(msg.format(self.name, len(ids), len(grouped_ids),
                                self.BATCH_SIZE, self.SLEEP_TIME))
 
