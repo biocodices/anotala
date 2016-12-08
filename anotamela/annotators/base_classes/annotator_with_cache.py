@@ -118,14 +118,13 @@ class AnnotatorWithCache():
         the same keys and the parsed annotations."""
         parsed_annotations = {}
         with ProcessPoolExecutor() as executor:
+            future_to_id = {}
             for id_, annotation in annotations.items():
-                future_to_id = {}
-                for id_, annotation in annotations.items():
-                    future = executor.submit(self._parse_annotation, annotation)
-                    future_to_id[future] = id_
-                for future in as_completed(future_to_id):
-                    id_ = future_to_id[future]
-                    parsed_annotations[id_] = future.result()
+                future = executor.submit(self._parse_annotation, annotation)
+                future_to_id[future] = id_
+            for future in as_completed(future_to_id):
+                id_ = future_to_id[future]
+                parsed_annotations[id_] = future.result()
 
         return parsed_annotations
 
