@@ -102,7 +102,8 @@ test_params = [
         }),
         (PubmedAnnotator, {
             'ids_to_annotate': '23788249',
-            'keys_to_check': 'AMA_Citation Abstract ArticleDate Ids Journal'
+            'keys_to_check': ('AMA_Citation CitationData Abstract ArticleDate '
+                              'Ids Journal')
         })
     ]
 
