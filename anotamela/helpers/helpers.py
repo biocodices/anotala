@@ -75,21 +75,19 @@ def access_deep_keys(keys, dic, sep='.', ignore_key_errors=False):
             if deep_key == '':
                 msg = 'No key left when splitting "{}" with "{}"'
                 raise ValueError(msg.format(queried_key, sep))
-            try:
-                deep_dic = dic[key]
-            except KeyError:
-                if not ignore_key_errors:
-                    raise
-            else:
-                if not isinstance(deep_dic, dict):
-                    msg = "You ask for '{}' but '{}' is not a dictionary"
-                    raise ValueError(msg.format(queried_key, key))
 
-                deep_values = access_deep_keys(
-                        [deep_key], dic[key], sep=sep,
-                        ignore_key_errors=ignore_key_errors
-                    )
-                new_dic[queried_key] = deep_values.get(deep_key)
+            if ignore_key_errors:
+                deep_dic = dic.get(key, {})
+            else:
+                deep_dic = dic[key]
+
+            if not isinstance(deep_dic, dict):
+                msg = "You ask for '{}' but '{}' is not a dictionary"
+                raise ValueError(msg.format(queried_key, key))
+
+            deep_values = access_deep_keys([deep_key], deep_dic, sep=sep,
+                                           ignore_key_errors=ignore_key_errors)
+            new_dic[queried_key] = deep_values[deep_key]
 
         # A regular key with no separators in it
         else:
