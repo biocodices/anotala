@@ -101,10 +101,8 @@ test_params = [
                               'rsid variant_id variant_url')
         }),
         (PubmedAnnotator, {
-            'ids_to_annotate': '24387995 24008257 24387996',
-            'keys_to_check': ('AMA_citation ArticleIds.pubmed '
-                              'AuthorList DOI FullJournalName Id Issue Pages'
-                              'PubDate References SO Source Title Volume')
+            'ids_to_annotate': '23788249',
+            'keys_to_check': 'AMA_Citation Abstract ArticleDate Ids Journal'
         })
     ]
 

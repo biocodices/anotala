@@ -1,9 +1,9 @@
-import requests
-from functools import lru_cache
+from copy import deepcopy
+import json
 import logging
-from concurrent.futures import ThreadPoolExecutor
 
 from anotamela.annotators.base_classes import EntrezAnnotator
+from anotamela.helpers import access_deep_keys
 
 
 logger = logging.getLogger(__name__)
@@ -18,23 +18,70 @@ class PubmedAnnotator(EntrezAnnotator):
         # => { '23788249': ... }
     """
     SOURCE_NAME = 'pubmed'
-    ANNOTATIONS_ARE_JSON = True
-    ENTREZ_PARAMS = {'db': 'pubmed', 'retmode': 'xml', 'service': 'esummary'}
-    USE_ENTREZ_READER = True
+    ANNOTATIONS_ARE_JSON = False
+    ENTREZ_PARAMS = {'db': 'pubmed', 'retmode': 'xml', 'service': 'epost'}
+    USE_ENTREZ_READER = False
+
+    @classmethod
+    def _annotations_by_id(cls, _, pubmed_records):
+        yield from ((cls._extract_pmid(record), cls._pythonify(record))
+                    for record in pubmed_records)
+
+    @classmethod
+    def _parse_annotation(cls, record):
+        new_record = {}
+        new_record['AMA_Citation'] = cls._generate_citation(record)
+        keys_to_keep = {
+            'MedlineCitation.Article.Abstract.AbstractText': 'Abstract',
+            'MedlineCitation.Article.ArticleDate': 'ArticleDate',
+            'MedlineCitation.Article.Journal': 'Journal',
+            'PubmedData.ArticleIdList': 'Ids'
+        }
+
+        try:
+            chosen_values = access_deep_keys(keys_to_keep.keys(), record,
+                                             ignore_key_errors=True)
+        except KeyError:
+            import q; q(record)
+            raise
+        for key, value in chosen_values.items():
+            nicer_key = keys_to_keep[key]
+            new_record[nicer_key] = value
+        return new_record
 
     @staticmethod
-    def _annotations_by_id(_, pubmed_records):
-        yield from ((pubmed['Id'], pubmed) for pubmed in pubmed_records)
+    def _extract_pmid(record):
+        for id_ in record['PubmedData']['ArticleIdList']:
+            if id_.attributes['IdType'] == 'pubmed':
+                return str(id_)
 
     @staticmethod
-    def _parse_annotation(record):
-        # Add AMA formatted citation
-        authors = record['AuthorList'][:3]
-        if len(record['AuthorList']) > 3:
-            authors.append('et al.')
-        record['AuthorsString'] = ', '.join(authors)
-        template = '{AuthorsString}. {Title}. {Source}. {SO}'
-        record['AMA_citation'] = template.format(**record).replace('..', '.')
+    def _pythonify(record):
+        # FIXME: Awful hack. There must be a better way to do this.
+        # The records are Bio.Entrez.Parser.StructureElement instances with
+        # nested Bio.Entrez.Parser objects that would be a pain to manually
+        # convert to their Python equivalents.
+        # However, this serialization involves losing some data saved in those
+        # elements' attributes. :(
+        return json.loads(json.dumps(record))
 
-        return record
+    @staticmethod
+    def _generate_citation(record):
+        article = record['MedlineCitation']['Article']
+        author_list = ['{LastName} {Initials}'.format(**author)
+                       for author in article['AuthorList'][:3]]
+        if len(article['AuthorList']) > 3:
+            author_list.append('et al.')
+        citation_data = {
+            'authors': ', '.join(author_list),
+            'title': article['ArticleTitle'],
+            'journal': article['Journal']['ISOAbbreviation'].replace('.', ''),
+            'year': article['Journal']['JournalIssue']['PubDate']['Year'],
+            'volume': article['Journal']['JournalIssue']['Volume'],
+            'issue': article['Journal']['JournalIssue']['Issue'],
+            'pages': article['Pagination']['MedlinePgn'],
+        }
+        tpl = '{authors}. {title}. {journal}. {year};{volume}({issue}):{pages}'
+        citation = tpl.format(**citation_data).replace('..', '.')
+        return citation
 
