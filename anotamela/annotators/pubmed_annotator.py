@@ -38,11 +38,8 @@ class PubmedAnnotator(EntrezAnnotator):
             'PubmedData.ArticleIdList': 'Ids'
         }
 
-        try:
-            chosen_values = access_deep_keys(keys_to_keep.keys(), record,
-                                             ignore_key_errors=True)
-        except KeyError:
-            raise
+        chosen_values = access_deep_keys(keys_to_keep.keys(), record,
+                                         ignore_key_errors=True)
         for key, value in chosen_values.items():
             nicer_key = keys_to_keep[key]
             new_record[nicer_key] = value
