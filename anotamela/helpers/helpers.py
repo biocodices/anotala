@@ -47,13 +47,13 @@ def camel_to_snake(s):
     return re.sub("([A-Z])", "_\\1", s).lower().lstrip('_')
 
 
-def access_deep_keys(keys, dic, ignore_key_errors=False):
+def access_deep_keys(keys, dic, sep='.', ignore_key_errors=False):
     """
     Given a dictionary with maybe nested dictionaries in it, return a
     1-level flat new dictionary that includes the keys/values passed in keys.
-    If a key has a dot in it (e.g. 'Article.Abstract'), it will be treated
-    as dic['Article']['Abstract'] and the new dicitonary will have a compound
-    key new_dict['Article.Abstract'].
+    If a key has the sep character in it (e.g. 'Article.Abstract' if sep='.'),
+    it will be treated as dic['Article']['Abstract'] and the new dicitonary
+    will have a compound key new_dict['Article.Abstract'].
 
     Usage:
 
@@ -69,9 +69,12 @@ def access_deep_keys(keys, dic, ignore_key_errors=False):
     new_dic = {}
     for queried_key in keys:
 
-        # A key with a dot means we have to go deeper
-        if '.' in queried_key:
-            key, deep_key = queried_key.split('.', 1)
+        # A key with a separator character means we have to go deeper
+        if sep in queried_key:
+            key, deep_key = queried_key.split(sep, 1)
+            if deep_key == '':
+                msg = 'No key left when splitting "{}" with "{}"'
+                raise ValueError(msg.format(queried_key, sep))
             try:
                 deep_dic = dic[key]
             except KeyError:
@@ -83,18 +86,17 @@ def access_deep_keys(keys, dic, ignore_key_errors=False):
                     raise ValueError(msg.format(queried_key, key))
 
                 deep_values = access_deep_keys(
-                        [deep_key], dic[key],
+                        [deep_key], dic[key], sep=sep,
                         ignore_key_errors=ignore_key_errors
                     )
                 new_dic[queried_key] = deep_values.get(deep_key)
 
-        # A regular key with no dots in it
+        # A regular key with no separators in it
         else:
-            try:
+            if ignore_key_errors:
+                new_dic[queried_key] = dic.get(queried_key)
+            else:
                 new_dic[queried_key] = dic[queried_key]
-            except KeyError:
-                if not ignore_key_errors:
-                    raise
 
     return new_dic
 
