@@ -57,7 +57,7 @@ def access_deep_keys(keys, dic, sep='.', ignore_key_errors=False):
 
     Usage:
 
-        > dic = {'foo' 1,
+        > dic = {'foo': 1,
                  'bar': {'baz': 2,
                          'qux': {'ham': 3}}}
         > access_deep_keys(['foo', 'bar.baz', 'bar.qux.ham'], dic)
