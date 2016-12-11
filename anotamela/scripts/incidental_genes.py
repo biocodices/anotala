@@ -42,6 +42,6 @@ for old_field, new_field in mapping.items():
 df = df.drop(['MedGen', 'Variations that may be pathogenic'], axis=1)
 
 target = join(dirname(__file__), basename(__file__).replace('.py', '.csv'))
-print('CSV with incidental genes written to: "{}"'.format(target))
 df.to_csv(target, index=None)
+print('CSV with incidental genes written to: "{}"'.format(target))
 
