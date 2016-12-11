@@ -1,4 +1,3 @@
-import json
 import logging
 
 from anotamela.annotators.base_classes import EntrezAnnotator
@@ -23,7 +22,7 @@ class PubmedAnnotator(EntrezAnnotator):
 
     @classmethod
     def _annotations_by_id(cls, _, pubmed_records):
-        yield from ((cls._extract_pmid(record), cls._pythonify(record))
+        yield from ((cls._extract_pmid(record), cls._parse_record(record))
                     for record in pubmed_records)
 
     @classmethod
@@ -34,7 +33,7 @@ class PubmedAnnotator(EntrezAnnotator):
         keys_to_keep = {
             'MedlineCitation.Article.Abstract.AbstractText': 'Abstract',
             'MedlineCitation.Article.ArticleDate': 'ArticleDate',
-            'MedlineCitation.Article.Journal': 'Journal',
+            'MedlineCitation.MeshHeadingList': 'Mesh',
             'PubmedData.ArticleIdList': 'Ids'
         }
 
@@ -43,6 +42,12 @@ class PubmedAnnotator(EntrezAnnotator):
         for key, value in chosen_values.items():
             nicer_key = keys_to_keep[key]
             new_record[nicer_key] = value
+
+        new_record['Ids'] = {i['IdType']: i['value']
+                             for i in new_record['Ids']}
+        new_record['Mesh'] = [m['DescriptorName']['value']
+                              for m in new_record['Mesh']]
+
         return new_record
 
     @staticmethod
@@ -50,16 +55,6 @@ class PubmedAnnotator(EntrezAnnotator):
         for id_ in record['PubmedData']['ArticleIdList']:
             if id_.attributes['IdType'] == 'pubmed':
                 return str(id_)
-
-    @staticmethod
-    def _pythonify(record):
-        # FIXME: Awful hack. There must be a better way to do this.
-        # The records are Bio.Entrez.Parser.StructureElement instances with
-        # nested Bio.Entrez.Parser objects that would be a pain to manually
-        # convert to their Python equivalents.
-        # However, this serialization is non-optimal and it loses some data
-        # saved in those elements' attributes. :(
-        return json.loads(json.dumps(record))
 
     @staticmethod
     def _generate_citation(record, as_dict=False):

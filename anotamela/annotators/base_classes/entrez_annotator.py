@@ -1,5 +1,6 @@
 import logging
 
+import Bio
 from Bio import Entrez
 from tqdm import tqdm
 
@@ -104,6 +105,41 @@ class EntrezAnnotator(AnnotatorWithCache):
                 )
 
             yield fetch_handle
+
+    @classmethod
+    def _parse_element(cls, element):
+        parse_functions = {
+            Bio.Entrez.Parser.ListElement: cls._parse_listelement,
+            list: cls._parse_listelement,
+            Bio.Entrez.Parser.StringElement: cls._parse_stringelement,
+            Bio.Entrez.Parser.DictionaryElement: cls._parse_dictelement,
+            dict: cls._parse_dictelement,
+            Bio.Entrez.Parser.StructureElement: cls._parse_dictelement,
+        }
+
+        if type(element) in parse_functions:
+            return parse_functions[type(element)](element)
+        else:
+            return element
+
+    @classmethod
+    def _parse_listelement(cls, listelement):
+        return [cls._parse_element(e) for e in listelement]
+
+    @classmethod
+    def _parse_dictelement(cls, dictelement):
+        return {key: cls._parse_element(e) for key, e in dictelement.items()}
+
+    @staticmethod
+    def _parse_stringelement(stringelement):
+        if hasattr(stringelement, 'attributes'):
+            return {**stringelement.attributes, 'value': str(stringelement)}
+        else:
+            return str(stringelement)
+
+    @classmethod
+    def _parse_record(cls, record):
+        return {key: cls._parse_element(val) for key, val in record.items()}
 
     @staticmethod
     def _annotations_by_id(ids, raw_response):
