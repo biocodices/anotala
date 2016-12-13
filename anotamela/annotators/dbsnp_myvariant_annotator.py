@@ -7,8 +7,6 @@ class DbsnpMyvariantAnnotator(MyVariantAnnotator):
     FIELDS = 'dbsnp'
 
     @staticmethod
-    def _parse_annotation(hits_group):
-        dbsnp_data = [hit['dbsnp'] for hit in hits_group if 'dbsnp' in hit]
-        if dbsnp_data:
-            return dbsnp_data
+    def _parse_hit(hit):
+        return hit['dbsnp']
 

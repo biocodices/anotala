@@ -14,8 +14,8 @@ class MyVariantAnnotator(AnnotatorWithCache):
         - SOURCE_NAME class variable
         - SCOPES class variable (scopes to query with the passed IDs)
         - FIELDS class variable (fields to retrieve for each ID)
-        - an optional @staticmethod or @classmethod
-          _parse_annotation(raw_annotation)
+        - a @staticmethod or @classmethod _parse_hit(hit) to parse each of the
+          hits (results) associated to a single ID
         - optionally, set a class variable VERBOSE to get all the output
           produced by myvariant (silenced by default)
     """
@@ -42,4 +42,14 @@ class MyVariantAnnotator(AnnotatorWithCache):
             if 'notfound' not in hits_group[0]:
                 # Yields a tuple (ID, group of annotations for the ID)
                 yield query, hits_group
+
+    @classmethod
+    def _parse_annotation(cls, hits_group):
+        annotations = [cls._parse_hit(hit) for hit in hits_group]
+        if annotations:
+            return annotations
+
+    @staticmethod
+    def _parse_hit(hit):
+        raise NotImplementedError
 
