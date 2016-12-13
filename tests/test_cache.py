@@ -28,7 +28,7 @@ def get_redis_cache():
         return
 
 
-def cleanup_redis_cache(cache, namespace, keys):
+def cleanup_redis_cache(cache, namespace):
     testing_keys = cache.client.keys('{}*'.format(namespace))
     cache.client.delete(*testing_keys)
 
@@ -76,7 +76,7 @@ def test_redis_set(namespace, test_data, as_json):
         cached_data = json.loads(cached_data)
 
     assert cached_data == test_data[first_key]
-    cleanup_redis_cache(redis_cache, namespace, test_keys)
+    cleanup_redis_cache(redis_cache, namespace)
 
 
 @pytest.mark.parametrize('namespace,test_data,as_json', TEST_PARAMS)
@@ -97,7 +97,7 @@ def test_redis_get(namespace, test_data, as_json):
     cached_data = redis_cache.get(test_keys, namespace, as_json)
     assert cached_data == test_data
 
-    cleanup_redis_cache(redis_cache, namespace, test_keys)
+    cleanup_redis_cache(redis_cache, namespace)
 
 
 @pytest.mark.parametrize('namespace,test_data,as_json', TEST_PARAMS)
