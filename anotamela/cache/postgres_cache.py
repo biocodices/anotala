@@ -14,7 +14,6 @@ logger = logging.getLogger(__name__)
 
 class PostgresCache(Cache):
     CREDS_FILE = '~/.postgres_credentials.yml'
-    SAVE_AS_JSON = False  # Don't assume JSON types unless it's explicitely set
 
     def __init__(self, credentials_filepath=CREDS_FILE):
         """
@@ -27,25 +26,24 @@ class PostgresCache(Cache):
         logger.info('Connected to PostgreSQL ({!r})'.format(self.engine.url))
         self.tables = {}
 
-    def _client_get(self, ids, namespace):
-        table = self._get_table(namespace)
-        selection = table.select().where(table.c.id.in_(ids))
-        result = self.connection.execute(selection)
-        return {row['id']: row['annotation'] for row in result}
+    def _client_get(self, ids, namespace, load_as_json):
+        table = self._get_table(namespace, json_type=load_as_json)
+        select_query = table.select().where(table.c.id.in_(ids))
+        query_result = self.connection.execute(select_query)
+        return {row['id']: row['annotation'] for row in query_result}
 
-    def _client_set(self, info_dict, namespace):
-        table = self._get_table(namespace)
+    def _client_set(self, info_dict, namespace, save_as_json):
+        table = self._get_table(namespace, json_type=save_as_json)
         ids_to_remove = info_dict.keys()
+        self._client_del(ids_to_remove, namespace)
         new_annotations = [{'id': id_, 'annotation': ann}
                            for id_, ann in info_dict.items()]
-
-        self._client_del(ids_to_remove, namespace)
         self.connection.execute(table.insert(), new_annotations)
 
     def _client_del(self, ids, namespace):
         table = self._get_table(namespace)
-        deletion = table.delete().where(table.c.id.in_(ids))
-        self.connection.execute(deletion)
+        delete_query = table.delete().where(table.c.id.in_(ids))
+        self.connection.execute(delete_query)
 
     def _connect(self, credentials):
         url_template = 'postgresql://{user}:{pass}@{host}:{port}/{db}'
@@ -53,14 +51,14 @@ class PostgresCache(Cache):
         self.engine = create_engine(url)
         self.connection = self.engine.connect()
 
-    def _get_table(self, tablename):
+    def _get_table(self, tablename, json_type=False):
         """Get a SQLAlchemy Table for the given tablename."""
         if tablename not in self.tables:
-            self.tables[tablename] = self._create_table(tablename)
+            self.tables[tablename] = self._create_table(tablename, json_type)
 
         return self.tables[tablename]
 
-    def _create_table(self, tablename):
+    def _create_table(self, tablename, json_type):
         """
         Create a SQLAlchemy Table for the given tablename. All tables created
         have the same columns: id, annotation, synonyms, and last_updated.
@@ -70,7 +68,7 @@ class PostgresCache(Cache):
         Returns a sqlalchemy.Table instance.
         """
         metadata = MetaData()
-        annotation_column_type = JSONB if self.SAVE_AS_JSON else String
+        annotation_column_type = JSONB if json_type else String
         table = Table(tablename, metadata,
                       Column('id', String(60), primary_key=True),
                       Column('annotation', annotation_column_type),

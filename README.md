@@ -21,7 +21,7 @@ omim_annotator.annotate(rs_list, use_cache=False)
 There are plenty of annotators: `DbsnpWebAnnotator`, `DbsnpEntrezAnnotator`,
 `DbsnpMyvariantAnnotator`, `ClinvarRsAnnotator`, `HgvsAnnotator`,
 `SnpeffAnnotator`, `MafAnnotator`, `OmimGeneAnnotator`, `OmimVariantAnnotator`,
-`GeneEntrezAnnotator`, `MygeneAnnotator`.
+`GeneEntrezAnnotator`, `MygeneAnnotator`, `PubmedAnnotator`, `UniprotAnnotator`.
 
 As a general rule, SNP annotators take rs IDs, gene annotators take gene Entrez
 IDs, and OMIM annotators take MIM IDs.

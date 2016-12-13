@@ -63,10 +63,6 @@ class AnnotatorWithCache():
             else:
                 self.cache = cache_class(**cache_kwargs)
 
-        # Tell the cache if the annotations are going to be JSON
-        # PostgresCache will know it should create JSONB fields in the db:
-        self.cache.SAVE_AS_JSON = hasattr(self, 'ANNOTATIONS_ARE_JSON')
-
     def annotate(self, ids, use_cache=True, use_web=True, parse_data=True):
         """
         Annotate one or more IDs and return an info dictionary with the passed
@@ -87,7 +83,12 @@ class AnnotatorWithCache():
 
         annotations = {}
         if use_cache:
-            cached_data = self.cache.get(ids, namespace=self.SOURCE_NAME)
+            logger.info('Get info from cache')
+            cached_data = self.cache.get(
+                    ids,
+                    namespace=self.SOURCE_NAME,
+                    load_as_json=hasattr(self, 'ANNOTATIONS_ARE_JSON')
+                )
             annotations.update(cached_data)
             ids = ids - annotations.keys()
         else:
@@ -95,11 +96,18 @@ class AnnotatorWithCache():
 
         if use_web:
             if ids:
+                logger.info('Get info from web for {} IDs'.format(len(ids)))
                 for id_, annotation in self._batch_query(ids):
-                    self.cache.set({id_: annotation},
-                                   namespace=self.SOURCE_NAME)
+                    # FIXME: Annotators _batch_query should yield
+                    # batch_info_dict and the cache.set should be performed
+                    # in batches too, not with a single annotation per loop!
+                    self.cache.set(
+                            {id_: annotation},
+                            namespace=self.SOURCE_NAME,
+                            save_as_json=hasattr(self, 'ANNOTATIONS_ARE_JSON')
+                        )
                     annotations.update({id_: annotation})
-                    ids.remove(id_)
+                    ids = ids - set(id_)
         else:
             logger.info('Not using web')
 
