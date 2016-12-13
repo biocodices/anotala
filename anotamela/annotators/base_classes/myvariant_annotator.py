@@ -1,3 +1,6 @@
+from operator import itemgetter
+from itertools import groupby
+
 from myvariant import MyVariantInfo
 
 from anotamela.annotators.base_classes import AnnotatorWithCache
@@ -30,9 +33,13 @@ class MyVariantAnnotator(AnnotatorWithCache):
         """
         if not hasattr(self, 'mv'):
             self.mv = MyVariantInfo()
+
         hits = self.mv.querymany(ids, scopes=self.SCOPES, fields=self.FIELDS,
                                  verbose=self.VERBOSE)
-        for hit in hits:
-            if 'notfound' not in hit:
-                yield hit['query'], hit
+
+        for query, hits_group in groupby(hits, itemgetter('query')):
+            hits_group = list(hits_group)
+            if 'notfound' not in hits_group[0]:
+                # Yields a tuple (ID, group of annotations for the ID)
+                yield query, hits_group
 

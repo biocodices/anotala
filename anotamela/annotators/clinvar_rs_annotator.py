@@ -1,5 +1,4 @@
 import re
-from copy import deepcopy
 
 from anotamela.annotators.base_classes import MyVariantAnnotator
 from anotamela.helpers import listify
@@ -38,16 +37,30 @@ class ClinvarRsAnnotator(MyVariantAnnotator):
     VARIANT_REGEX = _build_variant_regex()
 
     @classmethod
-    def _parse_annotation(cls, raw_annotation):
+    def _parse_annotation(cls, hits):
         """
-        Transforms the ClinVar annotation returned by MyVariant to a list of
-        RCV entries. Each RCV describes an association of the given rs ID to a
-        condition. The condition will vary between items in the list, but the
-        variant info will be repeated (e.g. rsid, omim variant id,
+        Transforms each of the ClinVar annotations returned by MyVariant to a
+        list of RCV entries. Each RCV describes an association of the given rs
+        ID to a condition. The condition will vary between items in the list,
+        but the variant info will be repeated (e.g. rsid, omim variant id,
         gene affected, genomic coordinates).
         """
-        variant_data = deepcopy(raw_annotation['clinvar'])
-        rcvs = listify(variant_data['rcv'])
+        rcv_list = []
+        for hit in hits:
+            if 'clinvar' in hit:
+                rcv_list += cls._hit_to_rcv_list(hit)
+
+        if rcv_list:
+            return rcv_list
+
+    @classmethod
+    def _hit_to_rcv_list(cls, hit):
+        try:
+            rcvs = listify(hit['clinvar']['rcv'])
+        except TypeError:
+            import q; q(hit)
+            raise
+
         for rcv in rcvs:
             rcv['conditions'] = listify(rcv['conditions'])
 
@@ -62,7 +75,7 @@ class ClinvarRsAnnotator(MyVariantAnnotator):
             rcv.update(cls._parse_preferred_name(rcv['preferred_name']))
 
             # Copy the variant info to each particular RCV entry:
-            for key, value in variant_data.items():
+            for key, value in hit['clinvar'].items():
                 if key == 'rcv':
                     continue
                 # Flatten the dicts one level

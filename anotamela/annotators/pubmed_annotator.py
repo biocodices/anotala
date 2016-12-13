@@ -21,7 +21,9 @@ class PubmedAnnotator(EntrezAnnotator):
     USE_ENTREZ_READER = False
 
     @classmethod
-    def _annotations_by_id(cls, _, pubmed_records):
+    def _annotations_by_id(cls, _, pubmed_response):
+        pubmed_records = pubmed_response['PubmedArticle'] + \
+                         pubmed_response['PubmedBookArticle']
         yield from ((cls._extract_pmid(record), cls._parse_record(record))
                     for record in pubmed_records)
 
