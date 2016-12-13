@@ -12,10 +12,10 @@ logger = logging.getLogger()
 
 
 TEST_PARAMS = [
-    # (namespace, test_data, as_json)
-    ('_anotamela_test', {'key1': 'val1', 'key2': 'val2'}, False),
-    ('_anotamela_test_json', {'key1': {'key1.1': 'val1.1',
-                                       'key1.2': 'val1.2'}}, True)
+    # (test_data, namespace, as_json)
+    ({'key1': 'val1', 'key2': 'val2'}, '_anotamela_test', False),
+    ({'key1': {'key1.1': 'val1.1',
+               'key1.2': 'val1.2'}}, '_anotamela_test_json', True)
 ]
 
 
@@ -33,7 +33,7 @@ def cleanup_redis_cache(cache, namespace):
     cache.client.delete(*testing_keys)
 
 
-@pytest.mark.parametrize('namespace,test_data,as_json', TEST_PARAMS)
+@pytest.mark.parametrize('test_data,namespace,as_json', TEST_PARAMS)
 def test_get(mock_cache, namespace, test_data, as_json):
     # Manually set the test values, manually json-dump if necessary:
     values_to_set = test_data
@@ -47,7 +47,7 @@ def test_get(mock_cache, namespace, test_data, as_json):
     assert all([cached_data[k] == test_data[k] for k in test_keys])
 
 
-@pytest.mark.parametrize('namespace,test_data,as_json', TEST_PARAMS)
+@pytest.mark.parametrize('test_data,namespace,as_json', TEST_PARAMS)
 def test_set(mock_cache, namespace, test_data, as_json):
     # Test the set method
     mock_cache.set(test_data, namespace, save_as_json=as_json)
@@ -59,7 +59,7 @@ def test_set(mock_cache, namespace, test_data, as_json):
     assert all([cached_data[k] == test_data[k] for k in test_data])
 
 
-@pytest.mark.parametrize('namespace,test_data,as_json', TEST_PARAMS)
+@pytest.mark.parametrize('test_data,namespace,as_json', TEST_PARAMS)
 def test_redis_set(namespace, test_data, as_json):
     redis_cache = get_redis_cache()
     if not redis_cache:
@@ -70,16 +70,16 @@ def test_redis_set(namespace, test_data, as_json):
     # Get that data manually and deserialize, to compare to original data
     test_keys = list(test_data.keys())
     first_key = test_keys[0]
-    cached_data = redis_cache.client.get('{}:{}'.format(namespace, first_key))
-    cached_data = cached_data.decode('utf-8')
+    cached_value = redis_cache.client.get('{}:{}'.format(namespace, first_key))
+    cached_value = cached_value.decode('utf-8')
     if as_json:
-        cached_data = json.loads(cached_data)
+        cached_value = json.loads(cached_value)
 
-    assert cached_data == test_data[first_key]
+    assert cached_value == test_data[first_key]
     cleanup_redis_cache(redis_cache, namespace)
 
 
-@pytest.mark.parametrize('namespace,test_data,as_json', TEST_PARAMS)
+@pytest.mark.parametrize('test_data,namespace,as_json', TEST_PARAMS)
 def test_redis_get(namespace, test_data, as_json):
     redis_cache = get_redis_cache()
     if not redis_cache:
@@ -100,7 +100,7 @@ def test_redis_get(namespace, test_data, as_json):
     cleanup_redis_cache(redis_cache, namespace)
 
 
-@pytest.mark.parametrize('namespace,test_data,as_json', TEST_PARAMS)
+@pytest.mark.parametrize('test_data,namespace,as_json', TEST_PARAMS)
 def test_postgres_cache(namespace, test_data, as_json):
     try:
         # Tests will write to the same database, but in a different table
