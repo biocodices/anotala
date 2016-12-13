@@ -44,17 +44,20 @@ class ClinvarRsAnnotator(MyVariantAnnotator):
         ID to a condition. The condition will vary between items in the list,
         but the variant info will be repeated (e.g. rsid, omim variant id,
         gene affected, genomic coordinates).
+
+        Overrides MyvariantAnnotator._parse_annotation to add the flattening
+        of the list of lists logic.
         """
         rcv_list = []
         for hit in hits:
             if 'clinvar' in hit:
-                rcv_list += cls._hit_to_rcv_list(hit)
+                rcv_list += cls._parse_hit(hit)
 
         if rcv_list:
             return rcv_list
 
     @classmethod
-    def _hit_to_rcv_list(cls, hit):
+    def _parse_hit(cls, hit):
         try:
             rcvs = listify(hit['clinvar']['rcv'])
         except TypeError:

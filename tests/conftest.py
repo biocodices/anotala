@@ -14,6 +14,8 @@ class MockCache(Cache):
 
     def _client_set(self, info_dict, namespace, save_as_json):
         table = self.storage[namespace]
+        if save_as_json:
+            info_dict = {k: json.dumps(v) for k, v in info_dict.items()}
         table.update(info_dict)
 
     def _client_get(self, keys, namespace, load_as_json):

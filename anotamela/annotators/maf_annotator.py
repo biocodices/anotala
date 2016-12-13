@@ -7,12 +7,12 @@ class MafAnnotator(MyVariantAnnotator):
     FIELDS = 'dbsnp.gmaf dbnsfp.1000gp3 dbnsfp.exac dbnsfp.esp6500'.split()
 
     @staticmethod
-    def _parse_annotation(raw_annotation):
+    def _parse_hit(hit):
         dicts = (
-            ('1000gp3', raw_annotation.get('dbsnp', {})),
-            ('1000gp3', raw_annotation.get('dbnsfp', {}).get('1000gp3', {})),
-            ('esp6500', raw_annotation.get('dbnsfp', {}).get('esp6500', {})),
-            ('exac', raw_annotation.get('dbnsfp', {}).get('exac', {}))
+            ('1000gp3', hit.get('dbsnp', {})),
+            ('1000gp3', hit.get('dbnsfp', {}).get('1000gp3', {})),
+            ('esp6500', hit.get('dbnsfp', {}).get('esp6500', {})),
+            ('exac', hit.get('dbnsfp', {}).get('exac', {}))
         )
 
         annotation = {}
@@ -22,6 +22,6 @@ class MafAnnotator(MyVariantAnnotator):
                 # Doesn't make sense to have a MAF with 10 decimals, round it:
                 annotation[compound_key] = round(value, 4)
 
+        # Remove allele counts, leave frequency
         return {k: v for k, v in annotation.items()
-                if not k.endswith('_ac')}  # Remove allele counts, leaves freq
-
+                if not k.endswith('_ac')}
