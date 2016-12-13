@@ -50,19 +50,17 @@ class ClinvarRsAnnotator(MyVariantAnnotator):
         """
         rcv_list = []
         for hit in hits:
-            if 'clinvar' in hit:
-                rcv_list += cls._parse_hit(hit)
+            rcv_list += cls._parse_hit(hit)
 
         if rcv_list:
             return rcv_list
 
     @classmethod
     def _parse_hit(cls, hit):
-        try:
-            rcvs = listify(hit['clinvar']['rcv'])
-        except TypeError:
-            import q; q(hit)
-            raise
+        if not 'clinvar' in hit:
+            return []
+
+        rcvs = listify(hit['clinvar']['rcv'])
 
         for rcv in rcvs:
             rcv['conditions'] = listify(rcv['conditions'])
