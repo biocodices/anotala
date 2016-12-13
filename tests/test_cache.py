@@ -1,4 +1,5 @@
 import logging
+import json
 
 import pytest
 import redis
@@ -10,51 +11,70 @@ from anotamela.cache import RedisCache, PostgresCache
 logger = logging.getLogger()
 
 
-TEST_INFO = {'key1': 'key1-val', 'key2': 'key2-val'}
+TEST_PARAMS = [
+    ('test_foo', {'key1': 'val1', 'key2': 'val2'}, False),
+    ('test_bar', {'key1': {'key1.1': 'val1.1', 'key1.2': 'val1.2'}}, True)
+]
 
-def test_get(mock_cache):
-    keys = 'key1 key2'.split()
-    namespace = 'foo'
-    mock_cache.storage[namespace].update(TEST_INFO)
 
-    info_dict = mock_cache.get(keys, namespace)
+@pytest.mark.parametrize('namespace,test_data,as_json', TEST_PARAMS)
+def test_get(mock_cache, namespace, test_data, as_json):
+    # Manually set the test values, manually json-dump if necessary:
+    values_to_set = test_data
+    if as_json:
+        values_to_set = {k: json.dumps(v) for k, v in test_data.items()}
+    mock_cache.storage[namespace].update(values_to_set)
 
-    assert all([key in info_dict for key in keys])
-    assert all([k in info_dict[k] for k in keys])
+    # Test the get method, which should automatically json-load if needed:
+    test_keys = list(test_data.keys())
+    cached_data = mock_cache.get(test_keys, namespace, load_as_json=as_json)
+    assert all([cached_data[k] == test_data[k] for k in test_keys])
 
-def test_set(mock_cache):
-    mock_cache = mock_cache
-    namespace = 'bar'
 
-    mock_cache.set(TEST_INFO, namespace)
-    cached_info = mock_cache.get(TEST_INFO.keys(), namespace)
+@pytest.mark.parametrize('namespace,test_data,as_json', TEST_PARAMS)
+def test_set(mock_cache, namespace, test_data, as_json):
+    # Test the set method
+    mock_cache.set(test_data, namespace, save_as_json=as_json)
 
-    assert all(cached_info[k] == v for k, v in TEST_INFO.items())
+    # Manually get the test values to compare them, json-load if necessary
+    cached_data = mock_cache.storage[namespace]
+    if as_json:
+        cached_data = {k: json.loads(v) for k, v in cached_data.items()}
+    assert all([cached_data[k] == test_data[k] for k in test_data])
 
-def test_redis_cache():
+
+@pytest.mark.parametrize('namespace,test_data,as_json', TEST_PARAMS)
+def test_redis_cache(namespace, test_data, as_json):
     try:
         redis_cache = RedisCache()
         # FIXME: This is hacky. It will just test Redis if it finds it
-        # in its default location (localhost:6379). Think of smth better.
+        # in the default location (localhost:6379). Think of smth better.
     except redis.exceptions.ConnectionError:
         return
 
-    namespace = get_test_namespace()
+    # Test set
+    redis_cache._client_set(test_data, namespace, as_json)
+    first_key = list(test_data.keys())[0]
+    cached_data = redis_cache.client.get('{}:{}'.format(namespace, first_key))
+    if as_json:
+        cached_data = json.loads(cached_data)
+    assert cached_data == test_data[first_key]
 
-    redis_cache._client_set(TEST_INFO, namespace)
-    cached_data = redis_cache.client.get('{}:key1'.format(namespace))
-
-    assert cached_data == b'key1-val'
-
-    cached_data = redis_cache.get(TEST_INFO.keys(), namespace)
-
-    assert cached_data == TEST_INFO
+    # Test get
+    values_to_set = test_data
+    if as_json:
+        values_to_set = {k: json.dumps(v) for k, v in test_data.items()}
+    redis_cache.client.mset(values_to_set)
+    cached_data = redis_cache.get(test_data.keys(), namespace, as_json)
+    assert cached_data == test_data
 
     # Cleanup
     testing_keys = redis_cache.client.keys('{}*'.format(namespace))
     redis_cache.client.delete(*testing_keys)
 
-def test_postgres_cache():
+
+@pytest.mark.parametrize('namespace,test_data,as_json', TEST_PARAMS)
+def test_postgres_cache(namespace, test_data, as_json):
     try:
         # Tests will write to the same database, but in a different table
         # (defined by the different namespace generated below)
@@ -62,16 +82,11 @@ def test_postgres_cache():
     except OperationalError:
         return
 
-    namespace = get_test_namespace()
-
-    postgres_cache._client_set(TEST_INFO, namespace)
-    cached_data = postgres_cache.get(TEST_INFO.keys(), namespace)
-
-    assert cached_data == TEST_INFO
+    # Tests set and get
+    postgres_cache._client_set(test_data, namespace, as_json)
+    cached_data = postgres_cache.get(test_data.keys(), namespace, as_json)
+    assert cached_data == test_data
 
     # Cleanup
-    postgres_cache._client_del(TEST_INFO.keys(), namespace)
-
-def get_test_namespace():
-    return 'testing_anotamela'
+    postgres_cache._client_del(test_data.keys(), namespace)
 

@@ -27,12 +27,18 @@ class PostgresCache(Cache):
         self.tables = {}
 
     def _client_get(self, ids, namespace, load_as_json):
+        # The argument load_as_json is used just to create the table with a
+        # JSONB field type in the database, but later is not necessary
+        # because the psql engine already deals with deserialization
         table = self._get_table(namespace, json_type=load_as_json)
         select_query = table.select().where(table.c.id.in_(ids))
         query_result = self.connection.execute(select_query)
         return {row['id']: row['annotation'] for row in query_result}
 
     def _client_set(self, info_dict, namespace, save_as_json):
+        # The argument save_as_json is used just to create the table with a
+        # JSONB field type in the database, but later is not necessary
+        # because the psql engine already deals with serialization
         table = self._get_table(namespace, json_type=save_as_json)
         ids_to_remove = info_dict.keys()
         self._client_del(ids_to_remove, namespace)
