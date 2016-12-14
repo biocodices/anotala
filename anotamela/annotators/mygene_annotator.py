@@ -1,6 +1,7 @@
 from mygene import MyGeneInfo
 
 from anotamela.annotators.base_classes import AnnotatorWithCache
+from anotamela.helpers import grouped
 
 
 class MygeneAnnotator(AnnotatorWithCache):
@@ -10,6 +11,7 @@ class MygeneAnnotator(AnnotatorWithCache):
     SOURCE_NAME = 'mygene'
     ANNOTATIONS_ARE_JSON = True
     TAXID = 9606  # Human taxon ID, used to annotate the gene of this species
+    BATCH_SIZE = 1000
 
     def _batch_query(self, ids):
         """
@@ -20,9 +22,12 @@ class MygeneAnnotator(AnnotatorWithCache):
         if not hasattr(self, 'mg'):
             self.mg = MyGeneInfo()
 
-        for hit in self.mg.querymany(ids, fields='all'):
-            if 'notfound' not in hit and hit['taxid'] == self.TAXID:
-                yield hit['query'], hit
+        for batch_of_ids in grouped(ids, self.BATCH_SIZE):
+            batch_annotations = {}
+            for hit in self.mg.querymany(batch_of_ids, fields='all'):
+                if 'notfound' not in hit and hit['taxid'] == self.TAXID:
+                    batch_annotations[hit['query']] = hit
+            yield batch_annotations
 
     @staticmethod
     def _parse_annotation(raw_annotation):

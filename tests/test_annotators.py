@@ -109,7 +109,7 @@ test_params = [
 
 
 @pytest.mark.parametrize('annotator_class,params', test_params)
-def test_generic_annotator(annotator_class, params):
+def test_annotator(annotator_class, params):
     ids_to_annotate = params['ids_to_annotate'].split()
     annotator = annotator_class(cache='mock_cache')
 

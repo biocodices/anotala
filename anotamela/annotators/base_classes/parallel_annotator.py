@@ -58,13 +58,11 @@ class ParallelAnnotator(AnnotatorWithCache):
         with ThreadPoolExecutor(max_workers=self.BATCH_SIZE) as executor:
             sys.stdout.flush()  # Hack to display tqdm progress bar correctly
             iterator = tqdm(grouped_ids, total=len(grouped_ids))
-            for i, ids_group in enumerate(iterator):
+            for i, batch_of_ids in enumerate(iterator):
                 if i > 0:
                     time.sleep(self.sleep_time)
-                group_annotations = executor.map(self._query, ids_group)
-                for id_, annotation in zip(ids_group, group_annotations):
-                    if annotation:
-                        yield id_, annotation
+                annotations = executor.map(self._query, batch_of_ids)
+                yield dict(zip(batch_of_ids, annotations))
 
     @property
     def sleep_time(self):

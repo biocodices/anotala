@@ -4,6 +4,7 @@ from itertools import groupby
 from myvariant import MyVariantInfo
 
 from anotamela.annotators.base_classes import AnnotatorWithCache
+from anotamela.helpers import grouped
 
 
 class MyVariantAnnotator(AnnotatorWithCache):
@@ -21,6 +22,7 @@ class MyVariantAnnotator(AnnotatorWithCache):
     """
     ANNOTATIONS_ARE_JSON = True
     VERBOSE = False
+    BATCH_SIZE = 1000
 
     def _batch_query(self, ids):
         """
@@ -34,14 +36,15 @@ class MyVariantAnnotator(AnnotatorWithCache):
         if not hasattr(self, 'mv'):
             self.mv = MyVariantInfo()
 
-        hits = self.mv.querymany(ids, scopes=self.SCOPES, fields=self.FIELDS,
-                                 verbose=self.VERBOSE)
-
-        for query, hits_group in groupby(hits, itemgetter('query')):
-            hits_group = list(hits_group)
-            if 'notfound' not in hits_group[0]:
-                # Yields a tuple (ID, group of annotations for the ID)
-                yield query, hits_group
+        for batch_of_ids in grouped(ids, self.BATCH_SIZE):
+            hits = self.mv.querymany(batch_of_ids, scopes=self.SCOPES,
+                                     fields=self.FIELDS, verbose=self.VERBOSE)
+            batch_annotations = {}
+            for query, hits_group in groupby(hits, itemgetter('query')):
+                hits_group = list(hits_group)
+                if 'notfound' not in hits_group[0]:
+                    batch_annotations[query] = hits_group
+            yield batch_annotations
 
     @classmethod
     def _parse_annotation(cls, hits_group):

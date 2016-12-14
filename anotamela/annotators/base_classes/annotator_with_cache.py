@@ -78,7 +78,8 @@ class AnnotatorWithCache():
         disable it with parse_data=False and get the raw responses.
         """
         ids = self._set_of_string_ids(ids)
-        msg = '{} annotating {} ids'.format(self.name, len(ids))
+        total_count = len(ids)
+        msg = '{} annotating {} ids'.format(self.name, total_count)
         logger.info(msg)
 
         annotations = {}
@@ -97,23 +98,22 @@ class AnnotatorWithCache():
         if use_web:
             if ids:
                 logger.info('Get info from web for {} IDs'.format(len(ids)))
-                for id_, annotation in self._batch_query(ids):
-                    # FIXME: Annotators _batch_query should yield
-                    # batch_info_dict and the cache.set should be performed
-                    # in batches too, not with a single annotation per loop!
+                for batch_annotations in self._batch_query(ids):
                     self.cache.set(
-                            {id_: annotation},
+                            batch_annotations,
                             namespace=self.SOURCE_NAME,
                             save_as_json=hasattr(self, 'ANNOTATIONS_ARE_JSON')
                         )
-                    annotations.update({id_: annotation})
-                    ids = ids - set(id_)
+                    annotations.update(batch_annotations)
+                    ids = ids - batch_annotations.keys()
         else:
             logger.info('Not using web')
 
         if ids:
-            msg = '{} had no info for {} IDs'
-            logger.info(msg.format(self.__class__.__name__, len(ids)))
+            msg = '{} found info for {}/{} ({:.2%}) IDs'
+            found_count = total_count - len(ids)
+            logger.info(msg.format(self.__class__.__name__, found_count,
+                                   total_count, found_count/total_count))
 
         if parse_data and hasattr(self, '_parse_annotation'):
             logger.info('Parsing {} annotations'.format(len(annotations)))
