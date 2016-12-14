@@ -20,10 +20,12 @@ class ParallelAnnotator(AnnotatorWithCache):
     Base class for annotators that have a _query(id) method but no
     parallelization. This class implements a 'manual' parallelization with
     Threads. Modify class variables BATCH_SIZE and SLEEP_TIME to tweak the
-    parallelization behavior.
+    parallelization behavior. Set PROXIES dict for requests.get() if you need
+    that.
     """
     BATCH_SIZE = 10
     SLEEP_TIME = 10
+    PROXIES = {}
     RANDOMIZE_SLEEP_TIME = False
 
     def _query(self):
@@ -33,7 +35,8 @@ class ParallelAnnotator(AnnotatorWithCache):
         if not hasattr(self, 'user_agent_generator'):
             self.user_agent_generator = UserAgent()
         headers = {'user-agent': self.user_agent_generator.random}
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers,
+                                proxies=self.PROXIES or {})
         if not response.ok:
             logger.warning('{} response: {}'.format(response.status_code, url))
             response.raise_for_status()
@@ -54,6 +57,9 @@ class ParallelAnnotator(AnnotatorWithCache):
                '({} items/batch & sleep {}s between batches)')
         logger.info(msg.format(self.name, len(ids), len(grouped_ids),
                                self.BATCH_SIZE, self.SLEEP_TIME))
+
+        if self.PROXIES:
+            logger.info('{} using proxies: {}'.format(self.name, self.PROXIES))
 
         with ThreadPoolExecutor(max_workers=self.BATCH_SIZE) as executor:
             sys.stdout.flush()  # Hack to display tqdm progress bar correctly
