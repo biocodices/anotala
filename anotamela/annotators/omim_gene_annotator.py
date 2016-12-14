@@ -118,6 +118,7 @@ class OmimGeneAnnotator(ParallelAnnotator):
             df['prot_change'] = (df['prot_change'].fillna(False)
                                                   .map(parse_prot_change))
             df['variant_id'] = df['gene_id'] + '.' + df['sub_id']
+            df.drop('sub_id', axis=1, inplace=True)
 
             base_url = 'http://www.omim.org/entry/'
             df['url'] = base_url + df['variant_id'].str.replace('.', '#')
@@ -272,9 +273,12 @@ class OmimGeneAnnotator(ParallelAnnotator):
             # Title of new entry
             title_match = re.match(r'\.(\d{4}) (.+)', inner_text)
             if title_match:
+                # Store the last entry
                 variants.append(current_entry) if current_entry else None
 
-                if not re.search(r'REMOVED FROM|MOVED TO', inner_text):
+                if re.search(r'REMOVED FROM|MOVED TO', inner_text):
+                    current_entry = {}
+                else:
                     current_entry = {
                             'sub_id': title_match.group(1),
                             'phenotype_names': [title_match.group(2)]
