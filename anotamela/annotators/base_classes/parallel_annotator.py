@@ -19,9 +19,17 @@ class ParallelAnnotator(AnnotatorWithCache):
     """
     Base class for annotators that have a _query(id) method but no
     parallelization. This class implements a 'manual' parallelization with
-    Threads. Modify class variables BATCH_SIZE and SLEEP_TIME to tweak the
-    parallelization behavior. Set PROXIES dict for requests.get() if you need
-    that.
+    Threads. Modify the class variables BATCH_SIZE and SLEEP_TIME to tweak the
+    parallelization behavior. Set PROXIES as a dictionary and it will be passed
+    to requests.get() as <proxies> argument.
+
+    Example using Tor in localhost:
+
+        > annotator = OmimGeneAnnotator()
+        > annotator.PROXIES = {'http': 'socks5://localhost:9050'}
+        > annotator.SLEEP_TIME = 1  # Risky for a ban, but using Tor so it's OK
+        > annotator.annotate(list_of_omim_gene_ids)
+
     """
     BATCH_SIZE = 10
     SLEEP_TIME = 10

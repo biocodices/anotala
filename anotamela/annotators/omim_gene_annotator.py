@@ -37,10 +37,10 @@ class OmimGeneAnnotator(ParallelAnnotator):
     @property
     def mim_to_gene(self):
         """
-        Returns a DataFrame with mappings:
+        Returns a DataFrame with:
             - MIM ID
             - MIM Entry Type
-            - Entre Gene ID
+            - Entrez Gene ID
             - HGNC Symbol (Gene Symbol)
             - Ensembl Gene ID
         """
