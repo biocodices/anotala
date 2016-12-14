@@ -1,5 +1,7 @@
 import re
+from os.path import expanduser, isfile
 
+import requests
 import pandas as pd
 
 from anotamela.annotators.base_classes import ParallelAnnotator
@@ -31,6 +33,30 @@ class OmimGeneAnnotator(ParallelAnnotator):
     BATCH_SIZE = 1
     SLEEP_TIME = 60
     RANDOMIZE_SLEEP_TIME = True
+
+    @property
+    def mim_to_gene(self):
+        """
+        Returns a DataFrame with mappings:
+            - MIM ID
+            - MIM Entry Type
+            - Entre Gene ID
+            - HGNC Symbol (Gene Symbol)
+            - Ensembl Gene ID
+        """
+        cache_file = expanduser('~/.mim2gene.txt')
+
+        if not isfile(cache_file):
+            url = 'https://omim.org/static/omim/data/mim2gene.txt'
+            response = requests.get(url)
+            if response.ok:
+                with open(cache_file, 'w') as f:
+                    f.write(response.text)
+            else:
+                response.raise_for_status()
+
+        fields = 'mim_id entry_type entrez_id gene_symbol ensembl_ids'.split()
+        return pd.read_table(cache_file, comment='#', names=fields)
 
     def _query(self, mim_id):
         url = self._url(mim_id)
