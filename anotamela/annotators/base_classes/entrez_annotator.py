@@ -56,12 +56,12 @@ class EntrezAnnotator(AnnotatorWithCache):
 
         for handle in self._query_method(ids):
             if hasattr(self, 'USE_ENTREZ_READER'):
-                raw_response = Entrez.read(handle)
+                response = Entrez.read(handle)
             else:
-                raw_response = handle.read()
-
+                response = handle.read()
             handle.close()
-            yield from self._annotations_by_id(ids, raw_response)
+            batch_annotations = dict(self._annotations_by_id(ids, response))
+            yield batch_annotations
 
     @property
     def _query_method(self):

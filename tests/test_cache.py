@@ -28,6 +28,14 @@ def get_redis_cache():
         return
 
 
+def get_postgres_cache():
+    try:
+        # Tests will write to the same database, but in a different table
+        # (defined by the different namespace generated below)
+        return PostgresCache('~/.postgres_credentials.yml')
+    except OperationalError:
+        return
+
 def cleanup_redis_cache(cache, namespace):
     testing_keys = cache.client.keys('{}*'.format(namespace))
     cache.client.delete(*testing_keys)
@@ -102,12 +110,7 @@ def test_redis_get(namespace, test_data, as_json):
 
 @pytest.mark.parametrize('test_data,namespace,as_json', TEST_PARAMS)
 def test_postgres_cache(namespace, test_data, as_json):
-    try:
-        # Tests will write to the same database, but in a different table
-        # (defined by the different namespace generated below)
-        postgres_cache = PostgresCache('~/.postgres_credentials.yml')
-    except OperationalError:
-        return
+    postgres_cache = get_postgres_cache()
 
     # Tests set and get
     postgres_cache._client_set(test_data, namespace, as_json)
@@ -116,4 +119,13 @@ def test_postgres_cache(namespace, test_data, as_json):
 
     # Cleanup
     postgres_cache._client_del(test_data.keys(), namespace)
+
+
+@pytest.mark.parametrize('cache_get', [get_redis_cache, get_postgres_cache])
+def test_get_nonexistent_key(cache_get):
+    cache = cache_get()
+    if cache:
+        # Should not explode:
+        cache.get('non-existent-key', 'some-namespace', load_as_json=True)
+        cache.get('non-existent-key', 'some-namespace', load_as_json=False)
 
