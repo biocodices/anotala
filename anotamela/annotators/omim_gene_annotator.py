@@ -56,7 +56,9 @@ class OmimGeneAnnotator(ParallelAnnotator):
                 response.raise_for_status()
 
         fields = 'mim_id entry_type entrez_id gene_symbol ensembl_ids'.split()
-        return pd.read_table(cache_file, comment='#', names=fields)
+        df = pd.read_table(cache_file, comment='#', names=fields,
+                           dtype={'entrez_id': str, 'mim_id': str})
+        return df
 
     def _query(self, mim_id):
         url = self._url(mim_id)

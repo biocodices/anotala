@@ -54,14 +54,14 @@ class EntrezAnnotator(AnnotatorWithCache):
             total, self.ENTREZ_PARAMS['db'], min(self.batch_size, total))
         logger.info(msg)
 
-        for handle in self._query_method(ids):
+        for ids_group, handle in self._query_method(list(ids)):
             if hasattr(self, 'USE_ENTREZ_READER'):
                 response = Entrez.read(handle)
             else:
                 response = handle.read()
             handle.close()
-            batch_annotations = dict(self._annotations_by_id(ids, response))
-            yield batch_annotations
+            batch_annotations = self._annotations_by_id(ids_group, response)
+            yield dict(batch_annotations)
 
     @property
     def _query_method(self):
@@ -73,6 +73,9 @@ class EntrezAnnotator(AnnotatorWithCache):
 
     @property
     def batch_size(self):
+        if hasattr(self, 'BATCH_SIZE'):
+            return self.BATCH_SIZE
+
         batch_sizes = {
             'epost': 1000,
             'esummary': 200,
@@ -83,7 +86,7 @@ class EntrezAnnotator(AnnotatorWithCache):
         for ids_group in grouped(ids, self.batch_size):
             handle = Entrez.esummary(db=self.ENTREZ_PARAMS['db'],
                                      id=','.join(ids_group))
-            yield handle
+            yield ids_group, handle
 
     def _epost_query(self, ids):
         # Entrez POST queries are a two step process. You first POST your query
@@ -95,7 +98,7 @@ class EntrezAnnotator(AnnotatorWithCache):
         # Then you do a second query using the job data, and you get the
         # results in batches. More info:
         # http://biopython.org/DIST/docs/tutorial/Tutorial.html#sec:entrez-webenv
-        logger.info('Get the results from the job')
+        logger.info('Get the results from the job in batches')
         for offset in tqdm(list(range(0, len(ids), self.batch_size))):
             fetch_handle = Entrez.efetch(
                     db=self.ENTREZ_PARAMS['db'],
@@ -104,7 +107,7 @@ class EntrezAnnotator(AnnotatorWithCache):
                     retstart=offset, retmax=self.batch_size
                 )
 
-            yield fetch_handle
+            yield ids[offset:offset+self.batch_size], fetch_handle
 
     @classmethod
     def _parse_element(cls, element):
