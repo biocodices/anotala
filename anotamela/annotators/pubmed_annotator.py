@@ -50,7 +50,7 @@ class PubmedAnnotator(EntrezAnnotator):
 
         if new_record['Mesh']:
             new_record['Mesh'] = [m['DescriptorName']['value']
-                                 for m in new_record['Mesh']]
+                                  for m in new_record['Mesh']]
 
         return new_record
 
@@ -88,10 +88,10 @@ class PubmedAnnotator(EntrezAnnotator):
             # Take the first three authors, not everybody
             for author in article['AuthorList'][:3]:
                 if 'LastName' in author:
-                    author_name = '{LastName} {Initials}'.format(**author)
+                    author_name = '{LastName} {Initials}'
                 else:
-                    author_name = '{CollectiveName}'.format(**author)
-                author_list.append(author_name)
+                    author_name = '{CollectiveName}'
+                author_list.append(author_name.format(**author))
             if len(article['AuthorList']) > 3:
                 author_list.append('et al.')
             citation_data['authors'] = ', '.join(author_list)

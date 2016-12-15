@@ -11,7 +11,9 @@ class MygeneAnnotator(AnnotatorWithCache):
     SOURCE_NAME = 'mygene'
     ANNOTATIONS_ARE_JSON = True
     VERBOSE = False
-    TAXID = 9606  # Human taxon ID, used to annotate the gene of this species
+    TAXID = 9606
+    # ^ Human ID, used to avoid annotating with genes from another species
+    # It can be replaced at Runtime to annotate with other species
     BATCH_SIZE = 1000
 
     def _batch_query(self, ids):
