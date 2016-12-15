@@ -8,5 +8,8 @@ class DbsnpMyvariantAnnotator(MyVariantAnnotator):
 
     @staticmethod
     def _parse_hit(hit):
-        return hit['dbsnp']
+        parsed_hit = hit['dbsnp']
+        if 'gene' in parsed_hit and isinstance(parsed_hit['gene'], dict):
+            parsed_hit['gene'] = [parsed_hit['gene']]
+        return parsed_hit
 

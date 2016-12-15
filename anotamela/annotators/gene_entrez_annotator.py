@@ -18,7 +18,10 @@ class GeneEntrezAnnotator(EntrezAnnotator):
     @staticmethod
     def _annotations_by_id(ids, multigene_response):
         genes = multigene_response['DocumentSummarySet']['DocumentSummary']
-        yield from dict(zip(ids, genes)).items()
+        id_to_gene = dict(zip(ids, genes))
+        for id_, gene in id_to_gene.items():
+            gene['id'] = id_
+        return id_to_gene.items()
 
     @staticmethod
     def _parse_annotation(raw_annotation):
@@ -33,5 +36,6 @@ class GeneEntrezAnnotator(EntrezAnnotator):
             new_key = 'organism_' + camel_to_snake(key).replace('i_d', 'id')
             ann[new_key] = value
 
+        ann['url'] = 'https://www.ncbi.nlm.nih.gov/gene/' + raw_annotation['id']
         return ann
 

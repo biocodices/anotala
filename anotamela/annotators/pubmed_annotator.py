@@ -47,8 +47,10 @@ class PubmedAnnotator(EntrezAnnotator):
 
         new_record['Ids'] = {i['IdType']: i['value']
                              for i in new_record['Ids']}
-        new_record['Mesh'] = [m['DescriptorName']['value']
-                              for m in new_record['Mesh']]
+
+        if new_record['Mesh']:
+            new_record['Mesh'] = [m['DescriptorName']['value']
+                                 for m in new_record['Mesh']]
 
         return new_record
 
@@ -61,20 +63,41 @@ class PubmedAnnotator(EntrezAnnotator):
     @staticmethod
     def _generate_citation(record, as_dict=False):
         article = record['MedlineCitation']['Article']
-        author_list = ['{LastName} {Initials}'.format(**author)
-                       for author in article['AuthorList'][:3]]
-                       # ^ Take the first three authors, not everybody
-        if len(article['AuthorList']) > 3:
-            author_list.append('et al.')
+
         citation_data = {
-            'authors': ', '.join(author_list),
             'title': article['ArticleTitle'],
             'journal': article['Journal']['ISOAbbreviation'].replace('.', ''),
-            'year': article['Journal']['JournalIssue']['PubDate']['Year'],
             'volume': article['Journal']['JournalIssue']['Volume'],
-            'issue': article['Journal']['JournalIssue']['Issue'],
             'pages': article['Pagination']['MedlinePgn'],
         }
+
+        try:
+            citation_data['issue'] = article['Journal']['JournalIssue']['Issue']
+        except KeyError:
+            citation_data['issue'] = '-'
+
+        try:
+            citation_data['year'] = \
+                article['Journal']['JournalIssue']['PubDate']['Year']
+        except KeyError:
+            citation_data['year'] = \
+                article['Journal']['JournalIssue']['PubDate']['MedlineDate'].split()[0]
+
+        if 'AuthorList' in article:
+            author_list = []
+            # Take the first three authors, not everybody
+            for author in article['AuthorList'][:3]:
+                if 'LastName' in author:
+                    author_name = '{LastName} {Initials}'.format(**author)
+                else:
+                    author_name = '{CollectiveName}'.format(**author)
+                author_list.append(author_name)
+            if len(article['AuthorList']) > 3:
+                author_list.append('et al.')
+            citation_data['authors'] = ', '.join(author_list)
+        else:
+            citation_data['authors'] = '[No authors listed]'
+
         tpl = '{authors}. {title}. {journal}. {year};{volume}({issue}):{pages}'
         citation = tpl.format(**citation_data).replace('..', '.')
         return citation_data if as_dict else citation
