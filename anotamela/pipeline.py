@@ -133,9 +133,10 @@ class Pipeline:
         uniprot_variants = annotator.annotate(
             uniprot_ids,
             use_cache=self.use_cache,
-            use_web=self.use_seb
+            use_web=self.use_web
         )
-        uniprot_variants = uniprot_variants.set_index('rsid', drop=False)
+        uniprot_variants = \
+                pd.DataFrame(uniprot_variants).set_index('rsid', drop=False)
 
         def rs_to_uniprot_variants(rs):
             if rs not in uniprot_variants.index:
