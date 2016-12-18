@@ -71,7 +71,7 @@ class AnnotatorWithCache():
 
         annotations = {}
         if use_cache:
-            logger.info('Get info from cache')
+            logger.info('{} get info from cache'.format(self.name))
             cached_data = self.cache.get(
                     ids,
                     namespace=self.SOURCE_NAME,
@@ -80,11 +80,12 @@ class AnnotatorWithCache():
             annotations.update(cached_data)
             ids = ids - annotations.keys()
         else:
-            logger.info('Not using cache')
+            logger.info('{} not using cache'.format(self.name))
 
         if use_web:
             if ids:
-                logger.info('Get info from web for {} IDs'.format(len(ids)))
+                logger.info('{} get info from web for {} IDs'.format(self.name,
+                                                                     len(ids)))
                 for batch_annotations in self._batch_query(ids):
                     self.cache.set(
                             batch_annotations,
@@ -94,16 +95,17 @@ class AnnotatorWithCache():
                     annotations.update(batch_annotations)
                     ids = ids - batch_annotations.keys()
         else:
-            logger.info('Not using web')
+            logger.info('{} not using web'.format(self.name))
 
         if ids:
             msg = '{} found info for {}/{} ({:.2%}) IDs'
             found_count = total_count - len(ids)
-            logger.info(msg.format(self.__class__.__name__, found_count,
-                                   total_count, found_count/total_count))
+            logger.info(msg.format(self.name, found_count, total_count,
+                                   found_count/total_count))
 
         if parse_data and hasattr(self, '_parse_annotation'):
-            logger.info('Parsing {} annotations'.format(len(annotations)))
+            logger.info('{} parsing {} annotations'.format(self.name,
+                                                           len(annotations)))
             annotations = self._parse_annotations(annotations)
 
         return annotations

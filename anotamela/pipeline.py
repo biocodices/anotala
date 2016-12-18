@@ -72,67 +72,97 @@ class Pipeline:
         self._read_vcf(vcf_path)
         self._annotate_snps(self.rs_variants)
         gene_ids = self._extract_gene_ids()
-        self._annotate_genes(gene_ids)
+        self.gene_annotations = self._annotate_genes(gene_ids)
+        self._add_omim_variants_info()
+        self._add_pubmed_entries_to_omim_entries()
+        self._add_uniprot_variants_info()
 
-        return out_filepath
+    def _add_pubmed_entries_to_omim_entries(self):
+        pubmed_ids = set()
 
-    def _annotate_genes(self, gene_ids):
-        """Annotate Entrez genes; generate a dataframe with annotations."""
-        gene_annotations = pd.Series(gene_ids, name='entrez_id').to_frame()
+        for omim_entries in self.rs_variants['omim_entries'].dropna():
+            for entry in omim_entries:
+                for pubmed in entry.get('pubmeds', []):
+                    pubmed_ids.add(pubmed['pmid'])
 
-        self._annotate_entrez_genes(gene_annotations)
-        omim_variants = self._variants_from_omim_genes(gene_annotations['entrez_id'])
-        uniprot_variants = self._variants_from_uniprot_genes(gene_annotations['entrez_id'])
+        pubmed_annotations = \
+                PubmedAnnotator(cache=self.cache).annotate(pubmed_ids)
 
-        ######## SEGUIR ACA
+        for omim_entries in self.rs_variants['omim_entries'].dropna():
+            for entry in omim_entries:
+                for pubmed in entry.get('pubmeds', []):
+                    extra_info = pubmed_annotations[pubmed['pmid']]
+                    pubmed.update(extra_info)
 
-        # Associate OMIM variants to rs IDs
-
-        def rs_omim_variants(rs):
-            if rs not in omim_variants.index:
-                return None
-            return omim_variants.loc[[rs]].to_dict('records')
-
-        rs_variants['omim_entries'] = rs_variants['id'].map(rs_omim_variants)
-
-        # Associate Uniprot variants to rs IDs
-
-        def rs_uniprot_variants(rs):
-            if rs not in uniprot_variants.index:
-                return None
-            return uniprot_variants.loc[[rs]].to_dict('records')
-
-        rs_variants['uniprot_entries'] = \
-            rs_variants['id'].map(rs_uniprot_variants)
-                # del(omim_variants, uniprot_variants)
-
-        self.gene_annotations = gene_annotations
-
-    def _variants_from_uniprot_genes(self, entrez_ids):
-        raise NotImplementedError
-
-    def _variants_from_omim_genes(self, entrez_ids):
+    def _add_omim_variants_info(self):
         annotator = OmimGeneAnnotator(cache=self.cache)
         annotator.PROXIES = self.proxies
         frames = annotator.annotate_from_entrez_ids(
-                entrez_ids,
+                self.gene_annotations['entrez_id'],
                 use_cache=self.use_cache,
                 use_web=self.use_web,
             )
         omim_variants = pd.concat(frames, ignore_index=True)
         omim_variants = omim_variants.set_index('rsid', drop=False)\
-                                     .loc[rs_variants['id']]
-        return omim_variants.dropna(how='all')
+                                     .loc[self.rs_variants['id']]
+        omim_variants = omim_variants.dropna(how='all')
 
-    def _annotate_entrez_genes(self, gene_annotations_df):
+        def rs_to_omim_variants(rs):
+            if rs not in omim_variants.index:
+                return None
+            # .loc[[rs]] forces the result to always be a DataFrame, whereas
+            # .loc[rs] will give you a Series if there's one row, or a Df if
+            # there are many matching rows:
+            return omim_variants.loc[[rs]].to_dict('records')
+
+        self.rs_variants['omim_entries'] = \
+                self.rs_variants['id'].map(rs_to_omim_variants)
+
+    def _add_uniprot_variants_info(self):
+        uniprot_ids = set()
+
+        for gene in self.gene_annotations['mygene'].fillna(False):
+            if gene and 'swissprot' in gene:
+                ids = gene['swissprot']
+                if not isinstance(ids, list):
+                    ids = [ids]
+                uniprot_ids = uniprot_ids | set(ids)
+
+        annotator = UniprotAnnotator(cache=self.cache)
+        annotator.PROXIES = self.proxies
+        uniprot_variants = annotator.annotate(
+            uniprot_ids,
+            use_cache=self.use_cache,
+            use_web=self.use_seb
+        )
+        uniprot_variants = uniprot_variants.set_index('rsid', drop=False)
+
+        def rs_to_uniprot_variants(rs):
+            if rs not in uniprot_variants.index:
+                return None
+            return uniprot_variants.loc[[rs]].to_dict('records')
+
+        self.rs_variants['uniprot_entries'] = \
+            rs_variants['id'].map(rs_to_uniprot_variants)
+
+        return out_filepath
+
+    def _annotate_genes(self, gene_ids):
+        """Annotate Entrez genes; generate a dataframe with annotations."""
+        gene_annotations = pd.DataFrame({'entrez_id': gene_ids})
+
         gene_annotator_classes = [MygeneAnnotator, GeneEntrezAnnotator]
         for annotator_class in gene_annotator_classes:
             annotator = annotator_class(cache=self.cache)
             self._annotate_ids_and_add_series(
                     annotator=annotator,
-                    id_series=gene_annotations_df['entrez_id'],
-                    df_to_modify=gene_annotations_df,
+                    id_series=gene_annotations['entrez_id'],
+                    df_to_modify=gene_annotations,
                 )
+
+        return gene_annotations
+
+        self.gene_annotations = gene_annotations
 
     def _read_vcf(self, vcf_path):
         """Read the VCF and keep the variants with rs ID."""
