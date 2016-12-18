@@ -112,6 +112,9 @@ def test_annotator(annotator_class, params):
     ids_to_annotate = params['ids_to_annotate'].split()
     annotator = annotator_class(cache='mock_cache')
 
+    if 'omim' in annotator.SOURCE_NAME:
+        annotator.PROXIES = {'http': 'socks5://beleriand.local:9150'}
+
     # Test annotation from web
     info_dict = annotator.annotate(ids_to_annotate, use_cache=False)
 

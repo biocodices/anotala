@@ -3,8 +3,7 @@ import json
 
 import pytest
 
-from anotamela.cache import Cache
-from anotamela.annotators.base_classes import AnnotatorWithCache
+from anotamela.cache import Cache, AVAILABLE_CACHES
 
 
 class MockCache(Cache):
@@ -25,7 +24,9 @@ class MockCache(Cache):
             info_dict = {k: json.loads(v) for k, v in info_dict.items()}
         return info_dict
 
-AnnotatorWithCache.AVAILABLE_CACHES['mock_cache'] = MockCache
+
+AVAILABLE_CACHES['mock_cache'] = MockCache
+
 
 @pytest.fixture(scope='module')
 def mock_cache():
