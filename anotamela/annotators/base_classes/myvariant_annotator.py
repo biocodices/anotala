@@ -1,10 +1,15 @@
 from operator import itemgetter
 from itertools import groupby
+import logging
 
 from myvariant import MyVariantInfo
+from tqdm import tqdm
 
 from anotamela.annotators.base_classes import AnnotatorWithCache
 from anotamela.helpers import grouped
+
+
+logger = logging.getLogger(__name__)
 
 
 class MyVariantAnnotator(AnnotatorWithCache):
@@ -36,14 +41,18 @@ class MyVariantAnnotator(AnnotatorWithCache):
         if not hasattr(self, 'mv'):
             self.mv = MyVariantInfo()
 
-        for batch_of_ids in grouped(ids, self.BATCH_SIZE):
+        grouped_ids = list(grouped(ids, self.BATCH_SIZE))
+        for batch_of_ids in tqdm(grouped_ids):
+            logger.debug('{} query {} IDs'.format(self.name, len(batch_of_ids)))
             hits = self.mv.querymany(batch_of_ids, scopes=self.SCOPES,
                                      fields=self.FIELDS, verbose=self.VERBOSE)
+
             batch_annotations = {}
             for query, hits_group in groupby(hits, itemgetter('query')):
                 hits_group = list(hits_group)
                 if 'notfound' not in hits_group[0]:
                     batch_annotations[query] = hits_group
+
             yield batch_annotations
 
     @classmethod
