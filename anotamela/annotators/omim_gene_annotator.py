@@ -34,6 +34,19 @@ class OmimGeneAnnotator(ParallelAnnotator):
     SLEEP_TIME = 60
     RANDOMIZE_SLEEP_TIME = True
 
+    def annotate_from_entrez_ids(self, entrez_ids, **kwargs):
+        omim_ids = self.omim_ids_from_entrez_ids(entrez_ids)
+        return self.annotate(omim_ids, **kwargs)
+
+    def omim_ids_from_entrez_ids(self, entrez_ids):
+        """
+        Return a list of OMIM IDs correspondin to the given Entrez gene IDs.
+        """
+        mapping = self.mim_to_gene
+        queried = mapping['entrez_id'].isin(entrez_ids)
+        omim_gene_ids = mapping[queried]['mim_id'].unique()
+        return list(omim_gene_ids)
+
     @property
     def mim_to_gene(self):
         """

@@ -4,7 +4,7 @@ from concurrent.futures import (
         as_completed
     )
 
-from anotamela.cache import Cache, RedisCache, PostgresCache
+from anotamela.cache import Cache, create_cache
 
 
 logger = logging.getLogger(__name__)
@@ -37,11 +37,6 @@ class AnnotatorWithCache():
           PostgresCache know it can create a JSONB field in the database.
 
     """
-    AVAILABLE_CACHES = {
-            'redis': RedisCache,
-            'postgres': PostgresCache
-        }
-
     def __init__(self, cache='redis', **cache_kwargs):
         """
         Initialize with a cache name ('redis', 'postgres') or a Cache instance
@@ -53,15 +48,7 @@ class AnnotatorWithCache():
         if isinstance(cache, Cache):
             self.cache = cache
         else:
-            try:
-                cache_class = self.AVAILABLE_CACHES[cache]
-            except KeyError as error:
-                known_caches = ', '.join(self.AVAILABLE_CACHES.keys())
-                msg = 'Unknown cache "{}". I only know: {}'.format(
-                    cache, known_caches)
-                raise ValueError(msg).with_traceback(error.__traceback__)
-            else:
-                self.cache = cache_class(**cache_kwargs)
+            self.cache = create_cache(cache, **cache_kwargs)
 
     def annotate(self, ids, use_cache=True, use_web=True, parse_data=True):
         """
