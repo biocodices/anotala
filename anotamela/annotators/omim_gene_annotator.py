@@ -35,43 +35,23 @@ class OmimGeneAnnotator(ParallelAnnotator):
     RANDOMIZE_SLEEP_TIME = True
 
     def annotate_from_entrez_ids(self, entrez_ids, **kwargs):
-        omim_ids = self.omim_ids_from_entrez_ids(entrez_ids)
-        return self.annotate(omim_ids, **kwargs)
+        omim_ids = [self.gene_to_mim()[entrez_id] for entrez_id in entrez_ids
+                    if entrez_id in self.gene_to_mim()]
+        annotations = self.annotate(omim_ids, **kwargs)
+        return {self.mim_to_gene()[mim_id]: annotation
+                for mim_id, annotation in annotations.items()}
 
-    def omim_ids_from_entrez_ids(self, entrez_ids):
-        """
-        Return a list of OMIM IDs correspondin to the given Entrez gene IDs.
-        """
-        mapping = self.mim_to_gene
-        queried = mapping['entrez_id'].isin(entrez_ids)
-        omim_gene_ids = mapping[queried]['mim_id'].unique()
-        return list(omim_gene_ids)
+    @classmethod
+    def mim_to_gene(cls):
+        """Dict mapping OMIM IDs to Entrez gene IDs."""
+        df = cls._mim_to_gene_df().set_index('mim_id')
+        return {k: v for k, v in df['entrez_id'].dropna().items()}
 
-    @property
-    def mim_to_gene(self):
-        """
-        Returns a DataFrame with:
-            - MIM ID
-            - MIM Entry Type
-            - Entrez Gene ID
-            - HGNC Symbol (Gene Symbol)
-            - Ensembl Gene ID
-        """
-        cache_file = expanduser('~/.mim2gene.txt')
-
-        if not isfile(cache_file):
-            url = 'https://omim.org/static/omim/data/mim2gene.txt'
-            response = requests.get(url)
-            if response.ok:
-                with open(cache_file, 'w') as f:
-                    f.write(response.text)
-            else:
-                response.raise_for_status()
-
-        fields = 'mim_id entry_type entrez_id gene_symbol ensembl_ids'.split()
-        df = pd.read_table(cache_file, comment='#', names=fields,
-                           dtype={'entrez_id': str, 'mim_id': str})
-        return df
+    @classmethod
+    def gene_to_mim(cls):
+        """Dict mapping Entrez gene IDs to OMIM IDs."""
+        df = cls._mim_to_gene_df().set_index('mim_id')
+        return {v: k for k, v in df['entrez_id'].dropna().items()}
 
     def _query(self, mim_id):
         url = self._url(mim_id)
@@ -130,6 +110,7 @@ class OmimGeneAnnotator(ParallelAnnotator):
             variant['phenotypes'] = (variant_phenotypes or None)
 
         df = cls._prepare_dataframe(data['variants'])
+        df['entrez_id'] = df['gene_id'].map(cls.mim_to_gene())
         return df
 
     @staticmethod
@@ -388,4 +369,31 @@ class OmimGeneAnnotator(ParallelAnnotator):
             current_entry['review'] += '\n\n' + texts
 
         return variants
+
+    @staticmethod
+    def _mim_to_gene_df():
+        """
+        Returns a DataFrame with:
+            - MIM ID
+            - MIM Entry Type
+            - Entrez Gene ID
+            - HGNC Symbol (Gene Symbol)
+            - Ensembl Gene ID
+        """
+        cache_file = expanduser('~/.mim2gene.txt')
+
+        if not isfile(cache_file):
+            url = 'https://omim.org/static/omim/data/mim2gene.txt'
+            response = requests.get(url)
+            if response.ok:
+                with open(cache_file, 'w') as f:
+                    f.write(response.text)
+            else:
+                response.raise_for_status()
+
+        fields = 'mim_id entry_type entrez_id gene_symbol ensembl_ids'.split()
+        df = pd.read_table(cache_file, comment='#', names=fields,
+                           dtype={'entrez_id': str, 'mim_id': str})
+
+        return df
 
