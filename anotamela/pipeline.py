@@ -5,6 +5,8 @@ from itertools import chain
 import pandas as pd
 import coloredlogs
 from vcf_to_dataframe import vcf_to_dataframe
+from humanfriendly import format_timespan
+from pprint import pformat
 
 from anotamela.cache import create_cache
 from anotamela.annotators import *
@@ -16,15 +18,16 @@ coloredlogs.install(level='INFO')
 
 
 class Pipeline:
-    def run(self, vcf_path, out_filepath=None, use_cache=True, use_web=True,
-            proxies=None, cache=None, **cache_kwargs):
+    def run(self, vcf_path, cache, use_cache=True, use_web=True, proxies=None,
+            **cache_kwargs):
         """
-        Annotate the given VCF file (accepts gzipped file too). Return the
-        filepath to a CSV with annotations per variant. Options are:
+        Annotate the given VCF file (accepts gzipped file too). Returns
+        a DataFrame of annotations per rs ID. The IDs that weren't regular
+        rs IDs and thus were not annotated are stored in self.other_variants.
 
-        - out_filepath (default=None): path where the output CSV with
-          annotations should be written. If None, it will use the same filepath
-          as the input VCF replacing '.vcf[.gz]' with '.csv'.
+        Options are:
+
+        - vcf_path: path to the input VCF. only the variants will be read.
         - use_cache (default=True): whether to use or not cached data about
           variant.
         - use_web (default=True): whether to use or not web data to annotate
@@ -60,39 +63,94 @@ class Pipeline:
             # the new annotations, so the Redis connection will be used
 
         """
-        self.start_time = time.time()
-
         # Options
-        self.cache = create_cache(cache, **cache_kwargs)
         self.use_cache = use_cache
         self.use_web = use_web
         self.proxies = proxies
 
+        opts = pformat({**self.__dict__,
+                        'cache': cache,
+                        'vcf_path': vcf_path} , width=50)
+        msg = 'Starting annotation pipeline with options:\n\n{}\n'.format(opts)
+        logger.info(msg)
+
         # Pipeline
+        self.cache = create_cache(cache, **cache_kwargs)
+        self.start_time = time.time()
         self._read_vcf(vcf_path)
         self._annotate_snps(self.rs_variants)
-        gene_ids = self._extract_gene_ids()
+        gene_ids = self._extract_entrez_gene_ids()
         self.gene_annotations = self._annotate_genes(gene_ids)
         self._add_omim_variants_info()
         self._add_pubmed_entries_to_omim_entries()
         self._add_uniprot_variants_info()
+        self.end_time = time.time()
+        elapsed = format_timespan(self.end_time - self.start_time)
+        logger.info('Done! Took {} to complete the pipeline'.format(elapsed))
 
-    def _add_pubmed_entries_to_omim_entries(self):
-        pubmed_ids = set()
+        return self.rs_variants
 
-        for omim_entries in self.rs_variants['omim_entries'].dropna():
-            for entry in omim_entries:
-                for pubmed in entry.get('pubmeds', []):
-                    pubmed_ids.add(pubmed['pmid'])
+    def _read_vcf(self, vcf_path):
+        """Read the VCF and keep the variants with rs ID."""
+        logger.info('Read "{}"'.format(vcf_path))
+        self.variants = vcf_to_dataframe(vcf_path)
+        have_single_rs = self.variants['id'].str.match(r'^rs\d+$')
+        self.rs_variants = self.variants[have_single_rs].reset_index(drop=True)
+        self.other_variants = self.variants[~have_single_rs].reset_index(drop=True)
+        logger.info('{} variants with single rs'.format(len(self.rs_variants)))
+        logger.info('{} other variants'.format(len(self.other_variants)))
 
-        pubmed_annotations = \
-                PubmedAnnotator(cache=self.cache).annotate(pubmed_ids)
+    def _annotate_snps(self, rs_variants_df):
+        snp_annotator_classes = [
+            ClinvarRsAnnotator,
+            SnpeffAnnotator,
+            MafAnnotator,
+            HgvsAnnotator,
+            DbsnpMyvariantAnnotator,
+            DbsnpEntrezAnnotator
+        ]
 
-        for omim_entries in self.rs_variants['omim_entries'].dropna():
-            for entry in omim_entries:
-                for pubmed in entry.get('pubmeds', []):
-                    extra_info = pubmed_annotations[pubmed['pmid']]
-                    pubmed.update(extra_info)
+        for annotator_class in snp_annotator_classes:
+            annotator = annotator_class(self.cache)
+            annotator.PROXIES = self.proxies
+            self._annotate_ids_and_add_series(
+                    annotator=annotator,
+                    id_series=rs_variants_df['id'],
+                    df_to_modify=rs_variants_df,
+                )
+
+    def _extract_entrez_gene_ids(self):
+        """Extract Entrez Gene IDs from dbsnp annotations. Adds a field in
+        the dataframe self.rs_variants; returns a series of unique IDs."""
+        def _extract_gene_ids_from_dbsnp_entries(dbsnp_entries):
+            if not dbsnp_entries: return []
+            ids = {gene.get('geneid') for entry in dbsnp_entries
+                                      for gene in entry.get('gene', {})}
+            return list(ids)
+
+        gene_ids_per_rs = \
+                self.rs_variants['dbsnp_myvariant'].fillna(False).map(
+                    _extract_gene_ids_from_dbsnp_entries
+                )
+        self.rs_variants['entrez_gene_ids'] = gene_ids_per_rs
+        return list(set(chain.from_iterable(gene_ids_per_rs)))
+
+    def _annotate_genes(self, gene_ids):
+        """Annotate Entrez genes; generate a dataframe with annotations."""
+        gene_annotations = pd.DataFrame({'entrez_id': gene_ids})
+
+        gene_annotator_classes = [MygeneAnnotator, GeneEntrezAnnotator]
+        for annotator_class in gene_annotator_classes:
+            annotator = annotator_class(cache=self.cache)
+            self._annotate_ids_and_add_series(
+                    annotator=annotator,
+                    id_series=gene_annotations['entrez_id'],
+                    df_to_modify=gene_annotations,
+                )
+
+        return gene_annotations
+
+        self.gene_annotations = gene_annotations
 
     def _add_omim_variants_info(self):
         annotator = OmimGeneAnnotator(cache=self.cache)
@@ -118,6 +176,23 @@ class Pipeline:
         self.rs_variants['omim_entries'] = \
                 self.rs_variants['id'].map(rs_to_omim_variants)
 
+    def _add_pubmed_entries_to_omim_entries(self):
+        pubmed_ids = set()
+
+        for omim_entries in self.rs_variants['omim_entries'].dropna():
+            for entry in omim_entries:
+                for pubmed in entry.get('pubmeds', []):
+                    pubmed_ids.add(pubmed['pmid'])
+
+        pubmed_annotations = \
+                PubmedAnnotator(cache=self.cache).annotate(pubmed_ids)
+
+        for omim_entries in self.rs_variants['omim_entries'].dropna():
+            for entry in omim_entries:
+                for pubmed in entry.get('pubmeds', []):
+                    extra_info = pubmed_annotations[pubmed['pmid']]
+                    pubmed.update(extra_info)
+
     def _add_uniprot_variants_info(self):
         uniprot_ids = set()
 
@@ -130,11 +205,12 @@ class Pipeline:
 
         annotator = UniprotAnnotator(cache=self.cache)
         annotator.PROXIES = self.proxies
-        uniprot_variants = annotator.annotate(
+        uniprot_annotations = annotator.annotate(
             uniprot_ids,
             use_cache=self.use_cache,
             use_web=self.use_web
         )
+        uniprot_variants = list(chain.from_iterable(uniprot_annotations.values()))
         uniprot_variants = \
                 pd.DataFrame(uniprot_variants).set_index('rsid', drop=False)
 
@@ -144,64 +220,7 @@ class Pipeline:
             return uniprot_variants.loc[[rs]].to_dict('records')
 
         self.rs_variants['uniprot_entries'] = \
-            rs_variants['id'].map(rs_to_uniprot_variants)
-
-        return out_filepath
-
-    def _annotate_genes(self, gene_ids):
-        """Annotate Entrez genes; generate a dataframe with annotations."""
-        gene_annotations = pd.DataFrame({'entrez_id': gene_ids})
-
-        gene_annotator_classes = [MygeneAnnotator, GeneEntrezAnnotator]
-        for annotator_class in gene_annotator_classes:
-            annotator = annotator_class(cache=self.cache)
-            self._annotate_ids_and_add_series(
-                    annotator=annotator,
-                    id_series=gene_annotations['entrez_id'],
-                    df_to_modify=gene_annotations,
-                )
-
-        return gene_annotations
-
-        self.gene_annotations = gene_annotations
-
-    def _read_vcf(self, vcf_path):
-        """Read the VCF and keep the variants with rs ID."""
-        logger.info('Read "{}"'.format(vcf_path))
-        self.variants = vcf_to_dataframe(vcf_path)
-        have_single_rs = self.variants['id'].str.match(r'^rs\d+$')
-        self.rs_variants = self.variants[have_single_rs].reset_index(drop=True)
-        self.other_variants = self.variants[~have_single_rs].reset_index(drop=True)
-        logger.info('{} variants with single rs'.format(len(self.rs_variants)))
-        logger.info('{} other variants'.format(len(self.other_variants)))
-
-    def _annotate_snps(self, rs_variants_df):
-        snp_annotator_classes = [
-            ClinvarRsAnnotator,
-            #  SnpeffAnnotator,
-            #  MafAnnotator,
-            #  HgvsAnnotator,
-            DbsnpMyvariantAnnotator,
-            #  DbsnpEntrezAnnotator
-        ]
-
-        for annotator_class in snp_annotator_classes:
-            annotator = annotator_class(self.cache)
-            annotator.PROXIES = self.proxies
-            self._annotate_ids_and_add_series(
-                    annotator=annotator,
-                    id_series=rs_variants_df['id'],
-                    df_to_modify=rs_variants_df,
-                )
-
-    def _extract_gene_ids(self):
-        """Extract Entrez Gene IDs from dbsnp annotations. Adds a field in
-        the dataframe self.rs_variants; returns a series of unique IDs."""
-        gene_ids_per_rs = self.rs_variants['dbsnp_myvariant'].fillna(False).map(
-                self._extract_gene_id_from_dbsnp_entries
-            )
-        self.rs_variants['entrez_gene_ids'] = gene_ids_per_rs
-        return list(set(chain.from_iterable(gene_ids_per_rs)))
+            self.rs_variants['id'].map(rs_to_uniprot_variants)
 
     def _annotate_ids_and_add_series(self, annotator, id_series, df_to_modify):
         """
@@ -226,22 +245,4 @@ class Pipeline:
                                annotator.SOURCE_NAME))
 
         df_to_modify[annotator.SOURCE_NAME] = annotations
-
-    @staticmethod
-    def _extract_gene_id_from_dbsnp_entries(dbsnp_entries):
-        if not dbsnp_entries:
-            return []
-        ids = {gene.get('geneid') for entry in dbsnp_entries
-                                for gene in entry.get('gene', {})}
-        return list(ids)
-
-    @staticmethod
-    def _mims_from_rcvs(rcvs):
-        """Extract OMIM variant IDs from a RCV ClinVar list."""
-        rcvs = rcvs or []
-        mim_ids = {rcv['omim'] for rcv in rcvs if 'omim' in rcv}
-        if not mim_ids:
-            return
-        assert len(mim_ids) == 1  # Should have 1 or 0 MIM IDs per rs variant
-        return mim_ids.pop()
 

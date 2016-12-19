@@ -34,7 +34,7 @@ class DbsnpWebAnnotator(ParallelAnnotator):
         if response.ok:
             return response.json()
         else:
-            print('{} status code for "{}"'.format(response.status_code, rs))
+            logger.warning('{} status code for "{}"'.format(response.status_code, rs))
             return None
 
     def genes(self, rs, use_web=False):

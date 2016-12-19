@@ -21,10 +21,16 @@ class PostgresCache(Cache):
         db. It will try to connect to a PostgreSQL database with those
         credentials.
         """
+        self._creds_filepath = credentials_filepath
         self._credentials = self._read_credentials(credentials_filepath)
         self._connect(self._credentials)
         logger.info('Connected to PostgreSQL ({!r})'.format(self.engine.url))
         self.tables = {}
+
+    def __repr__(self):
+        rep = "{name}('{cred}')"
+        return rep.format(cred=self._creds_filepath,
+                          name=self.__class__.__name__)
 
     def _client_get(self, ids, namespace, load_as_json):
         # The argument load_as_json is only relevant the first time an
