@@ -95,25 +95,21 @@ test_params = [
     ]
 
 
-TOR_PROXIES = {'http': 'socks5://beleriand.local:9150'}  # FIXME
-
-
 @pytest.mark.parametrize('annotator_class,params', test_params)
 def test_annotator(annotator_class, params):
     ids_to_annotate = params['ids_to_annotate'].split()
     annotator = annotator_class(cache='mock_cache')
 
-    if 'omim' in annotator.SOURCE_NAME:
-        annotator.PROXIES = TOR_PROXIES  # FIXME
-
     # Test annotation from web
+
     info_dict = annotator.annotate(ids_to_annotate, use_cache=False)
 
     for id_ in ids_to_annotate:
         for key in params['keys_to_check'].split():
             check_dict_key(info_dict[id_], key)
 
-    # Test the info was correctly cached after the first query
+    # Test the info was correctly cached after the first annotation
+
     cached_data = annotator.annotate(ids_to_annotate, use_web=False)
     for id_ in ids_to_annotate:
         for key in params['keys_to_check'].split():
@@ -123,7 +119,6 @@ def test_annotator(annotator_class, params):
 def test_omim_annotate_from_entrez_ids():
     entrez_id = '63976'  # PRDM16 = 605557 in OMIM
     annotator = OmimGeneAnnotator(cache='mock_cache')
-    annotator.PROXIES = TOR_PROXIES  # FIXME
     annotations = annotator.annotate_from_entrez_ids([entrez_id])
     variants = annotations[entrez_id]
 

@@ -12,9 +12,7 @@ TEST_PARAMS = ['test.vcf', 'test.vcf.gz']
 def test_pipeline(vcf_filename):
     # Test the pipeline using the web to annotate and build the cache
 
-    proxies = {'http': 'socks5://beleriand.local:9150'}
-    web_pipeline = Pipeline(cache='mock_cache', use_cache=False,
-                            proxies=proxies)
+    web_pipeline = Pipeline(cache='mock_cache', use_cache=False)
     web_pipeline.run(vcf_path=_test_file(vcf_filename))
 
     _test_pipeline_result(web_pipeline)
