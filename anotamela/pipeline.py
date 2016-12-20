@@ -40,7 +40,7 @@ class Pipeline:
         - **cache_kwargs will be passed to the Cache constructor if the cache
           option is not already a Cache instance.
 
-        See the docstring for Pipeline.run for some usage examples.
+        See the docstring of Pipeline.run for some usage examples.
         """
         self.use_cache = use_cache
         self.use_web = use_web
@@ -53,7 +53,7 @@ class Pipeline:
 
     def run(self, vcf_path):
         """
-        Annotate the given VCF file (accepts gzipped file too). Returns
+        Annotate the given VCF file (accepts gzipped files too). Returns
         a DataFrame of annotations per rs ID. The IDs that weren't regular
         rs IDs and thus were not annotated are stored in self.other_variants
 
@@ -87,9 +87,9 @@ class Pipeline:
         logger.info(msg)
 
         self._read_vcf(vcf_path)
-        self._annotate_snps(self.rs_variants)
-        gene_ids = self._extract_entrez_gene_ids()
-        self.gene_annotations = self._annotate_genes(gene_ids)
+        self._annotate_rs_variants()
+        self._extract_entrez_gene_ids()
+        self._annotate_genes()
         self._add_omim_variants_info()
         self._add_pubmed_entries_to_omim_entries()
         self._add_uniprot_variants_info()
@@ -110,7 +110,7 @@ class Pipeline:
         logger.info('{} variants with single rs'.format(len(self.rs_variants)))
         logger.info('{} other variants'.format(len(self.other_variants)))
 
-    def _annotate_snps(self, rs_variants_df):
+    def _annotate_rs_variants(self):
         snp_annotator_classes = [
             ClinvarRsAnnotator,
             SnpeffAnnotator,
@@ -125,29 +125,31 @@ class Pipeline:
             annotator.PROXIES = self.proxies
             self._annotate_ids_and_add_series(
                     annotator=annotator,
-                    id_series=rs_variants_df['id'],
-                    df_to_modify=rs_variants_df,
+                    id_series=self.rs_variants['id'],
+                    df_to_modify=self.rs_variants,
                 )
 
     def _extract_entrez_gene_ids(self):
         """Extract Entrez Gene IDs from dbsnp annotations. Adds a field in
         the dataframe self.rs_variants; returns a series of unique IDs."""
-        def _extract_gene_ids_from_dbsnp_entries(dbsnp_entries):
+
+        def func(dbsnp_entries):
             if not dbsnp_entries: return []
             ids = {gene.get('geneid') for entry in dbsnp_entries
                                       for gene in entry.get('gene', {})}
             return list(ids)
 
-        gene_ids_per_rs = \
-                self.rs_variants['dbsnp_myvariant'].fillna(False).map(
-                    _extract_gene_ids_from_dbsnp_entries
-                )
-        self.rs_variants['entrez_gene_ids'] = gene_ids_per_rs
-        return list(set(chain.from_iterable(gene_ids_per_rs)))
+        self.rs_variants['entrez_gene_ids'] = \
+                self.rs_variants['dbsnp_myvariant'].fillna(False).map(func)
 
-    def _annotate_genes(self, gene_ids):
+    def _annotate_genes(self):
         """Annotate Entrez genes; generate a dataframe with annotations."""
-        gene_annotations = pd.DataFrame({'entrez_id': gene_ids})
+        # FIXME: gene annotation could follow the same logic than
+        # omim variants and uniprot variants annotation later:
+        # grab the unique ids and annotate in the same method
+        # without adding an extra column in the rs_variants dataframe
+        gene_ids = chain.from_iterable(self.rs_variants['entrez_gene_ids'])
+        gene_annotations = pd.DataFrame({'entrez_id': list(set(gene_ids))})
 
         gene_annotator_classes = [MygeneAnnotator, GeneEntrezAnnotator]
         for annotator_class in gene_annotator_classes:
@@ -158,11 +160,10 @@ class Pipeline:
                     df_to_modify=gene_annotations,
                 )
 
-        return gene_annotations
-
         self.gene_annotations = gene_annotations
 
     def _add_omim_variants_info(self):
+        # Get all OMIM variants in the affected genes
         annotator = OmimGeneAnnotator(cache=self.cache)
         annotator.PROXIES = self.proxies
         frames = annotator.annotate_from_entrez_ids(
@@ -171,6 +172,8 @@ class Pipeline:
                 use_web=self.use_web,
             )
         omim_variants = pd.concat(frames, ignore_index=True)
+
+        # Select the OMIM variants with an rs ID that's in our variants list
         omim_variants = omim_variants.set_index('rsid', drop=False)\
                                      .loc[self.rs_variants['id']]
         omim_variants = omim_variants.dropna(how='all')
@@ -178,9 +181,9 @@ class Pipeline:
         def rs_to_omim_variants(rs):
             if rs not in omim_variants.index:
                 return None
-            # .loc[[rs]] forces the result to always be a DataFrame, whereas
-            # .loc[rs] will give you a Series if there's one row, or a Df if
-            # there are many matching rows:
+            # .loc[[rs]] forces the result to always be a DataFrame, no matter
+            # if it's one or many rows that match that index (as opossed to
+            # .loc[rs])
             return omim_variants.loc[[rs]].to_dict('records')
 
         self.rs_variants['omim_entries'] = \
@@ -234,12 +237,8 @@ class Pipeline:
 
     def _annotate_ids_and_add_series(self, annotator, id_series, df_to_modify):
         """
-        Given a DataFrame with a column of IDs by the name of <id_series>,
-        annotate those IDs with the passed annotator object (it will call
-        annotator.annotate() with the passed **annotate_kwargs if any).
-
-        The resulting annotations will be added as a new column to the
-        dataframe, by the name of annotator.SOURCE_NAME
+        Annotate the IDs in id_series with the passed annotator object and add
+        the resulting Series to the df_to_modify.
         """
         annotations_dict = annotator.annotate(
                 id_series,

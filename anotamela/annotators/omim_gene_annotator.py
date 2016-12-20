@@ -66,9 +66,11 @@ class OmimGeneAnnotator(ParallelAnnotator):
         references = cls._extract_references_from_html(html)
 
         for variant in variants:
+            # Add extra data to the variant
             variant['entrez_id'] = mim_to_gene(variant['gene_id'])
             variant['gene_url'] = ('http://www.omim.org/entry/' +
                                    variant['gene_id'])
+
             # Add the references found in the page to each variant,
             # if mentioned in the variant's review text.
             pmids = [pmid for pmid in variant['pubmeds_summary'].values()

@@ -29,8 +29,8 @@ class PostgresCache(Cache):
 
     def __repr__(self):
         rep = "{name}('{cred}')"
-        return rep.format(cred=self._creds_filepath,
-                          name=self.__class__.__name__)
+        return rep.format(name=self.__class__.__name__,
+                          cred=self._creds_filepath)
 
     def _client_get(self, ids, namespace, load_as_json):
         # The argument load_as_json is only relevant the first time an
