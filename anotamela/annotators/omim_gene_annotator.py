@@ -1,9 +1,13 @@
 import re
+import logging
 
 import pandas as pd
 
 from anotamela.annotators.base_classes import ParallelAnnotator
 from anotamela.helpers import make_html_soup, gene_to_mim, mim_to_gene
+
+
+logger = logging.getLogger(__name__)
 
 
 class OmimGeneAnnotator(ParallelAnnotator):
@@ -33,8 +37,14 @@ class OmimGeneAnnotator(ParallelAnnotator):
     RANDOMIZE_SLEEP_TIME = True
 
     def annotate_from_entrez_ids(self, entrez_ids, **kwargs):
+        entrez_ids = set(entrez_ids)
         omim_ids = [gene_to_mim(entrez_id) for entrez_id in entrez_ids
                     if entrez_id in gene_to_mim()]
+
+        diff = len(entrez_ids) - len(omim_ids)
+        if diff > 0:
+            logger.warning('{} of the Entrez IDs have no MIM ID.'.format(diff))
+
         annotations = self.annotate(omim_ids, **kwargs)
         return {mim_to_gene(mim_id): annotation
                 for mim_id, annotation in annotations.items()}

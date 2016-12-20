@@ -25,10 +25,10 @@ def test_pipeline(vcf_filename):
     _test_pipeline_result(pipeline)
 
 def _test_pipeline_result(pipeline):
-    assert 'rs28935490' in pipeline.rs_variants['id']
+    assert 'rs28935490' in pipeline.rs_variants['id'].values
 
     vcf_fields = 'chrom pos id ref alt qual filter info'.split()
-    assert 'esv3585040' in pipeline.other_variants['id']
+    assert 'esv3585040' in pipeline.other_variants['id'].values
 
     for vcf_field in vcf_fields:
         assert vcf_field in pipeline.other_variants.iloc[0]
@@ -37,12 +37,12 @@ def _test_pipeline_result(pipeline):
                          'dbsnp_myvariant dbsnp_entrez entrez_gene_ids '
                          'omim_entries uniprot_entries').split()
 
-    for row in pipeline.rs_variants.iterrows():
+    for _, row in pipeline.rs_variants.iterrows():
         for field in vcf_fields + annotation_fields:
             assert row[field]
 
     for gene_id in ['2717', '100529097']:
-        assert gene_id in pipeline.gene_annotations['entrez_id']
+        assert gene_id in pipeline.gene_annotations['entrez_id'].values
 
 def _test_file(filename):
     return join(dirname(__file__), 'files', filename)
