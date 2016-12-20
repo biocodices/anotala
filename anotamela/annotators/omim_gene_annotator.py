@@ -1,11 +1,9 @@
 import re
-from os.path import expanduser, isfile
 
-import requests
 import pandas as pd
 
 from anotamela.annotators.base_classes import ParallelAnnotator
-from anotamela.helpers import make_html_soup
+from anotamela.helpers import make_html_soup, gene_to_mim, mim_to_gene
 
 
 class OmimGeneAnnotator(ParallelAnnotator):
@@ -35,23 +33,11 @@ class OmimGeneAnnotator(ParallelAnnotator):
     RANDOMIZE_SLEEP_TIME = True
 
     def annotate_from_entrez_ids(self, entrez_ids, **kwargs):
-        omim_ids = [self.gene_to_mim()[entrez_id] for entrez_id in entrez_ids
-                    if entrez_id in self.gene_to_mim()]
+        omim_ids = [gene_to_mim(entrez_id) for entrez_id in entrez_ids
+                    if entrez_id in gene_to_mim()]
         annotations = self.annotate(omim_ids, **kwargs)
-        return {self.mim_to_gene()[mim_id]: annotation
+        return {mim_to_gene(mim_id): annotation
                 for mim_id, annotation in annotations.items()}
-
-    @classmethod
-    def mim_to_gene(cls):
-        """Dict mapping OMIM IDs to Entrez gene IDs."""
-        df = cls._mim_to_gene_df().set_index('mim_id')
-        return {k: v for k, v in df['entrez_id'].dropna().items()}
-
-    @classmethod
-    def gene_to_mim(cls):
-        """Dict mapping Entrez gene IDs to OMIM IDs."""
-        df = cls._mim_to_gene_df().set_index('mim_id')
-        return {v: k for k, v in df['entrez_id'].dropna().items()}
 
     def _query(self, mim_id):
         url = self._url(mim_id)
@@ -76,7 +62,8 @@ class OmimGeneAnnotator(ParallelAnnotator):
                                    variant['gene_id'])
             # Add the references found in the page to each variant,
             # if mentioned in the variant's review text.
-            pmids = [pmid for pmid in variant['pubmeds_summary'].values() if pmid]
+            pmids = [pmid for pmid in variant['pubmeds_summary'].values()
+                     if pmid]
             variant['pubmeds'] = [ref for ref in data['references']
                                   if 'pmid' in ref and ref['pmid'] in pmids]
             for pubmed in variant['pubmeds']:
@@ -110,7 +97,7 @@ class OmimGeneAnnotator(ParallelAnnotator):
             variant['phenotypes'] = (variant_phenotypes or None)
 
         df = cls._prepare_dataframe(data['variants'])
-        df['entrez_id'] = df['gene_id'].map(cls.mim_to_gene())
+        df['entrez_id'] = df['gene_id'].map(mim_to_gene)
         return df
 
     @staticmethod
@@ -369,31 +356,4 @@ class OmimGeneAnnotator(ParallelAnnotator):
             current_entry['review'] += '\n\n' + texts
 
         return variants
-
-    @staticmethod
-    def _mim_to_gene_df():
-        """
-        Returns a DataFrame with:
-            - MIM ID
-            - MIM Entry Type
-            - Entrez Gene ID
-            - HGNC Symbol (Gene Symbol)
-            - Ensembl Gene ID
-        """
-        cache_file = expanduser('~/.mim2gene.txt')
-
-        if not isfile(cache_file):
-            url = 'https://omim.org/static/omim/data/mim2gene.txt'
-            response = requests.get(url)
-            if response.ok:
-                with open(cache_file, 'w') as f:
-                    f.write(response.text)
-            else:
-                response.raise_for_status()
-
-        fields = 'mim_id entry_type entrez_id gene_symbol ensembl_ids'.split()
-        df = pd.read_table(cache_file, comment='#', names=fields,
-                           dtype={'entrez_id': str, 'mim_id': str})
-
-        return df
 
