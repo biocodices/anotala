@@ -107,8 +107,10 @@ class OmimGeneAnnotator(ParallelAnnotator):
                                   for tupleized in tupleized_entries]
             variant['phenotypes'] = (variant_phenotypes or None)
 
+        # FIXME: this logic of making a dataframe and then converting it back
+        # to a list of records/dictionaries is ugly af. Avoid the df step?
         df = cls._prepare_dataframe(variants)
-        return df
+        return df.to_dict('records')
 
     @staticmethod
     def _prepare_dataframe(variants):

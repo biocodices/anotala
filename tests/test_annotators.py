@@ -95,7 +95,8 @@ test_params = [
     ]
 
 
-TOR_PROXIES = {'http': 'socks5://beleriand.local:9150'}
+TOR_PROXIES = {'http': 'socks5://beleriand.local:9150'}  # FIXME
+
 
 @pytest.mark.parametrize('annotator_class,params', test_params)
 def test_annotator(annotator_class, params):
@@ -103,7 +104,7 @@ def test_annotator(annotator_class, params):
     annotator = annotator_class(cache='mock_cache')
 
     if 'omim' in annotator.SOURCE_NAME:
-        annotator.PROXIES = TOR_PROXIES
+        annotator.PROXIES = TOR_PROXIES  # FIXME
 
     # Test annotation from web
     info_dict = annotator.annotate(ids_to_annotate, use_cache=False)
@@ -118,16 +119,21 @@ def test_annotator(annotator_class, params):
         for key in params['keys_to_check'].split():
             check_dict_key(cached_data[id_], key)
 
+
 def test_omim_annotate_from_entrez_ids():
     entrez_id = '63976'  # PRDM16 = 605557 in OMIM
     annotator = OmimGeneAnnotator(cache='mock_cache')
-    annotator.PROXIES = TOR_PROXIES
+    annotator.PROXIES = TOR_PROXIES  # FIXME
     annotations = annotator.annotate_from_entrez_ids([entrez_id])
-    df = annotations[entrez_id]
-    assert len(df) == 6
-    assert all(df['gene_id'] == '605557')
-    assert all(df['entrez_id'] == entrez_id)
-    assert all(df['gene_symbol'] == 'PRDM16')
+    variants = annotations[entrez_id]
+
+    assert len(variants) == 6
+
+    for variant in variants:
+        assert variant['gene_id'] == '605557'
+        assert variant['entrez_id'] == entrez_id
+        assert variant['gene_symbol'] == 'PRDM16'
+
 
 def check_dict_key(dictionary, key_to_check):
     # Some annotations are a list of dicts instead of a single dict

@@ -166,25 +166,24 @@ class Pipeline:
         # Get all OMIM variants in the affected genes
         annotator = OmimGeneAnnotator(cache=self.cache)
         annotator.PROXIES = self.proxies
-        frames = annotator.annotate_from_entrez_ids(
+        omim_variants_per_gene = annotator.annotate_from_entrez_ids(
                 self.gene_annotations['entrez_id'],
                 use_cache=self.use_cache,
                 use_web=self.use_web,
             )
-        omim_variants = pd.concat(frames, ignore_index=True)
 
-        # Select the OMIM variants with an rs ID that's in our variants list
-        omim_variants = omim_variants.set_index('rsid', drop=False)\
-                                     .loc[self.rs_variants['id']]
-        omim_variants = omim_variants.dropna(how='all')
-
-        def rs_to_omim_variants(rs):
-            if rs not in omim_variants.index:
-                return None
-            # .loc[[rs]] forces the result to always be a DataFrame, no matter
-            # if it's one or many rows that match that index (as opossed to
-            # .loc[rs])
-            return omim_variants.loc[[rs]].to_dict('records')
+        # Keep the variants with the rs IDs that we are interested in
+        rs_to_omim_variants = {}
+        for gene_variants in omim_variants_per_gene.values():
+            for variant in gene_variants:
+                rs = variant['rsid']
+                if rs in self.rs_variants['id'].values:
+                    # There might be more than one OMIM variant for a given rs
+                    # --the typical case is the one of multiallelic SNPs--
+                    # so the OMIM annotation for an rs will always be a list:
+                    if rs not in rs_to_omim_variants:
+                        rs_to_omim_variants[rs] = []
+                    rs_to_omim_variants[rs].append(variant)
 
         self.rs_variants['omim_entries'] = \
                 self.rs_variants['id'].map(rs_to_omim_variants)
