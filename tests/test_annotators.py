@@ -1,4 +1,5 @@
 import pytest
+import pandas as pd
 
 from anotamela.annotators import *
 
@@ -57,8 +58,9 @@ test_params = [
             'ids_to_annotate': '605557',
             'keys_to_check': ('gene_id gene_name gene_symbol linked_mim_ids '
                               'phenotypes pubmeds review variant_id variant '
-                              'rsid prot_change variant_id')
-        }), (OmimVariantAnnotator, {
+                              'rsid prot_change variant_id entrez_id')
+        }),
+        (OmimVariantAnnotator, {
             'ids_to_annotate': '605557.0003',
             'keys_to_check': ('gene_id gene_name gene_symbol gene_url url '
                               'linked_mim_ids phenotypes.url '
@@ -132,7 +134,10 @@ def check_dict_key(dictionary, key_to_check):
     # Handle those cases calling this function for the first dict in the list:
     if isinstance(dictionary, list):
         check_dict_key(dictionary[0], key_to_check)
-
+    # Some annotations are a pandas DataFrame. Check the key in each row:
+    elif isinstance(dictionary, pd.DataFrame):
+        for _, row in dictionary.iterrows():
+            check_dict_key(row, key_to_check)
     # If it's a dictionary
     else:
         if '.' in key_to_check:

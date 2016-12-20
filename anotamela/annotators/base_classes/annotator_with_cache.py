@@ -121,7 +121,11 @@ class AnnotatorWithCache():
                 future_to_id[future] = id_
             for future in as_completed(future_to_id):
                 id_ = future_to_id[future]
-                parsed_annotations[id_] = future.result()
+                try:
+                    parsed_annotations[id_] = future.result()
+                except Exception as error:
+                    msg = '{} parsing id_ failed: {}'.format(self.name, id_)
+                    raise type(error)(msg)
 
         return parsed_annotations
 

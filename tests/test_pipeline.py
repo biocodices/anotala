@@ -7,22 +7,25 @@ from anotamela import Pipeline
 
 TEST_PARAMS = ['test.vcf', 'test.vcf.gz']
 
+
 @pytest.mark.parametrize('vcf_filename', TEST_PARAMS)
 def test_pipeline(vcf_filename):
-    # Test the pipeline using the web to annotate
-    pipeline = Pipeline()
-    proxies = {'http': 'socks5://beleriand.local:9150'}
-    pipeline.run(vcf_path=_test_file(vcf_filename),
-                 cache='mock_cache', use_cache=False, proxies=proxies)
+    # Test the pipeline using the web to annotate and build the cache
 
-    _test_pipeline_result(pipeline)
+    proxies = {'http': 'socks5://beleriand.local:9150'}
+    web_pipeline = Pipeline(cache='mock_cache', use_cache=False,
+                            proxies=proxies)
+    web_pipeline.run(vcf_path=_test_file(vcf_filename))
+
+    _test_pipeline_result(web_pipeline)
 
     # Test the pipeline again, now using the cache built in the test above
-    new_pipeline = Pipeline()
-    new_pipeline.run(vcf_path=_test_file(vcf_filename),
-                     cache=pipeline.cache, use_web=False)
 
-    _test_pipeline_result(pipeline)
+    cache_pipeline = Pipeline(cache=web_pipeline.cache, use_web=False)
+    cache_pipeline.run(vcf_path=_test_file(vcf_filename))
+
+    _test_pipeline_result(cache_pipeline)
+
 
 def _test_pipeline_result(pipeline):
     assert 'rs28935490' in pipeline.rs_variants['id'].values
@@ -43,6 +46,7 @@ def _test_pipeline_result(pipeline):
 
     for gene_id in ['2717', '100529097']:
         assert gene_id in pipeline.gene_annotations['entrez_id'].values
+
 
 def _test_file(filename):
     return join(dirname(__file__), 'files', filename)
