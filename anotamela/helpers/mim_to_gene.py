@@ -35,18 +35,18 @@ def mim_to_gene_df():
 
 @lru_cache()
 def mim_to_gene(id_=None):
-    """Maps OMIM IDs to Entrez gene IDs. Pass and ID to get the MIM or no args
-    to get the whole dictionary."""
+    """Maps OMIM IDs to Entrez gene IDs. Pass a MIM ID to get the Entrez ID or
+    no args to get the whole dictionary."""
     df = mim_to_gene_df()
     dic = {k: v for k, v in df['entrez_id'].dropna().items()}
-    return dic[id_] if id_ else dic
+    return dic[str(id_)] if id_ else dic
 
 
 @lru_cache()
 def gene_to_mim(id_=None):
-    """Maps Entrez gene IDs to OMIM IDs. Pass and ID to get the MIM or no args
-    to get the whole dictionary."""
+    """Maps Entrez gene IDs to OMIM IDs. Pass an Entrez ID to get the MIM ID or
+    no args to get the whole dictionary."""
     df = mim_to_gene_df()
     dic = {v: k for k, v in df['entrez_id'].dropna().items()}
-    return dic[id_] if id_ else dic
+    return dic[str(id_)] if id_ else dic
 

@@ -58,23 +58,22 @@ class OmimGeneAnnotator(ParallelAnnotator):
         return 'http://omim.org/entry/{0}'.format(mim_id)
 
     @classmethod
-    def _parse_annotation(cls, raw_annotation):
-        return cls._variants_html_to_df(raw_annotation)
-
-    @classmethod
-    def _variants_html_to_df(cls, html):
+    def _parse_annotation(cls, html):
         """Take the HTML from a OMIM Gene Entry and make a DataFrame with the
         variants for that gene."""
-        data = cls._extract_data_from_html(html)
+        variants = cls._extract_variants_from_html(html)
+        phenotypes = cls._extract_phenotypes_from_html(html)
+        references = cls._extract_references_from_html(html)
 
-        for variant in data['variants']:
+        for variant in variants:
+            variant['entrez_id'] = mim_to_gene(variant['gene_id'])
             variant['gene_url'] = ('http://www.omim.org/entry/' +
                                    variant['gene_id'])
             # Add the references found in the page to each variant,
             # if mentioned in the variant's review text.
             pmids = [pmid for pmid in variant['pubmeds_summary'].values()
                      if pmid]
-            variant['pubmeds'] = [ref for ref in data['references']
+            variant['pubmeds'] = [ref for ref in references
                                   if 'pmid' in ref and ref['pmid'] in pmids]
             for pubmed in variant['pubmeds']:
                 pubmed['url'] = ('https://www.ncbi.nlm.nih.gov/pubmed/' +
@@ -83,7 +82,7 @@ class OmimGeneAnnotator(ParallelAnnotator):
             # Add the phenotypes cited in the table at the top of the page,
             # if they're mentioned in the variant's entry
             variant_phenotypes = []
-            for pheno in data['phenotypes']:
+            for pheno in phenotypes:
                 pheno['url'] = 'http://www.omim.org/entry/' + pheno['id']
                 for mim_id in variant['linked_mim_ids']:
                     if pheno['id'] == mim_id:
@@ -106,8 +105,7 @@ class OmimGeneAnnotator(ParallelAnnotator):
                                   for tupleized in tupleized_entries]
             variant['phenotypes'] = (variant_phenotypes or None)
 
-        df = cls._prepare_dataframe(data['variants'])
-        df['entrez_id'] = df['gene_id'].map(mim_to_gene)
+        df = cls._prepare_dataframe(variants)
         return df
 
     @staticmethod
@@ -145,12 +143,33 @@ class OmimGeneAnnotator(ParallelAnnotator):
         return df
 
     @classmethod
-    def _extract_data_from_html(cls, html):
-        return {
-            'variants': cls._extract_variants_from_html(html),
-            'phenotypes': cls._extract_phenotypes_from_html(html),
-            'references': cls._extract_references_from_html(html)
-        }
+    def _extract_variants_from_html(cls, html):
+        """
+        Parses the HTML of an OMIM Gene Entry. Returns a list of variant
+        entries found in the page.
+        """
+        html = html.replace('<br>', '<br/>')
+        # ^ Need this so the parser doesn't think what comes after a <br>
+        # is the <br>'s children. Added it to keep the newlines in OMIM
+        # review texts.
+
+        soup = make_html_soup(html)
+        if soup.title.text.strip() == 'OMIM Error':
+            return []
+
+        omim_id = cls._extract_mim_id_from_soup(soup)
+        if 'gene' not in omim_id['type']:
+            return []
+
+        gene = cls._extract_gene_from_soup(soup)
+        variants = cls._extract_variants_from_soup(soup)
+
+        for variant in variants:
+            variant['gene_id'] = omim_id['id']
+            variant['gene_name'] = gene['name']
+            variant['gene_symbol'] = gene['symbol']
+
+        return [variant for variant in variants if 'review' in variant]
 
     @classmethod
     def _extract_references_from_html(cls, html):
@@ -214,35 +233,6 @@ class OmimGeneAnnotator(ParallelAnnotator):
             phenotypes.append(phenotype)
 
         return phenotypes
-
-    @classmethod
-    def _extract_variants_from_html(cls, html):
-        """
-        Parses the HTML of an OMIM Gene Entry. Returns a list of variant
-        entries found in the page.
-        """
-        html = html.replace('<br>', '<br/>')
-        # ^ Need this so the parser doesn't think what comes after a <br>
-        # is the <br>'s children. Added it to keep the newlines in OMIM
-        # review texts.
-
-        soup = make_html_soup(html)
-        if soup.title.text.strip() == 'OMIM Error':
-            return []
-
-        omim_id = cls._extract_mim_id_from_soup(soup)
-        if 'gene' not in omim_id['type']:
-            return []
-
-        gene = cls._extract_gene_from_soup(soup)
-        variants = cls._extract_variants_from_soup(soup)
-
-        for variant in variants:
-            variant['gene_id'] = omim_id['id']
-            variant['gene_name'] = gene['name']
-            variant['gene_symbol'] = gene['symbol']
-
-        return [variant for variant in variants if 'review' in variant]
 
     @staticmethod
     def _extract_mim_id_from_soup(soup):

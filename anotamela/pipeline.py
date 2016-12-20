@@ -8,7 +8,7 @@ from vcf_to_dataframe import vcf_to_dataframe
 from humanfriendly import format_timespan
 from pprint import pformat
 
-from anotamela.cache import create_cache
+from anotamela.cache import create_cache, Cache
 from anotamela.annotators import *
 
 
@@ -18,65 +18,74 @@ coloredlogs.install(level='INFO')
 
 
 class Pipeline:
-    def run(self, vcf_path, cache, use_cache=True, use_web=True, proxies=None,
-            **cache_kwargs):
+    def __init__(self, cache, use_cache=True, use_web=True, proxies=None,
+                 **cache_kwargs):
         """
-        Annotate the given VCF file (accepts gzipped file too). Returns
-        a DataFrame of annotations per rs ID. The IDs that weren't regular
-        rs IDs and thus were not annotated are stored in self.other_variants.
+        Initialize a pipeline with a given set of options. The options will
+        be used for any subsequent pipeline.run() actions.
 
-        Options are:
-
-        - vcf_path: path to the input VCF. only the variants will be read.
-        - use_cache (default=True): whether to use or not cached data about
-          variant.
+        - cache is mandatory. You can 'manually' instantiate a Cache
+          (either PostgresCache or RedisCache) and pass it here, or you can
+          specify 'redis' or 'postgres' and let the pipeline do that for you.
+        - use_cache (default=True): whether to use or not data found in cache
+          for each variant.
         - use_web (default=True): whether to use or not web data to annotate
           the variants. If use_cache is also set, the web will be used only
-          to annotate the ones not found in cache.
-        - proxies (default=None) can be a dictionary of proxies that will be
-          used by the requests library for some annotators. For instance:
+          to annotate the ones not found in cache. If use_cache=False, every
+          variant will be annotated from web, updating any previous cached
+          data for those variants.
+        - proxies (default=None) is optional. If set, it should be a dictionary
+          of proxies that will be used by the requests library. For instance:
           {'http': 'socks5://localhost:9050'}
-        - cache (default=None): you can 'manually' instantiate a Cache
-          (either PostgresCache or RedisCache and pass it here), or you can
-          specify 'redis' or 'postgres' and let the pipeline do that for you.
         - **cache_kwargs will be passed to the Cache constructor if the cache
           option is not already a Cache instance.
 
-        Examples:
-
-            > from anotamela import run_pipeline
-            > run_pipeline('~/variants.vcf.gz',
-                           out_filepath='~/annotations.csv')
-
-            > from anotamela import run_pipeline
-            > run_pipeline('~/variants.vcf.gz', cache='redis',
-                           out_filepath='~/annotations.csv')
-
-            > from anotamela import run_pipeline
-            > run_pipeline('~/variants.vcf', cache='postgres',
-                           credentials_filepath='~/.pg_creds.yml')
-
-            > from anotamela import run_pipeline
-            > run_pipeline('~/variants.vcf', cache='redis',
-                           use_cache=False, host='192.168.1.10')
-            # Will reannotate any already cached variants, but it will cache
-            # the new annotations, so the Redis connection will be used
-
+        See the docstring for Pipeline.run for some usage examples.
         """
-        # Options
         self.use_cache = use_cache
         self.use_web = use_web
         self.proxies = proxies
 
-        opts = pformat({**self.__dict__,
-                        'cache': cache,
-                        'vcf_path': vcf_path} , width=50)
+        if isinstance(cache, Cache):
+            self.cache = cache
+        else:
+            self.cache = create_cache(cache, **cache_kwargs)
+
+    def run(self, vcf_path):
+        """
+        Annotate the given VCF file (accepts gzipped file too). Returns
+        a DataFrame of annotations per rs ID. The IDs that weren't regular
+        rs IDs and thus were not annotated are stored in self.other_variants
+
+        Examples:
+
+            > from anotamela import Pipeline
+
+            > # Annotate using only cached variants
+            > pipeline = Pipeline(cache='postgres', use_web=False)
+            > pipeline.run('~/variants.vcf.gz')
+
+            > # Or use web too, and pass some args for the cache:
+            > pipeline = Pipeline(cache='postgres',
+                                  credentials_filepath='~/.pg_creds.yml')
+            > pipeline.run('~/variants.vcf.gz')
+
+            > # Use Redis for cache:
+            > pipeline = Pipeline(cache='redis', host='192.168.1.10')
+            > # ^ Don't pass the host argument to use 'localhost'
+            > pipeline.run('~/variants.vcf')
+
+            # use_cache=False will reannotate any already cached variants:
+            > pipeline = Pipeline(cache='postgres', use_cache=False)
+            > pipeline.run('~/variants.vcf')
+
+        """
+        self.start_time = time.time()
+
+        opts = pformat({**self.__dict__, 'vcf_path': vcf_path} , width=50)
         msg = 'Starting annotation pipeline with options:\n\n{}\n'.format(opts)
         logger.info(msg)
 
-        # Pipeline
-        self.cache = create_cache(cache, **cache_kwargs)
-        self.start_time = time.time()
         self._read_vcf(vcf_path)
         self._annotate_snps(self.rs_variants)
         gene_ids = self._extract_entrez_gene_ids()
@@ -84,6 +93,7 @@ class Pipeline:
         self._add_omim_variants_info()
         self._add_pubmed_entries_to_omim_entries()
         self._add_uniprot_variants_info()
+
         self.end_time = time.time()
         elapsed = format_timespan(self.end_time - self.start_time)
         logger.info('Done! Took {} to complete the pipeline'.format(elapsed))
