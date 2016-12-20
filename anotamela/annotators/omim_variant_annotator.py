@@ -41,17 +41,24 @@ class OmimVariantAnnotator(AnnotatorWithCache):
         """
         # OMIM variant IDs are like 605557.0001, where 605557 is a gene ID
         gene_ids = {id_.split('.')[0] for id_ in ids}
-        # Annotate the genes where the variants are located
-        gene_dataframes = self.omim_gene_annotator.annotate(gene_ids)
-        df = pd.concat(gene_dataframes.values())
 
-        # Check each variant has a single row in the dataframe:
-        df = df.set_index('variant_id', drop=False)
-        assert len(df.index) == len(set(df.index))
+        # Annotate the OMIM genes where the OMIM variants are located
+        gene_annotations = self.omim_gene_annotator.annotate(gene_ids)
 
-        # From all the gene variants, only keep the ones that were queried
-        found_ids = df.index & ids
-        annotations = df.loc[found_ids].to_dict('index')
+        annotations = {}
+
+        for gene_variants in gene_annotations.values():
+            for variant in gene_variants:
+                id_ = variant['variant_id']
+                if id_ in ids:
+                    # Make sure we are not getting dupe variants and ignoring
+                    # them accidentally:
+                    assert id_ not in annotations
+
+                    # Keep the variants that were asked for, not all the
+                    # variants in the affected genes:
+                    annotations[id_] = variant
+
         yield annotations
 
     @property
