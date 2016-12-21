@@ -87,16 +87,16 @@ class OmimGeneAnnotator(ParallelAnnotator):
 
         matches = cls.REGEX['prot_change'].findall(variant['variant'])
         if matches:
-            aminoacid_change = matches[0]
+            prot_change = matches[0]
 
-            aa_matches = cls.REGEX['aminoacids'].search(aminoacid_change)
+            aa_matches = cls.REGEX['aminoacids'].search(prot_change)
             if aa_matches:
-                # Change a protein change like GLY96ALA to Gly95Ala
+                # Change a protein change like GLY96ALA to Gly96Ala
                 aa1, pos, aa2 = aa_matches.groups()
-                aminoacid_change = 'p.{}{}{}'.format(aa1.capitalize(), pos,
-                                                     aa2.capitalize())
+                prot_change = 'p.{}{}{}'.format(aa1.capitalize(), pos,
+                                                aa2.capitalize())
 
-            variant['prot_change'] = aminoacid_change
+            variant['prot_change'] = prot_change
 
         variant['url'] = cls.OMIM_URL.format(
                 variant['gene_omim_id'] + '#' + variant['sub_id']
