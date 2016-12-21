@@ -108,7 +108,7 @@ def test_annotator(annotator_class, params):
         for key in params['keys_to_check'].split():
             check_dict_key(info_dict[id_], key)
 
-    # Test the info was correctly cached after the first annotation
+    # Test the info was correctly cached after the first query
 
     cached_data = annotator.annotate(ids_to_annotate, use_web=False)
     for id_ in ids_to_annotate:
@@ -117,7 +117,10 @@ def test_annotator(annotator_class, params):
 
 
 def test_omim_annotate_from_entrez_ids():
-    entrez_id = '63976'  # PRDM16 = 605557 in OMIM
+    entrez_id = '63976'
+    mim_id = '605557'
+    gene_symbol = 'PRDM16'
+
     annotator = OmimGeneAnnotator(cache='mock_cache')
     annotations = annotator.annotate_from_entrez_ids([entrez_id])
     variants = annotations[entrez_id]
@@ -125,9 +128,9 @@ def test_omim_annotate_from_entrez_ids():
     assert len(variants) == 6
 
     for variant in variants:
-        assert variant['gene_id'] == '605557'
+        assert variant['gene_id'] == mim_id
         assert variant['entrez_id'] == entrez_id
-        assert variant['gene_symbol'] == 'PRDM16'
+        assert variant['gene_symbol'] == gene_symbol
 
 
 def check_dict_key(dictionary, key_to_check):

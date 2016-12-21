@@ -179,8 +179,9 @@ class Pipeline:
                 rs = variant['rsid']
                 if rs in self.rs_variants['id'].values:
                     # There might be more than one OMIM variant for a given rs
-                    # --the typical case is the one of multiallelic SNPs--
-                    # so the OMIM annotation for an rs will always be a list:
+                    # --the typical case is the one of multiallelic SNPs.
+                    # To simplify further parsing, we return the OMIM
+                    # annotation for an rs always as a list:
                     if rs not in rs_to_omim_variants:
                         rs_to_omim_variants[rs] = []
                     rs_to_omim_variants[rs].append(variant)
