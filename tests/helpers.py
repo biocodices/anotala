@@ -1,9 +1,12 @@
 from collections import defaultdict
+from os.path import join, dirname
 import json
 
-import pytest
-
 from anotamela.cache import Cache, AVAILABLE_CACHES
+
+
+def get_test_file(filename):
+    return join(dirname(__file__), 'files', filename)
 
 
 class MockCache(Cache):
@@ -26,9 +29,4 @@ class MockCache(Cache):
 
 
 AVAILABLE_CACHES['mock_cache'] = MockCache
-
-
-@pytest.fixture(scope='module')
-def mock_cache():
-    return MockCache()
 

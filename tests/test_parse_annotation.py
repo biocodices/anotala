@@ -1,9 +1,10 @@
-from os.path import join, dirname
+from os.path import join
 import pickle
 
 import pytest
 
 from anotamela.annotators import *
+from helpers import get_test_file
 
 
 ANNOTATOR_CLASSES = [
@@ -40,9 +41,6 @@ def test_parse_annotation(annotator_class):
 def get_annotation(source_name, parsed):
     subdir = 'parsed_annotations' if parsed else 'raw_annotations'
     filename = join(subdir, source_name + '.pickle')
-    with open(_test_file(filename), 'rb') as f:
+    with open(get_test_file(filename), 'rb') as f:
         return pickle.load(f)
-
-def _test_file(filename):
-    return join(dirname(__file__), 'files', filename)
 

@@ -49,15 +49,14 @@ class OmimVariantAnnotator(AnnotatorWithCache):
 
         for gene_variants in gene_annotations.values():
             for variant in gene_variants:
-                id_ = variant['variant_id']
-                if id_ in ids:
+                mim_variant_id = variant['variant_id']
+                # Keep the variants that were asked for, not all the
+                # variants in the affected genes:
+                if mim_variant_id in ids:
                     # Make sure we are not getting dupe variants and ignoring
                     # them accidentally:
-                    assert id_ not in annotations
-
-                    # Keep the variants that were asked for, not all the
-                    # variants in the affected genes:
-                    annotations[id_] = variant
+                    assert mim_variant_id not in annotations
+                    annotations[mim_variant_id] = variant
 
         yield annotations
 

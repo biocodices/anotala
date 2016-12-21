@@ -6,6 +6,7 @@ import redis
 from sqlalchemy.exc import OperationalError
 
 from anotamela.cache import RedisCache, PostgresCache
+from helpers import MockCache
 
 
 logger = logging.getLogger()
@@ -42,7 +43,9 @@ def cleanup_redis_cache(cache, namespace):
 
 
 @pytest.mark.parametrize('test_data,namespace,as_json', TEST_PARAMS)
-def test_get(mock_cache, namespace, test_data, as_json):
+def test_get(namespace, test_data, as_json):
+    mock_cache = MockCache()
+
     # Manually set the test values, manually json-dump if necessary:
     values_to_set = test_data
     if as_json:
@@ -56,7 +59,9 @@ def test_get(mock_cache, namespace, test_data, as_json):
 
 
 @pytest.mark.parametrize('test_data,namespace,as_json', TEST_PARAMS)
-def test_set(mock_cache, namespace, test_data, as_json):
+def test_set(namespace, test_data, as_json):
+    mock_cache = MockCache()
+
     # Test the set method
     mock_cache.set(test_data, namespace, save_as_json=as_json)
 
