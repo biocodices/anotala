@@ -5,8 +5,7 @@ import pytest
 import redis
 from sqlalchemy.exc import OperationalError
 
-from anotamela.cache import RedisCache, PostgresCache
-from helpers import MockCache
+from anotamela.cache import create_cache
 
 
 logger = logging.getLogger()
@@ -24,7 +23,7 @@ def get_redis_cache():
     # FIXME: This is hacky. It will just test Redis if it finds it
     # in the default location (localhost:6379). Think of smth better.
     try:
-        return RedisCache()
+        return create_cache('redis')
     except redis.exceptions.ConnectionError:
         return
 
@@ -33,7 +32,8 @@ def get_postgres_cache():
     try:
         # Tests will write to the same database, but in a different table
         # (defined by the different namespace generated below)
-        return PostgresCache('~/.postgres_credentials.yml')
+        return create_cache('postgres',
+                            credentials_filepath='~/.postgres_credentials.yml')
     except OperationalError:
         return
 
@@ -44,7 +44,7 @@ def cleanup_redis_cache(cache, namespace):
 
 @pytest.mark.parametrize('test_data,namespace,as_json', TEST_PARAMS)
 def test_get(namespace, test_data, as_json):
-    mock_cache = MockCache()
+    mock_cache = create_cache('mock_cache')
 
     # Manually set the test values, manually json-dump if necessary:
     values_to_set = test_data
@@ -60,7 +60,7 @@ def test_get(namespace, test_data, as_json):
 
 @pytest.mark.parametrize('test_data,namespace,as_json', TEST_PARAMS)
 def test_set(namespace, test_data, as_json):
-    mock_cache = MockCache()
+    mock_cache = create_cache('mock_cache')
 
     # Test the set method
     mock_cache.set(test_data, namespace, save_as_json=as_json)

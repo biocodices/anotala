@@ -56,13 +56,14 @@ test_params = [
         }),
         (OmimGeneAnnotator, {
             'ids_to_annotate': '605557',
-            'keys_to_check': ('gene_id gene_name gene_symbol linked_mim_ids '
-                              'phenotypes pubmeds review variant_id variant '
-                              'rsid prot_change variant_id entrez_id')
+            'keys_to_check': ('gene_omim_id gene_name gene_symbol '
+                              'linked_mim_ids phenotypes pubmeds review '
+                              'variant_id variant rsid prot_change '
+                              'gene_entrez_id')
         }),
         (OmimVariantAnnotator, {
             'ids_to_annotate': '605557.0003',
-            'keys_to_check': ('gene_id gene_name gene_symbol gene_url url '
+            'keys_to_check': ('gene_omim_id gene_name gene_symbol gene_url url '
                               'linked_mim_ids phenotypes.url '
                               'phenotypes.id phenotypes.inheritance '
                               'phenotypes.name prot_change pubmeds.authors '
@@ -122,14 +123,15 @@ def test_omim_annotate_from_entrez_ids():
     gene_symbol = 'PRDM16'
 
     annotator = OmimGeneAnnotator(cache='mock_cache')
+    annotator.PROXIES = TOR_PROXIES  # FIXME
     annotations = annotator.annotate_from_entrez_ids([entrez_id])
     variants = annotations[entrez_id]
 
     assert len(variants) == 6
 
     for variant in variants:
-        assert variant['gene_id'] == mim_id
-        assert variant['entrez_id'] == entrez_id
+        assert variant['gene_omim_id'] == mim_id
+        assert variant['gene_entrez_id'] == entrez_id
         assert variant['gene_symbol'] == gene_symbol
 
 

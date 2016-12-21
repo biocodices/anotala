@@ -80,10 +80,10 @@ class OmimGeneAnnotator(ParallelAnnotator):
 
     @classmethod
     def _add_data_to_variant(cls, variant, phenotypes, references):
-        variant['variant_id'] = variant['gene_id'] + '.' + variant['sub_id']
+        variant['variant_id'] = variant['gene_omim_id'] + '.' + variant['sub_id']
         variant['rsid'] = '|'.join(cls.REGEX['rsid'].findall(variant['variant']))
-        variant['entrez_id'] = mim_to_gene(variant['gene_id'])
-        variant['gene_url'] = (cls.OMIM_URL.format(variant['gene_id']))
+        variant['gene_entrez_id'] = mim_to_gene(variant['gene_omim_id'])
+        variant['gene_url'] = (cls.OMIM_URL.format(variant['gene_omim_id']))
 
         matches = cls.REGEX['prot_change'].findall(variant['variant'])
         if matches:
@@ -99,7 +99,7 @@ class OmimGeneAnnotator(ParallelAnnotator):
             variant['prot_change'] = aminoacid_change
 
         variant['url'] = cls.OMIM_URL.format(
-                variant['gene_id'] + '#' + variant['sub_id']
+                variant['gene_omim_id'] + '#' + variant['sub_id']
             )
 
         # Add the references found in the page to each variant,
@@ -159,7 +159,7 @@ class OmimGeneAnnotator(ParallelAnnotator):
         variants = cls._extract_variants_from_soup(soup)
 
         for variant in variants:
-            variant['gene_id'] = omim_id['id']
+            variant['gene_omim_id'] = omim_id['id']
             variant['gene_name'] = gene['name']
             variant['gene_symbol'] = gene['symbol']
 
