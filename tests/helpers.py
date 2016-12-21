@@ -2,7 +2,7 @@ from collections import defaultdict
 from os.path import join, dirname
 import json
 
-from anotamela.cache import Cache, AVAILABLE_CACHES
+from anotamela.cache import Cache
 
 
 def get_test_file(filename):
@@ -26,7 +26,4 @@ class MockCache(Cache):
         if load_as_json:
             info_dict = {k: json.loads(v) for k, v in info_dict.items()}
         return info_dict
-
-
-AVAILABLE_CACHES['mock_cache'] = MockCache
 

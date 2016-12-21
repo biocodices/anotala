@@ -1,7 +1,6 @@
 import re
 import logging
-
-import pandas as pd
+from operator import itemgetter
 
 from anotamela.annotators.base_classes import ParallelAnnotator
 from anotamela.helpers import make_html_soup, gene_to_mim, mim_to_gene
@@ -36,6 +35,14 @@ class OmimGeneAnnotator(ParallelAnnotator):
     SLEEP_TIME = 60
     RANDOMIZE_SLEEP_TIME = True
 
+    OMIM_URL = 'http://www.omim.org/entry/{}'
+    PUBMED_URL = 'https://www.ncbi.nlm.nih.gov/pubmed/{}'
+    REGEX = {
+        'rsid': re.compile(r'dbSNP:(rs\d+)'),
+        'prot_change': re.compile(r'\w+, (.+?)(?:,| \[| -| \()'),
+        'aminoacids': re.compile(r'([A-Z]{3})-?(\d+)([A-Z]{3}|=)'),
+    }
+
     def annotate_from_entrez_ids(self, entrez_ids, **kwargs):
         entrez_ids = set(entrez_ids)
         omim_ids = [gene_to_mim(entrez_id) for entrez_id in entrez_ids
@@ -61,90 +68,73 @@ class OmimGeneAnnotator(ParallelAnnotator):
     def _parse_annotation(cls, html):
         """Take the HTML from a OMIM Gene Entry and make a DataFrame with the
         variants for that gene."""
+
         variants = cls._extract_variants_from_html(html)
         phenotypes = cls._extract_phenotypes_from_html(html)
         references = cls._extract_references_from_html(html)
 
         for variant in variants:
-            # Add extra data to the variant
-            variant['entrez_id'] = mim_to_gene(variant['gene_id'])
-            variant['gene_url'] = ('http://www.omim.org/entry/' +
-                                   variant['gene_id'])
+            cls._add_data_to_variant(variant, phenotypes, references)
 
-            # Add the references found in the page to each variant,
-            # if mentioned in the variant's review text.
-            pmids = [pmid for pmid in variant['pubmeds_summary'].values()
-                     if pmid]
-            variant['pubmeds'] = [ref for ref in references
-                                  if 'pmid' in ref and ref['pmid'] in pmids]
-            for pubmed in variant['pubmeds']:
-                pubmed['url'] = ('https://www.ncbi.nlm.nih.gov/pubmed/' +
-                                 pubmed['pmid'])
+        return variants
 
-            # Add the phenotypes cited in the table at the top of the page,
-            # if they're mentioned in the variant's entry
-            variant_phenotypes = []
-            for pheno in phenotypes:
-                pheno['url'] = 'http://www.omim.org/entry/' + pheno['id']
-                for mim_id in variant['linked_mim_ids']:
-                    if pheno['id'] == mim_id:
-                        variant_phenotypes.append(pheno)
+    @classmethod
+    def _add_data_to_variant(cls, variant, phenotypes, references):
+        variant['variant_id'] = variant['gene_id'] + '.' + variant['sub_id']
+        variant['rsid'] = '|'.join(cls.REGEX['rsid'].findall(variant['variant']))
+        variant['entrez_id'] = mim_to_gene(variant['gene_id'])
+        variant['gene_url'] = (cls.OMIM_URL.format(variant['gene_id']))
 
-                for variant_pheno_name in variant['phenotype_names']:
-                    # This is a somewhat loose extra check of phenotype names
-                    # because the names are not always exactly the same
-                    # in the top table and in the variant entry.
-                    match1 = variant_pheno_name.lower() in pheno['name'].lower()
-                    match2 = pheno['name'].lower() in variant_pheno_name.lower()
+        matches = cls.REGEX['prot_change'].findall(variant['variant'])
+        if matches:
+            aminoacid_change = matches[0]
 
-                    if match1 or match2:
-                        variant_phenotypes.append(pheno)
+            aa_matches = cls.REGEX['aminoacids'].search(aminoacid_change)
+            if aa_matches:
+                # Change a protein change like GLY96ALA to Gly95Ala
+                aa1, pos, aa2 = aa_matches.groups()
+                aminoacid_change = 'p.{}{}{}'.format(aa1.capitalize(), pos,
+                                                     aa2.capitalize())
 
-            # Remove duplicated phenotypes
-            tupleized_entries = set(tuple(item.items())
-                                    for item in variant_phenotypes)
-            variant_phenotypes = [dict(tupleized)
-                                  for tupleized in tupleized_entries]
-            variant['phenotypes'] = (variant_phenotypes or None)
+            variant['prot_change'] = aminoacid_change
 
-        # FIXME: this logic of making a dataframe and then converting it back
-        # to a list of records/dictionaries is ugly af. Avoid the df step?
-        df = cls._prepare_dataframe(variants)
-        return df.to_dict('records')
+        variant['url'] = cls.OMIM_URL.format(
+                variant['gene_id'] + '#' + variant['sub_id']
+            )
 
-    @staticmethod
-    def _prepare_dataframe(variants):
-        df = pd.DataFrame(variants)
+        # Add the references found in the page to each variant,
+        # if mentioned in the variant's review text.
+        pmids = variant['pubmeds_summary'].values()
+        pubmed_entries = [ref for ref in references
+                          if ref.get('pmid') and ref.get('pmid') in pmids]
+        for pubmed in pubmed_entries:
+            pubmed['url'] = (cls.PUBMED_URL.format(pubmed['pmid']))
+        variant['pubmeds'] = pubmed_entries
 
-        if not df.empty:
-            df['rsid'] = df['variant'].str.findall(r'dbSNP:(rs\d+)').str.join('|')
+        # Add the phenotypes cited in the table at the top of the page,
+        # if they're mentioned in the variant's entry
+        variant_phenotypes = [pheno for pheno in phenotypes
+                              if pheno['id'] in variant['linked_mim_ids']]
 
-            prot_regex = r'\w+, (.+?)(?:,| \[| -| \()'
-            df['prot_change'] = df['variant'].str.extract(prot_regex,
-                                                          expand=False)
+        # This is a somewhat loose extra check of phenotype names
+        # because the names are not always exactly the same
+        # in the top table and in the variant entry.
+        for pheno in phenotypes:
+            for variant_pheno_name in variant['phenotype_names']:
+                match1 = variant_pheno_name.lower() in pheno['name'].lower()
+                match2 = pheno['name'].lower() in variant_pheno_name.lower()
+                if match1 or match2:
+                    variant_phenotypes.append(pheno)
 
-            def parse_prot_change(prot_change):
-                if not prot_change:
-                    return None
+        for pheno in variant_phenotypes:
+            pheno['url'] = cls.OMIM_URL.format(pheno['id'])
 
-                pattern = r'([A-Z]{3})-?(\d+)([A-Z]{3}|=)'
-                matches = re.search(pattern, prot_change)
-                if matches:
-                    old_aa, pos, new_aa = matches.groups()
-                    return 'p.{}{}{}'.format(old_aa.capitalize(), pos,
-                                             new_aa.capitalize())
-                else:
-                    return prot_change
+        # Hack to remove duplicated phenotypes
+        unique_tuples = set(tuple(dic.items()) for dic in variant_phenotypes)
+        unique_phenotypes = [dict(tup) for tup in unique_tuples]
+        unique_phenotypes = sorted(unique_phenotypes, key=itemgetter('name'))
 
-            df['prot_change'] = (df['prot_change'].fillna(False)
-                                                  .map(parse_prot_change))
-            df['variant_id'] = df['gene_id'] + '.' + df['sub_id']
-            df.drop('sub_id', axis=1, inplace=True)
-
-            base_url = 'http://www.omim.org/entry/'
-            df['url'] = base_url + df['variant_id'].str.replace('.', '#')
-
-        return df
+        variant['phenotypes'] = (unique_phenotypes or None)
 
     @classmethod
     def _extract_variants_from_html(cls, html):
