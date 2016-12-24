@@ -3,7 +3,11 @@ import logging
 from operator import itemgetter
 
 from anotamela.annotators.base_classes import ParallelAnnotator
-from anotamela.helpers import make_html_soup, gene_to_mim, mim_to_gene
+from anotamela.helpers import (make_html_soup,
+                               gene_to_mim,
+                               mim_to_gene,
+                               is_incidental_gene,
+                               is_incidental_pheno)
 
 
 logger = logging.getLogger(__name__)
@@ -84,6 +88,7 @@ class OmimGeneAnnotator(ParallelAnnotator):
         variant['rsid'] = '|'.join(cls.REGEX['rsid'].findall(variant['variant']))
         variant['gene_entrez_id'] = mim_to_gene(variant['gene_omim_id'])
         variant['gene_url'] = (cls.OMIM_URL.format(variant['gene_omim_id']))
+        variant['incidental_gene'] = is_incidental_gene(variant['gene_omim_id'])
 
         matches = cls.REGEX['prot_change'].findall(variant['variant'])
         if matches:
@@ -128,6 +133,7 @@ class OmimGeneAnnotator(ParallelAnnotator):
 
         for pheno in variant_phenotypes:
             pheno['url'] = cls.OMIM_URL.format(pheno['id'])
+            pheno['incidental'] = is_incidental_pheno(pheno['id'])
 
         # Hack to remove duplicated phenotypes
         unique_tuples = set(tuple(dic.items()) for dic in variant_phenotypes)
