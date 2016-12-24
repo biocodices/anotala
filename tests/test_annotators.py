@@ -59,7 +59,7 @@ test_params = [
             'keys_to_check': ('gene_omim_id gene_name gene_symbol '
                               'linked_mim_ids phenotypes pubmeds review '
                               'variant_id variant rsid prot_change '
-                              'gene_entrez_id')
+                              'gene_entrez_id incidental_gene')
         }),
         (OmimVariantAnnotator, {
             'ids_to_annotate': '605557.0003',
@@ -68,7 +68,8 @@ test_params = [
                               'phenotypes.id phenotypes.inheritance '
                               'phenotypes.name prot_change pubmeds.authors '
                               'pubmeds.pmid pubmeds.title pubmeds.publication '
-                              'pubmeds_summary review rsid variant_id variant')
+                              'pubmeds_summary review rsid variant_id variant '
+                              'phenotypes.incidental')
         }),
         (MygeneAnnotator, {
             'ids_to_annotate': '4023',
