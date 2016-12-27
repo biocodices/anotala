@@ -8,5 +8,13 @@ class SnpeffAnnotator(MyVariantAnnotator):
 
     @staticmethod
     def _parse_hit(hit):
-        return hit['snpeff']
+        entry = hit['snpeff']
+
+        # Make sure the annotations are always a *list* of dictionaries
+        # Right now, myvariant client sometimes returns a list and sometimes
+        # a single dictionary.
+        if not isinstance(entry['ann'], list):
+            entry['ann'] = [entry['ann']]
+
+        return entry
 

@@ -3,14 +3,16 @@ import pytest
 from anotamela.helpers import is_incidental_gene, is_incidental_pheno
 
 
-TEST_PARAMS = [
+INCIDENTAL_TEST_PARAMS = [
+    # MIM ID, entry category, is incidental?
     (175100, 'pheno', True),
     (615373, 'pheno', False),
     (612048, 'gene', True),
     (605557, 'gene', False),
 ]
 
-@pytest.mark.parametrize('mim_id,category,is_incidental', TEST_PARAMS)
+
+@pytest.mark.parametrize('mim_id,category,is_incidental', INCIDENTAL_TEST_PARAMS)
 def test_is_incidental_gene(mim_id, category, is_incidental):
     check_func = {'pheno': is_incidental_pheno,
                   'gene': is_incidental_gene}[category]

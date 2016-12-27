@@ -17,7 +17,7 @@ coloredlogs.DEFAULT_LOG_FORMAT = '[@%(hostname)s %(asctime)s] %(message)s'
 coloredlogs.install(level='INFO')
 
 
-class Pipeline:
+class AnnotationPipeline:
     def __init__(self, cache, use_cache=True, use_web=True, proxies=None,
                  **cache_kwargs):
         """
