@@ -1,7 +1,10 @@
+from os.path import isfile
+
 import pytest
 from bs4 import BeautifulSoup
 
 from anotamela import OmimGeneAnnotator
+from helpers import get_test_file
 
 
 TEST_ENTRY_ID = '609708'
@@ -17,16 +20,17 @@ def annotator():
 
 @pytest.fixture(scope='module')
 def html(annotator):
-    # This will bring an OMIM page from the web, so that all the tests try
-    # the current version of the HTML instead of a cached one
-    annotation = annotator.annotate(TEST_ENTRY_ID, parse_data=False)
-    return annotation[TEST_ENTRY_ID]
+    fn = get_test_file('htmls/omim_{}.html'.format(TEST_ENTRY_ID))
+    with open(fn) as f:
+        html = f.read()
+    return html
 
 
 @pytest.fixture(scope='module')
 def pheno_page_soup(annotator):
-    html = annotator.annotate(TEST_PHENO_ENTRY_ID,
-                              parse_data=False)[TEST_PHENO_ENTRY_ID]
+    fn = get_test_file('htmls/omim_{}.html'.format(TEST_PHENO_ENTRY_ID))
+    with open(fn) as f:
+        html = f.read()
     return BeautifulSoup(html, 'lxml')
 
 
@@ -35,10 +39,19 @@ def soup(html):
     return BeautifulSoup(html, 'lxml')
 
 
-@pytest.fixture(scope='module')
-def variant_div(soup):
-    # We'll test the first variant of the entry
-    return soup.select('#allelicVariantsFold > div')[2:][0]  # FIXME: dupe code
+@pytest.fixture
+def variant_divs(soup):
+    return soup.select('#allelicVariantsFold > div')[2:]  # FIXME: dupe code
+
+
+@pytest.fixture
+def get_subdivs(annotator, variant_divs):
+    # Hack to make a fixture that 'accepts arguments'
+
+    def func(variant_index):
+        return annotator._find_variant_subdivs(variant_divs[variant_index])
+
+    return func
 
 
 def test_extract_entry_from_title(annotator, soup, pheno_page_soup):
@@ -78,8 +91,9 @@ def test_extract_variants_from_soup(annotator, soup, pheno_page_soup):
     assert not variants
 
 
-def test_parse_variant_div(annotator, variant_div):
-    entry = annotator._parse_variant_div(variant_div)
+def test_parse_variant_div(annotator, variant_divs):
+    # Test the first variant values
+    entry = annotator._parse_variant_div(variant_divs[0])
 
     expected_values = {
         'gene_symbol': 'LPL',
@@ -99,3 +113,101 @@ def test_parse_variant_div(annotator, variant_div):
             assert entry[key][0].startswith(expected_value[0])
         else:
             assert entry[key] == expected_value
+
+
+def test_is_variant_ok(annotator, variant_divs):
+    missing_variant_div = variant_divs[21]
+    variant_is_ok = annotator._is_variant_ok(missing_variant_div)
+    assert not variant_is_ok
+
+    present_variant_div = variant_divs[0]
+    variant_is_ok = annotator._is_variant_ok(present_variant_div)
+    assert variant_is_ok
+
+
+def test_find_variant_subdivs(annotator, get_subdivs):
+    subdivs = get_subdivs(0)
+    expected_sections = 'title extra description review empty'.split()
+    assert all([section in subdivs for section in expected_sections])
+
+
+def test_parse_title_div(annotator, get_subdivs):
+    title_div = get_subdivs(7)['title']
+    result = annotator._parse_title_div(title_div)
+    assert result['sub_id'] == '0008'
+    assert result['phenotype_names'] == ['LIPOPROTEIN LIPASE DEFICIENCY']
+
+
+def test_parse_extra_div(annotator, get_subdivs):
+    extra_div = get_subdivs(18)['extra'][0]
+    result = annotator._parse_extra_div(extra_div)
+    assert 'LPL-ARITA' in result
+
+
+def test_parse_description_div(annotator, get_subdivs):
+    desc_div = get_subdivs(0)['description']
+    result = annotator._parse_description_div(desc_div)
+    assert result['clinvar_accessions'] == ['RCV000001583']
+    assert result['gene_symbol'] == 'LPL'
+    assert result['prot_changes'] == ['ALA176THR']
+    assert result['rsids'] == ['rs118204056']
+
+
+def test_extract_review_paragraphs(annotator, get_subdivs):
+    review_div = get_subdivs(0)['review']
+    result = annotator._extract_review_paragraphs(review_div)
+    assert result[0].startswith('This mutation is sometimes called')
+    assert result[-1].endswith('as the chylomicronemia syndrome.')
+
+
+def test_extract_pubmed_entries(annotator, get_subdivs):
+    review_div = get_subdivs(1)['review']
+    pubmeds = annotator._extract_pubmed_entries_from_review_div(review_div)
+    expected_pmids = ['6645961', '1969408', '1975597', None, '2394828',
+                      '1872917', '1351946', '11334614']
+    assert [p['pmid'] for p in pubmeds] == expected_pmids
+
+
+def test_extract_omim_links_from_review_div(annotator, get_subdivs):
+    review_div = get_subdivs(0)['review']
+    mim_ids = annotator._extract_mim_ids_from_review_div(review_div)
+    assert mim_ids == ['238600']
+
+
+def test_parse_empty_div(annotator, get_subdivs):
+    empty_div = get_subdivs(0)['empty']
+    annotator._parse_empty_div(empty_div)  # Expect no exceptions
+
+
+def test_extract_phenotypes_from_soup(annotator, soup):
+    phenos = annotator._extract_phenotypes_from_soup(soup)
+    assert phenos == [
+        {'id': '144250', 'inheritance': 'AD', 'key': '3',
+         'name': 'Combined hyperlipidemia, familial'},
+        {'id': '238600', 'inheritance': 'AR', 'key': '3',
+         'name': 'Lipoprotein lipase deficiency'},
+        {'id': '', 'inheritance': '', 'key': '3',
+         'name': 'High density lipoprotein cholesterol level QTL 11'}
+    ]
+
+
+def test_extract_gene_from_soup(annotator, soup):
+    gene = annotator._extract_gene_from_soup(soup)
+    assert gene == {'name': 'LIPOPROTEIN LIPASE', 'symbol': 'LPL'}
+
+
+@pytest.mark.skip(reason='TODO: write this test')
+def test_add_data_to_variants(annotator):
+    pass
+
+
+def test_camelcase_prot_change(annotator):
+    changes = {
+        'ALA176THR': 'p.Ala176Thr',
+        'INS': 'INS',
+        'IVS2DS, G-A': 'IVS2DS, G-A',
+        '6-KB DEL': '6-KB DEL',
+        'GLN106TER': 'p.Gln106Ter',
+    }
+    for prot_change, expected_value in changes.items():
+        assert annotator._camelcase_prot_change(prot_change) == expected_value

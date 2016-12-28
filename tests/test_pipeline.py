@@ -1,28 +1,39 @@
 import pytest
 
 from anotamela import AnnotationPipeline
+from anotamela.cache import DictCache
 from helpers import get_test_file
 
 
-TEST_PARAMS = ['test.vcf', 'test.vcf.gz']
+TEST_PARAMS = [
+    # file, use_cache?
+    ('test.vcf', False),
+    ('test.vcf.gz', True),
+]
+
+@pytest.fixture(scope='module')
+def cache():
+    return DictCache()
 
 
-@pytest.mark.parametrize('vcf_filename', TEST_PARAMS)
-def test_pipeline(vcf_filename):
-    # Test the pipeline using the web to annotate and build the cache
-
+@pytest.mark.parametrize('vcf_filename,use_cache', TEST_PARAMS)
+def test_pipeline(vcf_filename, use_cache, cache):
     proxies = {'http': 'socks5://beleriand.local:9150'}
-    web_pipeline = AnnotationPipeline(cache='mock_cache', use_cache=False,
+
+    # Test the pipeline using the web to annotate and build the cache
+    # The second run (with the .vcf.gz file) will use the cache from the
+    # first run (with the .vcf file).
+
+    web_pipeline = AnnotationPipeline(cache=cache, use_cache=use_cache,
                                       proxies=proxies)
     web_pipeline.run(vcf_path=get_test_file(vcf_filename))
-
     _test_pipeline_result(web_pipeline)
 
     # Test the pipeline again, now using the cache built in the test above
 
-    cache_pipeline = AnnotationPipeline(cache=web_pipeline.cache, use_web=False)
+    cache_pipeline = AnnotationPipeline(cache=web_pipeline.cache,
+                                        use_web=False)
     cache_pipeline.run(vcf_path=get_test_file(vcf_filename))
-
     _test_pipeline_result(cache_pipeline)
 
 

@@ -57,18 +57,21 @@ test_params = [
         (OmimGeneAnnotator, {
             'ids_to_annotate': '605557',
             'keys_to_check': ('gene_omim_id gene_name gene_symbol '
-                              'linked_mim_ids phenotypes pubmeds review '
-                              'variant_id variant rsid prot_change '
-                              'gene_entrez_id incidental_gene')
+                              'linked_mim_ids phenotypes review_paragraphs '
+                              'variant_id rsids prot_changes '
+                              'gene_entrez_id incidental_gene '
+                              'pubmed_entries.pmid pubmed_entries.citation '
+                              'pubmed_entries.short_mention pubmed_entries.url')
         }),
         (OmimVariantAnnotator, {
             'ids_to_annotate': '605557.0003',
             'keys_to_check': ('gene_omim_id gene_name gene_symbol gene_url url '
                               'linked_mim_ids phenotypes.url '
                               'phenotypes.id phenotypes.inheritance '
-                              'phenotypes.name prot_change pubmeds.authors '
-                              'pubmeds.pmid pubmeds.title pubmeds.publication '
-                              'pubmeds_summary review rsid variant_id variant '
+                              'phenotypes.name prot_changes '
+                              'pubmed_entries.pmid pubmed_entries.citation '
+                              'pubmed_entries.short_mention pubmed_entries.url '
+                              'review_paragraphs rsids variant_id '
                               'phenotypes.incidental')
         }),
         (MygeneAnnotator, {
