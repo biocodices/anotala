@@ -148,39 +148,37 @@ class OmimGeneAnnotator(ParallelAnnotator):
         """
         entry = {}
 
-        subdivs = div.select('> div')
-        # The typical variant has four <div>s:
-        # title, description, review, and one that's empty
-        # any number of extra <div>s might appear between title and description
-        title_div = subdivs.pop(0)
-        if not cls._is_variant_ok(title_div):
+        if not cls._is_variant_ok(div):
             return entry
-        empty_div = subdivs.pop()
-        review_div = subdivs.pop()
-        description_div = subdivs.pop()
-        extra_divs = subdivs  # Might be empty
 
-        title_info = cls._parse_title_div(title_div)
+        subdivs = cls._find_variant_subdivs(div)
+
+        title_info = cls._parse_title_div(subdivs['title'])
         entry.update(title_info)
 
-        for extra_div in extra_divs:
+        for extra_div in subdivs['extra']:
             if 'extra_names' not in entry:
                 entry['extra_names'] = []
             entry['extra_names'] = cls._parse_extra_div(extra_div)
 
-        description_info = cls._parse_description_div(description_div)
+        description_info = cls._parse_description_div(subdivs['description'])
         entry.update(description_info)
 
-        entry['review_paragraphs'] = cls._extract_review_paragraphs(review_div)
-        entry['pubmed_entries'] = cls._extract_pubmed_entries_from_review_div(review_div)
-        entry['linked_mim_ids'] = cls._extract_omim_links_from_review_div(review_div)
+        entry['review_paragraphs'] = \
+            cls._extract_review_paragraphs(subdivs['review'])
+        entry['pubmed_entries'] = \
+            cls._extract_pubmed_entries_from_review_div(subdivs['review'])
+        entry['linked_mim_ids'] = \
+            cls._extract_mim_ids_from_review_div(subdivs['review'])
 
-        cls._parse_empty_div(empty_div)
+        cls._parse_empty_div(subdivs['empty'])
 
         return entry
 
     @staticmethod
-    def _is_variant_ok(title_div):
+    def _is_variant_ok(variant_div):
+        title_div = variant_div.find('div')
+
         if re.search(r'(REMOVED FROM|MOVED TO)', title_div.text):
             return False
 
@@ -191,7 +189,42 @@ class OmimGeneAnnotator(ParallelAnnotator):
         return True
 
     @staticmethod
+    def _find_variant_subdivs(variant_div):
+        """
+        The typical variant has four <div>s:
+
+            1- Title
+            ?- [ optional extra <div>s with phenotype/variant names ]
+            2- Description
+            3- Review
+            4- One that's empty
+
+        Any number of extra <div>s might appear between title and description.
+        Here we find the subdivs and identify them as the different sections
+        based on their order. Returns a dictionary like:
+
+            {
+                'title': <div> element,
+                'review': <div> element,
+                ...
+             }
+        """
+        subdivs = variant_div.select('> div')
+        categorized_subdivs = {}
+
+        # The order of this popping is important, don't change it!
+        categorized_subdivs['title'] = subdivs.pop(0)
+        categorized_subdivs['empty'] = subdivs.pop()
+        categorized_subdivs['review'] = subdivs.pop()
+        categorized_subdivs['description'] = subdivs.pop()
+        categorized_subdivs['extra'] = subdivs  # Might be empty
+
+        return categorized_subdivs
+
+    @staticmethod
     def _parse_title_div(div):
+        """Extract the allele ID (e.g. 0001, 0002, etc.) and usually the
+        associated phenotype right next to it."""
         pheno_name = div.select_one('span.lookup').strong.text.strip()
         sub_id = div.select_one('span.mim-font').strong.text.strip()
         sub_id = sub_id[1:]  # Remove leading dot from IDs like ".0001"
@@ -204,6 +237,8 @@ class OmimGeneAnnotator(ParallelAnnotator):
 
     @staticmethod
     def _parse_description_div(div):
+        """ Extract the gene symbol and aminoacid change from lines like
+        'LPL, ASP204GLU'. Also get the dbSNP and RCV IDs from the next line."""
         # Gene symbol and aminoacid change in the first line of text:
         description = div.text.strip().split('\n')[0].strip()
         gene_symbol, prot_changes = description.split(', ', maxsplit=1)
@@ -248,7 +283,7 @@ class OmimGeneAnnotator(ParallelAnnotator):
         return pubmed_entries
 
     @staticmethod
-    def _extract_omim_links_from_review_div(div):
+    def _extract_mim_ids_from_review_div(div):
         return [link.text for link in div.select('a')
                 if link.get('href', '').startswith('/entry/')]
 
@@ -277,9 +312,9 @@ class OmimGeneAnnotator(ParallelAnnotator):
             row = [td.text.strip() for td in tr.select('td')
                    if 'rowspan' not in td.attrs]  # removes 'Location' column
             phenotype = dict(zip(fields, row))
-            # Some phenotype names have surrounding curly braces (!):
-            # and might begin with a '?' sign (!!)
-            phenotype['name'] = re.sub('[{\??}]', '', phenotype['name'])
+            # Some phenotype names have surrounding curly braces or square
+            # brackests (!) and might begin with a '?' sign (!!)
+            phenotype['name'] = re.sub(r'[\[\]{}\?]', '', phenotype['name'])
             phenotypes.append(phenotype)
 
         return phenotypes

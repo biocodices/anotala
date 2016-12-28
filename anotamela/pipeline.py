@@ -174,17 +174,21 @@ class AnnotationPipeline:
 
         # Keep the variants with the rs IDs that we are interested in
         rs_to_omim_variants = {}
-        for gene_variants in omim_variants_per_gene.values():
-            for variant in gene_variants:
-                rs = variant['rsid']
+
+        omim_variants = [v for gene_variants in omim_variants_per_gene.values()
+                           for v in gene_variants]
+
+        for omim_variant in omim_variants:
+            # There might be more than one OMIM variant for a given rs
+            # --the typical case is the one of multiallelic SNPs.
+            # To simplify further parsing, we return the OMIM
+            # annotation for an rs always as a list:
+            # Conversely, one OMIM variant might correspond to many rs IDs
+            for rs in omim_variant.get('rsids', []):
+                if rs not in rs_to_omim_variants:
+                    rs_to_omim_variants[rs] = []
                 if rs in self.rs_variants['id'].values:
-                    # There might be more than one OMIM variant for a given rs
-                    # --the typical case is the one of multiallelic SNPs.
-                    # To simplify further parsing, we return the OMIM
-                    # annotation for an rs always as a list:
-                    if rs not in rs_to_omim_variants:
-                        rs_to_omim_variants[rs] = []
-                    rs_to_omim_variants[rs].append(variant)
+                    rs_to_omim_variants[rs].append(omim_variant)
 
         self.rs_variants['omim_entries'] = \
                 self.rs_variants['id'].map(rs_to_omim_variants)
@@ -194,7 +198,7 @@ class AnnotationPipeline:
 
         for omim_entries in self.rs_variants['omim_entries'].dropna():
             for entry in omim_entries:
-                for pubmed in entry.get('pubmeds', []):
+                for pubmed in entry.get('pubmed_entries', []):
                     pubmed_ids.add(pubmed['pmid'])
 
         pubmed_annotations = \
@@ -202,7 +206,7 @@ class AnnotationPipeline:
 
         for omim_entries in self.rs_variants['omim_entries'].dropna():
             for entry in omim_entries:
-                for pubmed in entry.get('pubmeds', []):
+                for pubmed in entry.get('pubmed_entries', []):
                     extra_info = pubmed_annotations[pubmed['pmid']]
                     pubmed.update(extra_info)
 
