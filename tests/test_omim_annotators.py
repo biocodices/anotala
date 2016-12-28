@@ -1,5 +1,3 @@
-from os.path import isfile
-
 import pytest
 from bs4 import BeautifulSoup
 
@@ -64,12 +62,6 @@ def test_extract_entry_from_title(annotator, soup, pheno_page_soup):
     entry = annotator._extract_entry_from_title(title_text)
     assert entry['id'] == TEST_PHENO_ENTRY_ID
     assert entry['type'] == 'pheno_or_gene'
-
-
-def test_extract_gene_from_soup(annotator, soup):
-    gene = annotator._extract_gene_from_soup(soup)
-    assert gene['symbol'] == 'LPL'
-    assert gene['name'] == 'LIPOPROTEIN LIPASE'
 
 
 def test_extract_variants_from_soup(annotator, soup, pheno_page_soup):
@@ -159,8 +151,8 @@ def test_extract_review_paragraphs(annotator, get_subdivs):
 def test_extract_pubmed_entries(annotator, get_subdivs):
     review_div = get_subdivs(1)['review']
     pubmeds = annotator._extract_pubmed_entries_from_review_div(review_div)
-    expected_pmids = ['6645961', '1969408', '1975597', None, '2394828',
-                      '1872917', '1351946', '11334614']
+    expected_pmids = ['6645961', '1969408', '1975597', '2394828', '1872917',
+                      '1351946', '11334614']
     assert [p['pmid'] for p in pubmeds] == expected_pmids
 
 

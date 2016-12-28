@@ -278,7 +278,9 @@ class OmimGeneAnnotator(ParallelAnnotator):
                      'citation': re.sub(r'\[.*?\]', '', link['title']).strip()}
             already_seen = any(pubmed['short_mention'] == entry['short_mention']
                                for pubmed in pubmed_entries)
-            if not already_seen:
+
+            # Leave out entries with no PubMed ID
+            if not already_seen and entry['pmid']:
                 pubmed_entries.append(entry)
 
         return pubmed_entries

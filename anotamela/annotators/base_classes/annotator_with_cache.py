@@ -64,6 +64,7 @@ class AnnotatorWithCache():
         _parse_annotation(). This parsing is enabled by default, but you can
         disable it with parse_data=False and get the raw responses.
         """
+        ids = [id_ for id_ in ids if id_]  # Remove empty/None values
         ids = self._set_of_string_ids(ids)
         total_count = len(ids)
         msg = '{} annotating {} ids'.format(self.name, total_count)
