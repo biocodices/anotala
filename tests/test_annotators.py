@@ -100,15 +100,11 @@ test_params = [
     ]
 
 
-TOR_PROXIES = {'http': 'socks5://beleriand.local:9150'}
-
-
 @pytest.mark.parametrize('annotator_class,params', test_params)
 def test_annotator(annotator_class, params):
     ids_to_annotate = params['ids_to_annotate'].split()
     annotator = annotator_class(cache='mock_cache')
-
-    annotator.PROXIES = TOR_PROXIES
+    annotator.PROXIES = PROXIES
 
     # Test annotation from web
 
@@ -132,7 +128,7 @@ def test_omim_annotate_from_entrez_ids():
     gene_symbol = 'PRDM16'
 
     annotator = OmimGeneAnnotator(cache='mock_cache')
-    annotator.PROXIES = TOR_PROXIES  # FIXME
+    annotator.PROXIES = PROXIES
     annotations = annotator.annotate_from_entrez_ids([entrez_id])
     variants = annotations[entrez_id]
 
