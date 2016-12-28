@@ -97,10 +97,15 @@ test_params = [
     ]
 
 
+TOR_PROXIES = {'http': 'socks5://beleriand.local:9150'}
+
+
 @pytest.mark.parametrize('annotator_class,params', test_params)
 def test_annotator(annotator_class, params):
     ids_to_annotate = params['ids_to_annotate'].split()
     annotator = annotator_class(cache='mock_cache')
+
+    annotator.PROXIES = TOR_PROXIES
 
     # Test annotation from web
 

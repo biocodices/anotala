@@ -1,5 +1,6 @@
+from bs4 import BeautifulSoup
+
 from anotamela.annotators.base_classes import EntrezAnnotator
-from anotamela.helpers import make_xml_soup
 
 
 class DbsnpEntrezAnnotator(EntrezAnnotator):
@@ -21,7 +22,7 @@ class DbsnpEntrezAnnotator(EntrezAnnotator):
         { id-1: xml_fragment-1, id-2: ... }."""
         # The _ ignored argument is the list of IDs, which here is not used
         # because the ID is taken from the xml element itself.
-        soup = make_xml_soup(xml_with_many_variants)
+        soup = BeautifulSoup(xml_with_many_variants, 'lxml')
         for xml_element in soup.select('rs'):
             id_ = 'rs' + xml_element['rsid']
             yield id_, str(xml_element)
@@ -34,7 +35,7 @@ class DbsnpEntrezAnnotator(EntrezAnnotator):
     def _parse_annotation(cls, xml_of_single_variant):
         """Parse the XML of a single rs ID from by Entrez. Return a dict of
         annotations for the given rs."""
-        soup = make_xml_soup(xml_of_single_variant)
+        soup = BeautifulSoup(xml_of_single_variant, 'lxml')
         ann = {}
 
         rs_elements = soup.select('rs')

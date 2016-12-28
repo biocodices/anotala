@@ -2,9 +2,10 @@ import re
 import logging
 from operator import itemgetter
 
+from bs4 import BeautifulSoup
+
 from anotamela.annotators.base_classes import ParallelAnnotator
-from anotamela.helpers import (make_html_soup,
-                               gene_to_mim,
+from anotamela.helpers import (gene_to_mim,
                                mim_to_gene,
                                is_incidental_gene,
                                is_incidental_pheno)
@@ -43,7 +44,6 @@ class OmimGeneAnnotator(ParallelAnnotator):
     PUBMED_URL = 'https://www.ncbi.nlm.nih.gov/pubmed/{}'
     REGEX = {
         'rsid': re.compile(r'dbSNP:(rs\d+)'),
-        'prot_change': re.compile(r'\w+, (.+?)(?:,| \[| -| \()'),
         'aminoacids': re.compile(r'([A-Z]{3})-?(\d+)([A-Z]{3}|=)'),
     }
 
@@ -73,48 +73,251 @@ class OmimGeneAnnotator(ParallelAnnotator):
         """Take the HTML from a OMIM Gene Entry and make a DataFrame with the
         variants for that gene."""
 
-        variants = cls._extract_variants_from_html(html)
-        phenotypes = cls._extract_phenotypes_from_html(html)
-        references = cls._extract_references_from_html(html)
+        # For some reason, 'lxml' works MUCH better than 'html.parser' for the
+        # HTML found in OMIM pages:
+        soup = BeautifulSoup(html, 'lxml')
+
+        variants = cls._extract_variants_from_soup(soup)
+        phenotypes = cls._extract_phenotypes_from_soup(soup)
 
         for variant in variants:
-            cls._add_data_to_variant(variant, phenotypes, references)
+            cls._add_data_to_variant(variant, phenotypes)
 
         return variants
 
     @classmethod
-    def _add_data_to_variant(cls, variant, phenotypes, references):
+    def _extract_variants_from_soup(cls, soup):
+        """
+        Extract all the allelic variants listed in the HTML soup of an OMIM
+        *gene* entry page. Return them as dictionary records.
+        """
+        # Check it's a normal gene page and extract some general info:
+        title_text = soup.title.text.strip()
+
+        if title_text == 'OMIM Error':
+            msg = 'Error parsing OMIM; page <title> says: "{}"'
+            logger.warning(msg.format(title_text))
+            return []
+
+        omim_entry = cls._extract_entry_from_title(title_text)
+
+        if 'gene' not in omim_entry['type']:
+            msg = 'Not a gene OMIM entry; page <title> says: "{}"'
+            logger.warning(msg.format(title_text))
+            return []
+
+        gene = cls._extract_gene_from_soup(soup)
+
+        # Extract the variants from the page
+        # First two <div>s of the alleles section are not variants, skip them
+        variant_divs = soup.select('#allelicVariantsFold > div')[2:]
+        variants = [cls._parse_variant_div(div) for div in variant_divs]
+        variants = [v for v in variants if v and v['review_paragraphs']]
+
+        for variant in variants:
+            variant['gene_omim_id'] = omim_entry['id']
+            variant['gene_name'] = gene['name']
+            variant['gene_symbol'] = gene['symbol']
+
+        return variants
+
+    @staticmethod
+    def _extract_entry_from_title(title_text):
+        """
+        Extract the MIM ID from the <title>, which is preceded by a symbol
+        (*, #, %, +) that indicates what type of entry it is.
+
+        For instance, '* 300644' is a gene entry with ID 30644.
+        """
+        title_re = re.compile(r'([%\*\+#])? (\d+)')
+        # ^ Catches: '* 605557', '# 605557', '% 605557', '# 605557'
+        entry_symbol, entry_id = title_re.search(title_text).groups()
+        entry_types = {
+            '*': 'gene',
+            '#': 'phenotype',
+            '%': 'pheno_or_gene',
+            '+': 'gene_and_pheno',
+            None: 'other',
+        }
+        return {'id': entry_id, 'type': entry_types[entry_symbol]}
+
+    @classmethod
+    def _parse_variant_div(cls, div):
+        """
+        Parse a <div> containing one allelic variant in an OMIM gene entry.
+        """
+        entry = {}
+
+        subdivs = div.select('> div')
+        # The typical variant has four <div>s:
+        # title, description, review, and one that's empty
+        # any number of extra <div>s might appear between title and description
+        title_div = subdivs.pop(0)
+        if not cls._is_variant_ok(title_div):
+            return entry
+        empty_div = subdivs.pop()
+        review_div = subdivs.pop()
+        description_div = subdivs.pop()
+        extra_divs = subdivs  # Might be empty
+
+        title_info = cls._parse_title_div(title_div)
+        entry.update(title_info)
+
+        for extra_div in extra_divs:
+            if 'extra_names' not in entry:
+                entry['extra_names'] = []
+            entry['extra_names'] = cls._parse_extra_div(extra_div)
+
+        description_info = cls._parse_description_div(description_div)
+        entry.update(description_info)
+
+        entry['review_paragraphs'] = cls._extract_review_paragraphs(review_div)
+        entry['pubmed_entries'] = cls._extract_pubmed_entries_from_review_div(review_div)
+        entry['linked_mim_ids'] = cls._extract_omim_links_from_review_div(review_div)
+
+        cls._parse_empty_div(empty_div)
+
+        return entry
+
+    @staticmethod
+    def _is_variant_ok(title_div):
+        if re.search(r'(REMOVED FROM|MOVED TO)', title_div.text):
+            return False
+
+        # OMIM uses 'fake' ID 9999 for non-variant items
+        if title_div.text.strip().startswith('.9999'):
+            return False
+
+        return True
+
+    @staticmethod
+    def _parse_title_div(div):
+        pheno_name = div.select_one('span.lookup').strong.text.strip()
+        sub_id = div.select_one('span.mim-font').strong.text.strip()
+        sub_id = sub_id[1:]  # Remove leading dot from IDs like ".0001"
+        return {'sub_id': sub_id, 'phenotype_names': [pheno_name]}
+
+    @staticmethod
+    def _parse_extra_div(div):
+        phenos = div.text.strip().split('\n')
+        return [p.replace(', INCLUDED', '') for p in phenos]
+
+    @staticmethod
+    def _parse_description_div(div):
+        # Gene symbol and aminoacid change in the first line of text:
+        description = div.text.strip().split('\n')[0].strip()
+        gene_symbol, prot_changes = description.split(', ', maxsplit=1)
+        prot_changes = prot_changes.split(' AND ')
+        info = {'gene_symbol': gene_symbol, 'prot_changes': prot_changes}
+
+        # dbSNP and ClinVar IDs + links
+        for link in div.select('.btn-group > a'):
+            if 'dbSNP' in link.text:
+                if 'rsids' not in info:
+                    info['rsids'] = []
+                    info['ensembl_links'] = []
+                info['rsids'].append(link.text.replace('dbSNP:', ''))
+                info['ensembl_links'].append(link['href'])
+            elif 'RCV' in link.text:
+                assert 'clinvar_accessions' not in info
+                # RCV accessions are all listed in the <a "title">
+                # the link text only has the first one with ellipsis
+                info['clinvar_accessions'] = link['title'].split(', ')
+            else:
+                msg = "I don't know how to parse this link: '{}'"
+                raise NotImplementedError(msg.format(link.text))
+
+        return info
+
+    @staticmethod
+    def _extract_review_paragraphs(div):
+        return [p.text.strip() for p in div.select('p') if p.text.strip()]
+
+    @staticmethod
+    def _extract_pubmed_entries_from_review_div(div):
+        pubmed_entries = []
+        for link in div.select('a.entry-reference'):
+            entry = {'pmid': link.get('pmid'),
+                     'short_mention': link.text,
+                     'citation': re.sub(r'\[.*?\]', '', link['title']).strip()}
+            already_seen = any(pubmed['short_mention'] == entry['short_mention']
+                               for pubmed in pubmed_entries)
+            if not already_seen:
+                pubmed_entries.append(entry)
+
+        return pubmed_entries
+
+    @staticmethod
+    def _extract_omim_links_from_review_div(div):
+        return [link.text for link in div.select('a')
+                if link.get('href', '').startswith('/entry/')]
+
+    @staticmethod
+    def _parse_empty_div(div):
+        assert not div.text.strip()
+
+    @classmethod
+    def _extract_phenotypes_from_soup(cls, soup):
+        """Extract associated phenotypes info from the table with
+        gene-phenotype relationships on top of the page."""
+        phenotypes = []
+
+        pheno_table = None
+        for table in soup.select('table'):
+            if table.text.strip().startswith('Location'):
+                pheno_table = table
+                break
+
+        if not pheno_table:
+            return phenotypes
+
+        fields = 'name', 'id', 'inheritance', 'key'
+
+        for tr in pheno_table.select('tbody tr'):  # Skips header
+            row = [td.text.strip() for td in tr.select('td')
+                   if 'rowspan' not in td.attrs]  # removes 'Location' column
+            phenotype = dict(zip(fields, row))
+            # Some phenotype names have surrounding curly braces (!):
+            # and might begin with a '?' sign (!!)
+            phenotype['name'] = re.sub('[{\??}]', '', phenotype['name'])
+            phenotypes.append(phenotype)
+
+        return phenotypes
+
+    @staticmethod
+    def _extract_gene_from_soup(soup):
+        """Extract the gene symbol from the <title> of the page or from
+        some subheading in the body if that fails."""
+        title_text = soup.title.text.strip()
+        gene_regex = re.compile(r'\d+ - (.*)$')
+        name_and_symbol = gene_regex.search(title_text).group(1).split('; ')
+        if len(name_and_symbol) == 2:
+            gene_name, gene_symbol = name_and_symbol
+        elif len(name_and_symbol) == 1:
+            # ^ No symbol in the title --try in a different part of the page:
+            gene_name = name_and_symbol[0]
+            hgcn_text = soup.select('td.subheading.italic.bold.text-font')
+            gene_symbol = (hgcn_text and hgcn_text[0].text.split(': ')[-1])
+        else:
+            msg = "Couldn't parse this OMIM title for gene name + symbol: '{}'"
+            raise Exception(msg.format(title_text))
+
+        return {'name': gene_name, 'symbol': gene_symbol}
+
+    @classmethod
+    def _add_data_to_variant(cls, variant, phenotypes):
         variant['variant_id'] = variant['gene_omim_id'] + '.' + variant['sub_id']
-        variant['rsid'] = '|'.join(cls.REGEX['rsid'].findall(variant['variant']))
         variant['gene_entrez_id'] = mim_to_gene(variant['gene_omim_id'])
         variant['gene_url'] = (cls.OMIM_URL.format(variant['gene_omim_id']))
         variant['incidental_gene'] = is_incidental_gene(variant['gene_omim_id'])
-
-        matches = cls.REGEX['prot_change'].findall(variant['variant'])
-        if matches:
-            prot_change = matches[0]
-
-            aa_matches = cls.REGEX['aminoacids'].search(prot_change)
-            if aa_matches:
-                # Change a protein change like GLY96ALA to Gly96Ala
-                aa1, pos, aa2 = aa_matches.groups()
-                prot_change = 'p.{}{}{}'.format(aa1.capitalize(), pos,
-                                                aa2.capitalize())
-
-            variant['prot_change'] = prot_change
-
+        variant['prot_changes'] = [cls._camelcase_prot_change(prot_change)
+                                   for prot_change in variant['prot_changes']]
         variant['url'] = cls.OMIM_URL.format(
                 variant['gene_omim_id'] + '#' + variant['sub_id']
             )
 
-        # Add the references found in the page to each variant,
-        # if mentioned in the variant's review text.
-        pmids = variant['pubmeds_summary'].values()
-        pubmed_entries = [ref for ref in references
-                          if ref.get('pmid') and ref.get('pmid') in pmids]
-        for pubmed in pubmed_entries:
+        for pubmed in variant['pubmed_entries']:
             pubmed['url'] = (cls.PUBMED_URL.format(pubmed['pmid']))
-        variant['pubmeds'] = pubmed_entries
 
         # Add the phenotypes cited in the table at the top of the page,
         # if they're mentioned in the variant's entry
@@ -131,229 +334,25 @@ class OmimGeneAnnotator(ParallelAnnotator):
                 if match1 or match2:
                     variant_phenotypes.append(pheno)
 
-        for pheno in variant_phenotypes:
-            pheno['url'] = cls.OMIM_URL.format(pheno['id'])
-            pheno['incidental'] = is_incidental_pheno(pheno['id'])
-
         # Hack to remove duplicated phenotypes
         unique_tuples = set(tuple(dic.items()) for dic in variant_phenotypes)
         unique_phenotypes = [dict(tup) for tup in unique_tuples]
         unique_phenotypes = sorted(unique_phenotypes, key=itemgetter('name'))
 
+        # Add extra info to the selected phenotypes
+        for pheno in unique_phenotypes:
+            pheno['url'] = cls.OMIM_URL.format(pheno['id'])
+            pheno['incidental'] = is_incidental_pheno(pheno['id'])
+
         variant['phenotypes'] = (unique_phenotypes or None)
 
     @classmethod
-    def _extract_variants_from_html(cls, html):
-        """
-        Parses the HTML of an OMIM Gene Entry. Returns a list of variant
-        entries found in the page.
-        """
-        html = html.replace('<br>', '<br/>')
-        # ^ Need this so the parser doesn't think what comes after a <br>
-        # is the <br>'s children. Added it to keep the newlines in OMIM
-        # review texts.
-
-        soup = make_html_soup(html)
-        if soup.title.text.strip() == 'OMIM Error':
-            return []
-
-        omim_id = cls._extract_mim_id_from_soup(soup)
-        if 'gene' not in omim_id['type']:
-            return []
-
-        gene = cls._extract_gene_from_soup(soup)
-        variants = cls._extract_variants_from_soup(soup)
-
-        for variant in variants:
-            variant['gene_omim_id'] = omim_id['id']
-            variant['gene_name'] = gene['name']
-            variant['gene_symbol'] = gene['symbol']
-
-        return [variant for variant in variants if 'review' in variant]
-
-    @classmethod
-    def _extract_references_from_html(cls, html):
-        soup = make_html_soup(html)
-        references = []
-
-        in_the_references_section = False
-        for td in soup.select('td#floatingEntryContainer .wrapper-table td'):
-            if not in_the_references_section:
-                # Check again if the section started:
-                in_the_references_section = (td.get('id') == 'references')
-                continue
-
-            # Get in the references section
-            for td2 in td.select('.wrapper-table td.text'):
-                if td2.get('id') and 'reference' in td2.get('id'):
-                    continue
-
-                fields = ['authors', 'title', 'publication', 'pubmed_str']
-                values = [span.text.strip() for span in td2.select('span')]
-                reference = dict(zip(fields, values))
-
-                if 'pubmed_str' in reference:
-                    pubmed_match = re.search(r'PubMed: (\d+)',
-                                             reference['pubmed_str'])
-                    if pubmed_match:
-                        reference['pmid'] = pubmed_match.group(1)
-                    del(reference['pubmed_str'])
-
-                references.append(reference)
-
-            break  # Leaving the references section, ignore the rest of <td>s
-
-        return references
-
-    @classmethod
-    def _extract_phenotypes_from_html(cls, html):
-        """
-        Parse the HTML of an OMIM Entry page for a gene and return a list of
-        phenotype dictionaries with name and id keys.
-        """
-        soup = make_html_soup(html)
-
-        # Find the table title and advance to the next element
-        table_title = soup.select('td#geneMap')
-
-        if not table_title:  # Usually means we're in a Phenotype entry
-            return []
-
-        table_title = table_title[0]
-        next_sib = [element for element in table_title.parent.next_siblings
-                    if element != '\n'][0]
-
-        phenotypes = []
-        fields = 'name', 'id', 'inheritance', 'key'
-
-        for tr in next_sib.select('.embedded-table tr')[1:]:  # Skips header
-            row = [td.text.strip() for td in tr.select('td')
-                   if 'rowspan' not in td.attrs]  # Skips Location column
-            phenotype = dict(zip(fields, row))
-            phenotypes.append(phenotype)
-
-        return phenotypes
-
-    @staticmethod
-    def _extract_mim_id_from_soup(soup):
-        mim_id = soup.select('span#title')[0].text.strip()
-        # The MIM id is preceded by a * or #
-        entry_symbol, entry_id = re.search(r'(\*|#|%|\+)?(\d+)', mim_id).groups()
-        entry_types = {
-            '*': 'gene',
-            '#': 'phenotype',
-            '%': 'pheno_or_gene',
-            '+': 'gene_and_pheno',
-            None: 'other',
-        }
-        return {'id': entry_id, 'type': entry_types[entry_symbol]}
-
-    @staticmethod
-    def _extract_gene_from_soup(soup):
-        name_symbol = re.split(r';\s*', soup.select('td.title')[0].text.strip())
-        if len(name_symbol) == 1:
-            gene_name = name_symbol[0]
-            # No symbol in the title --try in a different part of the page:
-            hgcn_text = soup.select('td.subheading.italic.bold.text-font')
-            gene_symbol = (hgcn_text and hgcn_text[0].text.split(': ')[-1])
-        else:
-            gene_name, gene_symbol = name_symbol
-
-        return {'name': gene_name, 'symbol': gene_symbol}
-
-    @staticmethod
-    def _extract_variants_from_soup(soup):
-        variants = []
-        current_entry = {}
-
-        in_the_variants_section = False
-        table_rows = soup.select('td#floatingEntryContainer .wrapper-table td')
-        for td in [td for td in table_rows if td.text]:
-            inner_text = re.sub(r'\s+', ' ', td.text).strip()
-
-            # Detect start and end of the ALLELIC VARIANTS section
-            if not in_the_variants_section:
-                in_the_variants_section = re.search(r'Table View', inner_text)
-                continue
-            elif re.search(r'REFERENCES', inner_text):
-                variants.append(current_entry) if current_entry else None
-                break
-
-            # Title of new entry
-            title_match = re.match(r'\.(\d{4}) (.+)', inner_text)
-            if title_match:
-                # Store the last entry
-                variants.append(current_entry) if current_entry else None
-
-                if re.search(r'REMOVED FROM|MOVED TO', inner_text):
-                    current_entry = {}
-                else:
-                    current_entry = {
-                            'sub_id': title_match.group(1),
-                            'phenotype_names': [title_match.group(2)]
-                    }
-                continue
-
-            if 'variant' not in current_entry:
-                if '[ClinVar]' in inner_text:
-                    current_entry['variant'] = inner_text.replace(' [ClinVar]',
-                                                                  '')
-                else:
-                    phenos = [pheno for pheno in inner_text.split(', INCLUDED')
-                              if pheno]
-                    current_entry['phenotype_names'] += phenos
-                continue
-
-            # Rest of the entry will be the review
-
-            # Extract the PubMed references from the text
-            if 'pubmed' not in current_entry:
-                current_entry['pubmeds_summary'] = {}
-
-            for anchor in td.select('a.entry-reference'):
-                current_entry['pubmeds_summary'][anchor.text] = \
-                    anchor.get('pmid')
-
-            # Extract the linked phenotype MIM IDs from the text
-            if 'linked_mim_ids' not in current_entry:
-                current_entry['linked_mim_ids'] = []
-
-            omim_links = [anchor for anchor in td.select('a')
-                          if anchor.get('href', '').startswith('/entry/')]
-            for anchor in omim_links:
-                current_entry['linked_mim_ids'].append(anchor.text)
-
-            # Extract the linked phenotypes acronyms from the text
-            if 'phenotype_symbols' not in current_entry:
-                current_entry['phenotype_symbols'] = []
-
-            pheno_symbols = re.findall(r'\((\w+); (?:see )?\d+\)', td.text)
-            current_entry['phenotype_symbols'] += pheno_symbols
-
-            # Get the review text itself without HTML elements
-            def extract_review_texts(element):
-                texts = []
-                for child in element.children:
-                    if child.name == 'div' and 'change' in child['class']:
-                        # Nested div.change with the review texts
-                        texts += extract_review_texts(child)
-                    elif child.name == 'br':
-                        texts.append('\n')
-                    else:
-                        try:
-                            texts.append(child.text)
-                        except AttributeError:
-                            texts.append(child)
-
-                return texts
-
-            texts = ''.join(extract_review_texts(td))
-
-            if 'review' not in current_entry:
-                current_entry['review'] = texts
-                continue
-
-            current_entry['review'] += '\n\n' + texts
-
-        return variants
+    def _camelcase_prot_change(cls, prot_change):
+        aa_matches = cls.REGEX['aminoacids'].search(prot_change)
+        if aa_matches:
+            # Change a protein change like GLY96ALA to Gly96Ala
+            aa1, pos, aa2 = aa_matches.groups()
+            prot_change = 'p.{}{}{}'.format(aa1.capitalize(), pos,
+                                            aa2.capitalize())
+        return prot_change
 

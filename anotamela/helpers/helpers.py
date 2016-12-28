@@ -1,9 +1,7 @@
 import re
 from os.path import expanduser
 from itertools import zip_longest
-from functools import lru_cache
 
-from bs4 import BeautifulSoup
 from Bio import Entrez
 
 
@@ -13,15 +11,6 @@ def grouped(iterable, group_size):
     # https://docs.python.org/3.1/library/itertools.html#recipes
     args = [iter(iterable)] * group_size
     return ([e for e in t if e is not None] for t in zip_longest(*args))
-
-
-def make_xml_soup(xml):
-    return BeautifulSoup(xml, 'lxml')
-
-
-@lru_cache(maxsize=50)
-def make_html_soup(html):
-    return BeautifulSoup(html, 'html.parser')
 
 
 def listify(maybe_list):
