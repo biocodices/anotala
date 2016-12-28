@@ -14,7 +14,7 @@ TEST_PHENO_ENTRY_ID = '100070'
 @pytest.fixture(scope='module')
 def annotator():
     annotator = OmimGeneAnnotator('mock_cache')
-    annotator.PROXIES = {'http': 'socks5://beleriand.local:9150'}  # FIXME
+    annotator.PROXIES = PROXIES
     return annotator
 
 
@@ -117,18 +117,15 @@ def test_parse_variant_div(annotator, variant_divs):
 
 def test_is_variant_ok(annotator, variant_divs):
     missing_variant_div = variant_divs[21]
-    variant_is_ok = annotator._is_variant_ok(missing_variant_div)
-    assert not variant_is_ok
+    assert not annotator._is_variant_ok(missing_variant_div)
 
     present_variant_div = variant_divs[0]
-    variant_is_ok = annotator._is_variant_ok(present_variant_div)
-    assert variant_is_ok
+    assert annotator._is_variant_ok(present_variant_div)
 
 
 def test_find_variant_subdivs(annotator, get_subdivs):
-    subdivs = get_subdivs(0)
     expected_sections = 'title extra description review empty'.split()
-    assert all([section in subdivs for section in expected_sections])
+    assert all([section in get_subdivs(0) for section in expected_sections])
 
 
 def test_parse_title_div(annotator, get_subdivs):
@@ -140,8 +137,7 @@ def test_parse_title_div(annotator, get_subdivs):
 
 def test_parse_extra_div(annotator, get_subdivs):
     extra_div = get_subdivs(18)['extra'][0]
-    result = annotator._parse_extra_div(extra_div)
-    assert 'LPL-ARITA' in result
+    assert 'LPL-ARITA' in annotator._parse_extra_div(extra_div)
 
 
 def test_parse_description_div(annotator, get_subdivs):
@@ -170,8 +166,8 @@ def test_extract_pubmed_entries(annotator, get_subdivs):
 
 def test_extract_omim_links_from_review_div(annotator, get_subdivs):
     review_div = get_subdivs(0)['review']
-    mim_ids = annotator._extract_mim_ids_from_review_div(review_div)
-    assert mim_ids == ['238600']
+    seen_mim_ids = annotator._extract_mim_ids_from_review_div(review_div)
+    assert seen_mim_ids == ['238600']
 
 
 def test_parse_empty_div(annotator, get_subdivs):

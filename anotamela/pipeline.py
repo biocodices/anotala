@@ -94,6 +94,9 @@ class AnnotationPipeline:
         self._add_pubmed_entries_to_omim_entries()
         self._add_uniprot_variants_info()
 
+        self.rs_variants.rename(columns={'clinvar_rs': 'clinvar_entries'},
+                                inplace=True)
+
         self.end_time = time.time()
         elapsed = format_timespan(self.end_time - self.start_time)
         logger.info('Done! Took {} to complete the pipeline'.format(elapsed))
@@ -179,16 +182,21 @@ class AnnotationPipeline:
                            for v in gene_variants]
 
         for omim_variant in omim_variants:
-            # There might be more than one OMIM variant for a given rs
-            # --the typical case is the one of multiallelic SNPs.
-            # To simplify further parsing, we return the OMIM
-            # annotation for an rs always as a list:
-            # Conversely, one OMIM variant might correspond to many rs IDs
+            # One OMIM variant might correspond to many
+            # rs IDs, so we need to check each rs associated to an OMIM
+            # variant.
             for rs in omim_variant.get('rsids', []):
+                if rs not in self.rs_variants['id'].values:
+                    continue
+
                 if rs not in rs_to_omim_variants:
+                    # There might be more than one OMIM variant for a given rs
+                    # --the typical case is the one of multiallelic SNPs.
+                    # Hence, we return the OMIM annotation for an rs always as
+                    # a *list* of entries.
                     rs_to_omim_variants[rs] = []
-                if rs in self.rs_variants['id'].values:
-                    rs_to_omim_variants[rs].append(omim_variant)
+
+                rs_to_omim_variants[rs].append(omim_variant)
 
         self.rs_variants['omim_entries'] = \
                 self.rs_variants['id'].map(rs_to_omim_variants)

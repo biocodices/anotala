@@ -42,7 +42,7 @@ class DbsnpEntrezAnnotator(EntrezAnnotator):
         assert len(rs_elements) == 1
         e = rs_elements[0]
 
-        ann['rs_id'] = 'rs' + e['rsid']
+        ann['rsid'] = 'rs' + e['rsid']
         ann['type'] = e['snpclass']
 
         seq = [child for child in e.children if child.name == 'sequence']

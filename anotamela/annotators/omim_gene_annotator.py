@@ -159,7 +159,7 @@ class OmimGeneAnnotator(ParallelAnnotator):
         for extra_div in subdivs['extra']:
             if 'extra_names' not in entry:
                 entry['extra_names'] = []
-            entry['extra_names'] = cls._parse_extra_div(extra_div)
+            entry['extra_names'] += cls._parse_extra_div(extra_div)
 
         description_info = cls._parse_description_div(subdivs['description'])
         entry.update(description_info)
@@ -195,13 +195,13 @@ class OmimGeneAnnotator(ParallelAnnotator):
 
             1- Title
             ?- [ optional extra <div>s with phenotype/variant names ]
-            2- Description
-            3- Review
-            4- One that's empty
+            2- Shot description
+            3- Review lengthy text
+            4- One <div> that's empty
 
         Any number of extra <div>s might appear between title and description.
         Here we find the subdivs and identify them as the different sections
-        based on their order. Returns a dictionary like:
+        based on their order. We return a dictionary like the following:
 
             {
                 'title': <div> element,
@@ -217,7 +217,7 @@ class OmimGeneAnnotator(ParallelAnnotator):
         categorized_subdivs['empty'] = subdivs.pop()
         categorized_subdivs['review'] = subdivs.pop()
         categorized_subdivs['description'] = subdivs.pop()
-        categorized_subdivs['extra'] = subdivs  # Might be empty
+        categorized_subdivs['extra'] = subdivs  # Remaining divs, possibly empty
 
         return categorized_subdivs
 
@@ -225,9 +225,9 @@ class OmimGeneAnnotator(ParallelAnnotator):
     def _parse_title_div(div):
         """Extract the allele ID (e.g. 0001, 0002, etc.) and usually the
         associated phenotype right next to it."""
-        pheno_name = div.select_one('span.lookup').strong.text.strip()
         sub_id = div.select_one('span.mim-font').strong.text.strip()
         sub_id = sub_id[1:]  # Remove leading dot from IDs like ".0001"
+        pheno_name = div.select_one('span.lookup').strong.text.strip()
         return {'sub_id': sub_id, 'phenotype_names': [pheno_name]}
 
     @staticmethod
@@ -238,7 +238,8 @@ class OmimGeneAnnotator(ParallelAnnotator):
     @staticmethod
     def _parse_description_div(div):
         """ Extract the gene symbol and aminoacid change from lines like
-        'LPL, ASP204GLU'. Also get the dbSNP and RCV IDs from the next line."""
+        'LPL, ASP204GLU'. Also get the dbSNP and RCV IDs from the links in the
+        next line."""
         # Gene symbol and aminoacid change in the first line of text:
         description = div.text.strip().split('\n')[0].strip()
         gene_symbol, prot_changes = description.split(', ', maxsplit=1)
