@@ -101,10 +101,10 @@ test_params = [
 
 
 @pytest.mark.parametrize('annotator_class,params', test_params)
-def test_annotator(annotator_class, params):
+def test_annotator(proxies, annotator_class, params):
     ids_to_annotate = params['ids_to_annotate'].split()
     annotator = annotator_class(cache='mock_cache')
-    annotator.PROXIES = PROXIES
+    annotator.PROXIES = proxies
 
     # Test annotation from web
 
@@ -122,13 +122,13 @@ def test_annotator(annotator_class, params):
             check_dict_key(cached_data[id_], key)
 
 
-def test_omim_annotate_from_entrez_ids():
+def test_omim_annotate_from_entrez_ids(proxies):
     entrez_id = '63976'
     mim_id = '605557'
     gene_symbol = 'PRDM16'
 
     annotator = OmimGeneAnnotator(cache='mock_cache')
-    annotator.PROXIES = PROXIES
+    annotator.PROXIES = proxies
     annotations = annotator.annotate_from_entrez_ids([entrez_id])
     variants = annotations[entrez_id]
 
