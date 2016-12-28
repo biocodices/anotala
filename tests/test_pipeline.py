@@ -17,11 +17,11 @@ def cache():
 
 
 @pytest.mark.parametrize('vcf_filename,test_web', TEST_PARAMS)
-def test_pipeline(vcf_filename, test_web, cache):
+def test_pipeline(proxies, vcf_filename, test_web, cache):
     # Test the pipeline using the web to annotate and build the cache
     if test_web:
         web_pipeline = AnnotationPipeline(cache=cache, use_cache=False,
-                                          proxies=PROXIES)
+                                          proxies=proxies)
         web_pipeline.run(vcf_path=get_test_file(vcf_filename))
         _test_pipeline_result(web_pipeline)
 
