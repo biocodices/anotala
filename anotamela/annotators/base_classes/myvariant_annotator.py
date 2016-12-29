@@ -20,8 +20,9 @@ class MyVariantAnnotator(AnnotatorWithCache):
         - SOURCE_NAME class variable
         - SCOPES class variable (scopes to query with the passed IDs)
         - FIELDS class variable (fields to retrieve for each ID)
-        - a @staticmethod or @classmethod _parse_hit(hit) to parse each of the
-          hits (results) associated to a single ID
+        - optionally, a @staticmethod or @classmethod _parse_hit(hit) to parse
+          each of the hits (results) associated to a single ID. If not defined,
+          the results won't be parsed in any way.
         - optionally, set a class variable VERBOSE to get all the output
           produced by myvariant (silenced by default)
     """
