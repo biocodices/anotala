@@ -1,6 +1,7 @@
 import time
 import logging
 from itertools import chain
+from functools import partial
 
 import pandas as pd
 import coloredlogs
@@ -88,7 +89,7 @@ class AnnotationPipeline:
 
         self._read_vcf(vcf_path)
         self._annotate_rs_variants()
-        self._extract_entrez_gene_ids()
+        self._extract_entrez_gene_ids_and_symbols()
         self._annotate_genes()
         self._add_omim_variants_info()
         self._add_pubmed_entries_to_omim_entries()
@@ -132,17 +133,23 @@ class AnnotationPipeline:
                     df_to_modify=self.rs_variants,
                 )
 
-    def _extract_entrez_gene_ids(self):
-        """Extract Entrez Gene IDs from dbsnp annotations. Adds a field in
-        the dataframe self.rs_variants; returns a series of unique IDs."""
+    def _extract_entrez_gene_ids_and_symbols(self):
+        """Extract Entrez Gene IDs and symbols from dbsnp annotations. Adds
+        two fields in the dataframe self.rs_variants."""
 
-        def func(dbsnp_entries):
+        def extraction_func(dbsnp_entries, field):
             if not dbsnp_entries: return []
-            ids = {gene.get('geneid') for entry in dbsnp_entries
-                                      for gene in entry.get('gene', {})}
+            ids = {gene.get(field) for entry in dbsnp_entries
+                                   for gene in entry.get('gene', {})}
             return list(ids)
 
+
+        func = partial(extraction_func, field='geneid')
         self.rs_variants['entrez_gene_ids'] = \
+                self.rs_variants['dbsnp_myvariant'].fillna(False).map(func)
+
+        func = partial(extraction_func, field='symbol')
+        self.rs_variants['entrez_gene_symbols'] = \
                 self.rs_variants['dbsnp_myvariant'].fillna(False).map(func)
 
     def _annotate_genes(self):
