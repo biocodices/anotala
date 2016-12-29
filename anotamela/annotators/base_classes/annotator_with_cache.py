@@ -44,11 +44,16 @@ class AnnotatorWithCache():
         initializer.
         """
         self.name = self.__class__.__name__
+        self.cache_kwargs = cache_kwargs
 
         if isinstance(cache, Cache):
             self.cache = cache
         else:
             self.cache = create_cache(cache, **cache_kwargs)
+
+    def __repr__(self):
+        msg = "{}(cache={}, **{})"
+        return msg.format(self.name, self.cache, self.cache_kwargs)
 
     def annotate(self, ids, use_cache=True, use_web=True, parse_data=True):
         """
