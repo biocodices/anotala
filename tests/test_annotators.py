@@ -121,6 +121,11 @@ def test_annotator(proxies, annotator_class, params):
         for key in params['keys_to_check'].split():
             check_dict_key(cached_data[id_], key)
 
+    # Test the annotators accept a single ID instead of a list of IDs
+    id_ = params['ids_to_annotate'].split()[0]
+    result = annotator.annotate(id_, use_web=False)
+    assert id_ in result
+
 
 def test_omim_annotate_from_entrez_ids(proxies):
     entrez_id = '63976'

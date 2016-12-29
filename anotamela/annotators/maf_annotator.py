@@ -23,5 +23,5 @@ class MafAnnotator(MyVariantAnnotator):
                 annotation[compound_key] = round(value, 4)
 
         # Remove allele counts, leave frequency
-        return {k: v for k, v in annotation.items()
-                if not k.endswith('_ac')}
+        return {k: v for k, v in annotation.items() if not k.endswith('_ac')}
+

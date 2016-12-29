@@ -64,5 +64,5 @@ class MyVariantAnnotator(AnnotatorWithCache):
 
     @staticmethod
     def _parse_hit(hit):
-        raise NotImplementedError
+        return hit
 

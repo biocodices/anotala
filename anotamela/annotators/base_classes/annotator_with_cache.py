@@ -64,7 +64,6 @@ class AnnotatorWithCache():
         _parse_annotation(). This parsing is enabled by default, but you can
         disable it with parse_data=False and get the raw responses.
         """
-        ids = [id_ for id_ in ids if id_]  # Remove empty/None values
         ids = self._set_of_string_ids(ids)
         total_count = len(ids)
         msg = '{} annotating {} ids'.format(self.name, total_count)
@@ -125,8 +124,8 @@ class AnnotatorWithCache():
                 try:
                     parsed_annotations[id_] = future.result()
                 except Exception as error:
-                    msg = '{} parsing id_ failed: {}'.format(self.name, id_)
-                    raise type(error)(msg)
+                    msg = '{} parsing variant with id failed: {}'
+                    raise type(error)(msg.format(self.name, id_))
 
         return parsed_annotations
 
@@ -134,5 +133,5 @@ class AnnotatorWithCache():
     def _set_of_string_ids(ids):
         if isinstance(ids, str) or isinstance(ids, int):
             ids = [ids]
-        return set(str(id_) for id_ in set(ids))
+        return set(str(id_) for id_ in set(ids) if id_)
 
