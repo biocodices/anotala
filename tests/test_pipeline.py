@@ -39,7 +39,7 @@ def _test_pipeline_result(pipeline):
 
     vcf_fields = 'chrom pos id ref alt qual filter info'.split()
     annotation_fields = ('clinvar_entries snpeff_myvariant maf hgvs '
-                         'dbsnp_myvariant dbsnp_entrez entrez_gene_ids '
+                         'dbsnp_myvariant entrez_gene_ids dbsnp_entrez '
                          'omim_entries uniprot_entries').split()
 
     for vcf_field in vcf_fields:
@@ -81,6 +81,7 @@ def _test_pipeline_result(pipeline):
     }
 
     assert variant['dbsnp_myvariant'][0]['rsid'] == rsid
+
     entrez_snp = variant['dbsnp_entrez']
     assert entrez_snp['rsid'] == rsid
     assert len(entrez_snp['hgvs']) == 16
@@ -95,5 +96,6 @@ def _test_pipeline_result(pipeline):
 
     gene_ids = {'2717', '100529097'}
     assert set(variant['entrez_gene_ids']) == gene_ids
+    assert set(variant['entrez_gene_symbols']) == {'RPL36A-HNRNPH2', 'GLA'}
     assert set(pipeline.gene_annotations['entrez_id'].values) == gene_ids
 
