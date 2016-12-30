@@ -39,7 +39,7 @@ def _test_pipeline_result(pipeline):
 
     vcf_fields = 'chrom pos id ref alt qual filter info'.split()
     annotation_fields = ('clinvar_entries snpeff_myvariant maf hgvs '
-                         'dbsnp_myvariant entrez_gene_ids '  # dbsnp_entrez?
+                         'dbsnp_myvariant entrez_gene_ids dbsnp_entrez '
                          'omim_entries uniprot_entries').split()
 
     for vcf_field in vcf_fields:
