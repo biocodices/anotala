@@ -52,6 +52,15 @@ class AnnotationPipeline:
         else:
             self.cache = create_cache(cache, **cache_kwargs)
 
+        self.snp_annotator_classes = [
+            ClinvarRsAnnotator,
+            SnpeffAnnotator,
+            MafAnnotator,
+            HgvsAnnotator,
+            DbsnpMyvariantAnnotator,
+            # DbsnpEntrezAnnotator
+        ]
+
     def run(self, vcf_path):
         """
         Annotate the given VCF file (accepts gzipped files too). Returns
@@ -115,16 +124,7 @@ class AnnotationPipeline:
         logger.info('{} other variants'.format(len(self.other_variants)))
 
     def _annotate_rs_variants(self):
-        snp_annotator_classes = [
-            ClinvarRsAnnotator,
-            SnpeffAnnotator,
-            MafAnnotator,
-            HgvsAnnotator,
-            DbsnpMyvariantAnnotator,
-            DbsnpEntrezAnnotator
-        ]
-
-        for annotator_class in snp_annotator_classes:
+        for annotator_class in self.snp_annotator_classes:
             annotator = annotator_class(self.cache)
             annotator.PROXIES = self.proxies
             self._annotate_ids_and_add_series(
@@ -243,16 +243,22 @@ class AnnotationPipeline:
             use_web=self.use_web
         )
         uniprot_variants = list(chain.from_iterable(uniprot_annotations.values()))
-        uniprot_variants = \
-                pd.DataFrame(uniprot_variants).set_index('rsid', drop=False)
 
-        def rs_to_uniprot_variants(rs):
-            if rs not in uniprot_variants.index:
-                return None
-            return uniprot_variants.loc[[rs]].to_dict('records')
+        if uniprot_variants:
+            uniprot_df = pd.DataFrame(uniprot_variants)
+            uniprot_df = uniprot_df.set_index('rsid', drop=False)
 
-        self.rs_variants['uniprot_entries'] = \
-            self.rs_variants['id'].map(rs_to_uniprot_variants)
+            def rs_to_uniprot_variants(rs):
+                if rs not in uniprot_df.index:
+                    return None
+                return uniprot_df.loc[[rs]].to_dict('records')
+
+            self.rs_variants['uniprot_entries'] = \
+                self.rs_variants['id'].map(rs_to_uniprot_variants)
+
+        else:
+            logger.warning('No uniprot variants annotated?')
+
 
     def _annotate_ids_and_add_series(self, annotator, id_series, df_to_modify):
         """
