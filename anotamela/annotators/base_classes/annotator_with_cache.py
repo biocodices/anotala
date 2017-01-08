@@ -37,6 +37,8 @@ class AnnotatorWithCache():
           PostgresCache know it can create a JSONB field in the database.
 
     """
+    ANNOTATIONS_ARE_JSON = False
+
     def __init__(self, cache='redis', **cache_kwargs):
         """
         Initialize with a cache name ('redis', 'postgres') or a Cache instance
@@ -80,7 +82,7 @@ class AnnotatorWithCache():
             cached_data = self.cache.get(
                     ids,
                     namespace=self.SOURCE_NAME,
-                    load_as_json=hasattr(self, 'ANNOTATIONS_ARE_JSON')
+                    load_as_json=self.ANNOTATIONS_ARE_JSON
                 )
             annotations.update(cached_data)
             ids = ids - annotations.keys()
@@ -95,7 +97,7 @@ class AnnotatorWithCache():
                     self.cache.set(
                             batch_annotations,
                             namespace=self.SOURCE_NAME,
-                            save_as_json=hasattr(self, 'ANNOTATIONS_ARE_JSON')
+                            save_as_json=self.ANNOTATIONS_ARE_JSON
                         )
                     annotations.update(batch_annotations)
                     ids = ids - batch_annotations.keys()

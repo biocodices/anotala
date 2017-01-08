@@ -22,6 +22,12 @@ test_params = [
                               'gene.symbol gmaf hg19.end hg19.start ref rsid '
                               'validated var_subtype vartype')
         }),
+        (DbnsfpAnnotator, {
+            'ids_to_annotate': 'rs268',
+            'keys_to_check': ('cds_strand gerp++ mutationassessor '
+                              'mutationtaster polyphen2 provean sift')
+        }
+        ),
         (SnpeffAnnotator, {
             'ids_to_annotate': 'rs268 rs199473059',
             'keys_to_check': ('ann.feature_id ann.feature_type ann.gene_id '
@@ -96,6 +102,29 @@ test_params = [
             'ids_to_annotate': '23788249',
             'keys_to_check': ('AMA_Citation CitationData Abstract ArticleDate '
                               'Mesh Ids')
+        }),
+        (GwasCatalogAnnotator, {
+            'ids_to_annotate': 'rs7329174',
+            'keys_to_check': ('entrezMappedGenes ancestralGroups resourcename '
+                              'publicationDate region riskFrequency '
+                              'strongestAllele rsId pubmedId '
+                              'entrezMappedGeneLinks chromosomePosition '
+                              'publication multiSnpHaplotype chromosomeName '
+                              'shortform_autosuggest synonym_autosuggest '
+                              'replicateSampleDescription publicationLink '
+                              'positionLinks context reportedGene '
+                              'catalogPublishDate numberOfIndividuals '
+                              'countriesOfRecruitment chromLocation author '
+                              'label_autosuggest_ws shortForm merged '
+                              'orPerCopyNum reportedGeneLinks id title '
+                              'ancestryLinks label_autosuggest author_s '
+                              'label synonym_autosuggest_e synonym traitName '
+                              'initialSampleDescription traitName_s efoLink '
+                              'pValueExponent currentSnp pValueMantissa '
+                              'label_autosuggest_e mappedUri mappedLabel '
+                              'locusDescription synonym_autosuggest_ws '
+                              'platform snpInteraction parent range '
+                              'accessionId _version_ studyId')
         })
     ]
 

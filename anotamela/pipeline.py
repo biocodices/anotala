@@ -58,7 +58,9 @@ class AnnotationPipeline:
             MafAnnotator,
             HgvsAnnotator,
             DbsnpMyvariantAnnotator,
-            DbsnpEntrezAnnotator
+            DbsnpEntrezAnnotator,
+            DbnsfpAnnotator,
+            GwasCatalogAnnotator,
         ]
 
     def run(self, vcf_path):

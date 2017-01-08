@@ -59,6 +59,7 @@ class MyVariantAnnotator(AnnotatorWithCache):
     @classmethod
     def _parse_annotation(cls, hits_group):
         annotations = [cls._parse_hit(hit) for hit in hits_group]
+        annotations = [ann for ann in annotations if ann]
         if annotations:
             return annotations
 

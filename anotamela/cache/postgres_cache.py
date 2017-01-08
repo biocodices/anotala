@@ -35,7 +35,7 @@ class PostgresCache(Cache):
     def _client_get(self, ids, namespace, load_as_json):
         # The argument load_as_json is only relevant the first time an
         # annotator is used, in self._get_table(), to create the table with a
-        # JSONB field type. After this, the psql client autoatically deals with
+        # JSONB field type. After this, the psql client automatically deals with
         # [de]serialization of JSON, so the setting and retrieval of data is
         # the same wether the field is JSON or not.
         table = self._get_table(namespace, json_type=load_as_json)
