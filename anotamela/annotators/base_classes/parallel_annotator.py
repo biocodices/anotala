@@ -17,18 +17,27 @@ logger = logging.getLogger(__name__)
 
 class ParallelAnnotator(AnnotatorWithCache):
     """
-    Base class for annotators that have a _query(id) method but no
-    parallelization. This class implements a 'manual' parallelization with
-    Threads. Modify the class variables BATCH_SIZE and SLEEP_TIME to tweak the
-    parallelization behavior. Set PROXIES as a dictionary and it will be passed
-    to requests.get() as <proxies> argument.
+    Base class for annotators that have a _url(id_) method. This class
+    implements a 'manual' parallelization with threads.
 
-    Example using Tor in localhost:
+    - Modify the class variables BATCH_SIZE and SLEEP_TIME to tweak the
+      parallelization behavior.
+    - Set PROXIES as a dictionary and it will be passed to requests.get() as
+      *proxies* argument.
+    - Add a _parse_annotation(raw) method to indicate how raw responses from
+      the URLs should be parsed.
 
-        > annotator = OmimGeneAnnotator()
-        > annotator.PROXIES = {'http': 'socks5://localhost:9050'}
-        > annotator.SLEEP_TIME = 1  # Risky for a ban, but using Tor so it's OK
-        > annotator.annotate(list_of_omim_gene_ids)
+    Example:
+
+        Class MyAnnotator(ParallelAnnotator):
+            BACTH_SIZE = 500
+
+            def _url(self, id_):
+                return 'http://annotation-service.com/?q={}'.format(id_)
+
+            @staticmethod
+            def _parse_annotation(raw):
+                return raw.get('some-key')
 
     """
     BATCH_SIZE = 10
@@ -36,19 +45,23 @@ class ParallelAnnotator(AnnotatorWithCache):
     PROXIES = {}
     RANDOMIZE_SLEEP_TIME = False
 
-    def _query(self):
-        raise NotImplementedError()
+    def _query(self, id_):
+        url = self._url(id_)
 
-    def _query_with_random_user_agent(self, url):
         if not hasattr(self, 'user_agent_generator'):
             self.user_agent_generator = UserAgent()
-        headers = {'user-agent': self.user_agent_generator.random}
+
+        headers = {'User-Agent': self.user_agent_generator.random}
         response = requests.get(url, headers=headers,
                                 proxies=self.PROXIES or {})
         if not response.ok:
             logger.warning('{} response: {}'.format(response.status_code, url))
             response.raise_for_status()
-        return response.text
+
+        if self.ANNOTATIONS_ARE_JSON:
+            return response.json()
+        else:
+            return response.text
 
     def _batch_query(self, ids):
         """

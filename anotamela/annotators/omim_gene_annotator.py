@@ -60,10 +60,6 @@ class OmimGeneAnnotator(ParallelAnnotator):
         return {mim_to_gene(mim_id): annotation
                 for mim_id, annotation in annotations.items()}
 
-    def _query(self, mim_id):
-        url = self._url(mim_id)
-        return self._query_with_random_user_agent(url)
-
     @staticmethod
     def _url(mim_id):
         return 'http://omim.org/entry/{0}'.format(mim_id)
@@ -259,6 +255,10 @@ class OmimGeneAnnotator(ParallelAnnotator):
                 # RCV accessions are all listed in the <a "title">
                 # the link text only has the first one with ellipsis
                 info['clinvar_accessions'] = link['title'].split(', ')
+            elif 'ExAC' in link.text:
+                if 'exac_ids' not in info:
+                    info['exac_ids'] = []
+                info['exac_ids'].append(link.text.replace('ExAC:', ''))
             else:
                 msg = "I don't know how to parse this link: '{}'"
                 raise NotImplementedError(msg.format(link.text))

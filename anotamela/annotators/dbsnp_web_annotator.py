@@ -23,20 +23,6 @@ class DbsnpWebAnnotator(ParallelAnnotator):
         path = 'https://www.ncbi.nlm.nih.gov/projects/SNP/snp_gene.cgi?rs={0}'
         return path.format(rs)
 
-    def _query(self, rs):
-        """
-        Query NCBI's dbSNP site for a given rs ID. Returns a dict or None.
-        """
-        url = self._url(rs)
-        headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
-        response = requests.get(url, headers)
-
-        if response.ok:
-            return response.json()
-        else:
-            logger.warning('{} status code for "{}"'.format(response.status_code, rs))
-            return None
-
     def genes(self, rs, use_web=False):
         """Annotate the genes for a given rs."""
         ann = self.annotate(rs, use_web=use_web).get(rs)

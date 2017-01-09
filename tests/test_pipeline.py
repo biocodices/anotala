@@ -38,9 +38,9 @@ def _test_pipeline_result(pipeline):
     assert rsid in pipeline.rs_variants['id'].values
 
     vcf_fields = 'chrom pos id ref alt qual filter info'.split()
-    annotation_fields = ('clinvar_entries snpeff_myvariant maf hgvs '
+    annotation_fields = ('clinvar_entries snpeff_myvariant maf hgvs dbnsfp '
                          'dbsnp_myvariant entrez_gene_ids dbsnp_entrez '
-                         'omim_entries uniprot_entries').split()
+                         'omim_entries uniprot_entries gwas_catalog').split()
 
     for vcf_field in vcf_fields:
         assert vcf_field in pipeline.rs_variants

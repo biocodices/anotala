@@ -32,11 +32,13 @@ class AnnotatorWithCache():
         - an optional @classmethod or @staticmethod _parse_annotation() that
           takes the annotation for one id and transforms it in any way.
 
-        - an optional ANNOTATIONS_ARE_JSON class variable if the annotations
-          retrieved from the web will be in JSON format. This lets
+        - an optional ANNOTATIONS_ARE_JSON=True class variable if the
+          annotations retrieved from the web will be in JSON format. This lets
           PostgresCache know it can create a JSONB field in the database.
 
     """
+    ANNOTATIONS_ARE_JSON = False  # Default to be overriden
+
     def __init__(self, cache='redis', **cache_kwargs):
         """
         Initialize with a cache name ('redis', 'postgres') or a Cache instance
@@ -80,7 +82,7 @@ class AnnotatorWithCache():
             cached_data = self.cache.get(
                     ids,
                     namespace=self.SOURCE_NAME,
-                    load_as_json=hasattr(self, 'ANNOTATIONS_ARE_JSON')
+                    load_as_json=self.ANNOTATIONS_ARE_JSON
                 )
             annotations.update(cached_data)
             ids = ids - annotations.keys()
@@ -95,7 +97,7 @@ class AnnotatorWithCache():
                     self.cache.set(
                             batch_annotations,
                             namespace=self.SOURCE_NAME,
-                            save_as_json=hasattr(self, 'ANNOTATIONS_ARE_JSON')
+                            save_as_json=self.ANNOTATIONS_ARE_JSON
                         )
                     annotations.update(batch_annotations)
                     ids = ids - batch_annotations.keys()
@@ -112,6 +114,10 @@ class AnnotatorWithCache():
             logger.info('{} parsing {} annotations'.format(self.name,
                                                            len(annotations)))
             annotations = self._parse_annotations(annotations)
+            # Sometimes, a non-empty raw response has actually no data about
+            # the variant, so it generates an empty/None parsed annotation.
+            # We remove those here:
+            annotations = {k: v for k, v in annotations.items() if v}
 
         return annotations
 
