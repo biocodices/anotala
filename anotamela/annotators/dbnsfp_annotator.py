@@ -3,7 +3,7 @@ from anotamela.annotators.base_classes import MyVariantAnnotator
 
 class DbnsfpAnnotator(MyVariantAnnotator):
     SOURCE_NAME = 'dbnsfp'
-    SCOPES = 'dbsnp.rsid'
+    SCOPES = 'dbnsfp.rsid'
     FIELDS = 'dbnsfp'
 
     @staticmethod

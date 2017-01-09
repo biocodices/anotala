@@ -17,21 +17,27 @@ logger = logging.getLogger(__name__)
 
 class ParallelAnnotator(AnnotatorWithCache):
     """
-    Base class for annotators that have a _url(id) method. This class
-    implements a 'manual' parallelization with Threads. Modify the class
-    variables BATCH_SIZE and SLEEP_TIME to tweak the parallelization behavior.
-    Set PROXIES as a dictionary and it will be passed to requests.get() as
-    <proxies> argument.
+    Base class for annotators that have a _url(id_) method. This class
+    implements a 'manual' parallelization with threads.
 
-    Add a _parse_annotation(raw) method to indicate how raw responses from the
-    URLs should be parsed.
+    - Modify the class variables BATCH_SIZE and SLEEP_TIME to tweak the
+      parallelization behavior.
+    - Set PROXIES as a dictionary and it will be passed to requests.get() as
+      *proxies* argument.
+    - Add a _parse_annotation(raw) method to indicate how raw responses from
+      the URLs should be parsed.
 
-    Example using Tor in localhost:
+    Example:
 
-        > annotator = OmimGeneAnnotator()
-        > annotator.PROXIES = {'http': 'socks5://localhost:9050'}
-        > annotator.SLEEP_TIME = 1  # Risky for a ban, but using Tor so it's OK
-        > annotator.annotate(list_of_omim_gene_ids)
+        Class MyAnnotator(ParallelAnnotator):
+            BACTH_SIZE = 500
+
+            def _url(self, id_):
+                return 'http://annotation-service.com/?q={}'.format(id_)
+
+            @staticmethod
+            def _parse_annotation(raw):
+                return raw.get('some-key')
 
     """
     BATCH_SIZE = 10

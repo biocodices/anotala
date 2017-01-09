@@ -32,12 +32,12 @@ class AnnotatorWithCache():
         - an optional @classmethod or @staticmethod _parse_annotation() that
           takes the annotation for one id and transforms it in any way.
 
-        - an optional ANNOTATIONS_ARE_JSON class variable if the annotations
-          retrieved from the web will be in JSON format. This lets
+        - an optional ANNOTATIONS_ARE_JSON=True class variable if the
+          annotations retrieved from the web will be in JSON format. This lets
           PostgresCache know it can create a JSONB field in the database.
 
     """
-    ANNOTATIONS_ARE_JSON = False
+    ANNOTATIONS_ARE_JSON = False  # Default to be overriden
 
     def __init__(self, cache='redis', **cache_kwargs):
         """

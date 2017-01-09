@@ -2,8 +2,6 @@ from anotamela import DbnsfpAnnotator
 
 
 def test_dbnsfp_annotator():
-    annotator = DbnsfpAnnotator(cache='mock_cache')
-
     info_1 = {'genename': 'Gene-1'}
     info_2 = {'genename': 'Gene-2'}
 
@@ -22,7 +20,7 @@ def test_dbnsfp_annotator():
         }
     ]
 
-    parsed = annotator._parse_annotation(raw)
+    parsed = DbnsfpAnnotator._parse_annotation(raw)
 
     assert len(parsed) == 2
     assert all(info in parsed for info in [info_1, info_2])
