@@ -114,6 +114,10 @@ class AnnotatorWithCache():
             logger.info('{} parsing {} annotations'.format(self.name,
                                                            len(annotations)))
             annotations = self._parse_annotations(annotations)
+            # Sometimes, a non-empty raw response has actually no data about
+            # the variant, so it generates an empty/None parsed annotation.
+            # We remove those here:
+            annotations = {k: v for k, v in annotations.items() if v}
 
         return annotations
 

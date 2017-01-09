@@ -7,9 +7,11 @@ class GwasCatalogAnnotator(ParallelAnnotator):
 
     @staticmethod
     def _url(id_):
-        # Gwas Catalog will take any search term here, but you can typically
-        # use it for an rs ID:
+        # Gwas Catalog will take any search term here, but we typically
+        # use it for rs IDs:
         url = 'https://www.ebi.ac.uk/gwas/api/search?q="{}"'.format(id_)
+
+        # This grouping is optional, but facilitates the parsing afterwards:
         url += '&group=true&group.by=resourcename'
         return url
 
@@ -18,6 +20,9 @@ class GwasCatalogAnnotator(ParallelAnnotator):
         # This parsing depends on the URL above having the grouping options:
         groups = {group['groupValue']: group['doclist']['docs']
                   for group in response['grouped']['resourcename']['groups']}
+
+        if not groups:
+            return
 
         assert 'study' in groups
         assert 'diseasetrait' in groups
