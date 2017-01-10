@@ -156,24 +156,6 @@ def test_annotator(proxies, annotator_class, params):
     assert id_ in result
 
 
-def test_omim_annotate_from_entrez_ids(proxies):
-    entrez_id = '63976'
-    mim_id = '605557'
-    gene_symbol = 'PRDM16'
-
-    annotator = OmimGeneAnnotator(cache='mock_cache')
-    annotator.PROXIES = proxies
-    annotations = annotator.annotate_from_entrez_ids([entrez_id])
-    variants = annotations[entrez_id]
-
-    assert len(variants) == 6
-
-    for variant in variants:
-        assert variant['gene_omim_id'] == mim_id
-        assert variant['gene_entrez_id'] == entrez_id
-        assert variant['gene_symbol'] == gene_symbol
-
-
 def check_dict_key(dictionary, key_to_check):
     # Some annotations are a list of dicts instead of a single dict
     # Handle those cases calling this function for the first dict in the list:

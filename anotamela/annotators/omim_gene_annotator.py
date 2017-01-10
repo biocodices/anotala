@@ -382,7 +382,7 @@ class OmimGeneAnnotator(ParallelAnnotator):
             pheno['url'] = cls.OMIM_URL.format(pheno['id'])
             pheno['incidental'] = is_incidental_pheno(pheno['id'])
 
-        variant['phenotypes'] = (unique_phenotypes or None)
+        variant['phenotypes'] = (unique_phenotypes or [])
 
     @classmethod
     def _camelcase_prot_change(cls, prot_change):
