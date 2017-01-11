@@ -53,12 +53,18 @@ test_params = [
         }),
         (MafAnnotator, {
             'ids_to_annotate': 'rs268',
-            'keys_to_check': ('1000gp3_sas_af 1000gp3_af exac_eas_af '
-                              'exac_adj_af 1000gp3_gmaf exac_nfe_af exac_af '
-                              'exac_amr_af 1000gp3_eas_af exac_afr_af '
-                              'exac_fin_af 1000gp3_afr_af esp6500_aa_af '
-                              'esp6500_ea_af exac_sas_af 1000gp3_amr_af '
-                              '1000gp3_eur_af')
+            'keys_to_check': (
+                '1000gp3_amr_ac_G cadd_af_G cadd_eur_G 1000gp3_eas_ac_G '
+                '1000gp3_eur_ac_G exac_sas_ac_G esp6500_aa_ac_G exac_amr_ac_G '
+                'exac_nfe_af_G 1000gp3_afr_ac_G 1000gp3_sas_af_G esp6500_aa_af_G '
+                'cadd_amr_G esp6500_ea_ac_G exac_adj_ac_G exac_afr_af_G '
+                'exac_ac_G 1000gp3_afr_af_G exac_af_G 1000gp3_af_G '
+                'exac_sas_af_G 1000gp3_eas_af_G exac_nfe_ac_G cadd_afr_G '
+                'exac_amr_af_G exac_afr_ac_G 1000gp3_eur_af_G 1000gp3_sas_ac_G '
+                'exac_eas_af_G esp6500_ea_af_G exac_fin_af_G 1000gp3_ac_G '
+                'exac_adj_af_G exac_fin_ac_G 1000gp3_amr_af_G twinsuk_af_G '
+                '1000gp3_gmaf_G exac_eas_ac_G'
+            )
         }),
         (OmimGeneAnnotator, {
             'ids_to_annotate': '605557',
