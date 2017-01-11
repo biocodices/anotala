@@ -17,10 +17,7 @@ def test_maf_annotator():
     # Includes the allele in the keys,
     # Rounds the floats:
     assert MafAnnotator._parse_hit(raw) == {'1000gp3_gmaf_G': 0.0148,
-                                            'exac_ac_G': 36,
-                                            'exac_adj_ac_G': 35,
                                             'exac_adj_af_G': 0.0003,
                                             'exac_af_G': 0.0003,
-                                            'exac_nfe_ac_G': 35,
                                             'exac_nfe_af_G': 0.0005}
 

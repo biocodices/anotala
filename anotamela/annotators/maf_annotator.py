@@ -38,5 +38,5 @@ class MafAnnotator(MyVariantAnnotator):
 
         # Remove allele counts, leave frequency
         return {re.sub('_af\b', '', k): v for k, v in annotation.items()
-                if not k.endswith('_ac')}
+                if not '_ac_' in k}
 
