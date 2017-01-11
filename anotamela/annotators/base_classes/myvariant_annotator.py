@@ -58,11 +58,12 @@ class MyVariantAnnotator(AnnotatorWithCache):
 
     @classmethod
     def _parse_annotation(cls, hits):
+        # Gather the hits (i.e. different alleles) in the same order always:
+        hits = sorted(hits, key=itemgetter('_id'))
         annotations = [cls._parse_hit(hit) for hit in hits]
         annotations = [ann for ann in annotations if ann]
         if annotations:
-            # Return the hits (or different alleles) in the same order always:
-            return sorted(annotations, key=itemgetter('_id'))
+            return annotations
 
     @staticmethod
     def _parse_hit(hit):
