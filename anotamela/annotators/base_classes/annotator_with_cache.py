@@ -38,6 +38,7 @@ class AnnotatorWithCache():
 
     """
     ANNOTATIONS_ARE_JSON = False  # Default to be overriden
+    SOURCE_NAME = ''
 
     def __init__(self, cache='redis', **cache_kwargs):
         """
@@ -124,7 +125,7 @@ class AnnotatorWithCache():
     def annotate_one(self, id_, use_cache=True, use_web=True, parse=True):
         """Annotate one ID. Returns the annotation. Wrapper of annotate()."""
         return self.annotate(id_, use_cache=use_cache, use_web=use_web,
-                             parse=parse)[id_]
+                             parse=parse).get(id_)
 
     def _parse_annotations(self, annotations):
         """Parse a dict of annotations in parallel. Return a dictionary with
