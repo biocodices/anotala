@@ -49,19 +49,20 @@ class MyVariantAnnotator(AnnotatorWithCache):
                                      fields=self.FIELDS, verbose=self.VERBOSE)
 
             batch_annotations = {}
-            for query, hits_group in groupby(hits, itemgetter('query')):
-                hits_group = list(hits_group)
-                if 'notfound' not in hits_group[0]:
-                    batch_annotations[query] = hits_group
+            for query, hits in groupby(hits, itemgetter('query')):
+                hits = list(hits)
+                if 'notfound' not in hits[0]:
+                    batch_annotations[query] = hits
 
             yield batch_annotations
 
     @classmethod
-    def _parse_annotation(cls, hits_group):
-        annotations = [cls._parse_hit(hit) for hit in hits_group]
+    def _parse_annotation(cls, hits):
+        annotations = [cls._parse_hit(hit) for hit in hits]
         annotations = [ann for ann in annotations if ann]
         if annotations:
-            return annotations
+            # Return the hits (or different alleles) in the same order always:
+            return sorted(annotations, key=itemgetter('_id'))
 
     @staticmethod
     def _parse_hit(hit):

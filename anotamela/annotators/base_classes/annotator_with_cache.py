@@ -57,7 +57,7 @@ class AnnotatorWithCache():
         msg = "{}(cache={}, **{})"
         return msg.format(self.name, self.cache, self.cache_kwargs)
 
-    def annotate(self, ids, use_cache=True, use_web=True, parse_data=True):
+    def annotate(self, ids, use_cache=True, use_web=True, parse=True):
         """
         Annotate one or more IDs and return an info dictionary with the passed
         IDs as keys. If use_cache=True, cached responses will be prioritized
@@ -69,7 +69,7 @@ class AnnotatorWithCache():
 
         Annotators can implement extra parsing of the data with
         _parse_annotation(). This parsing is enabled by default, but you can
-        disable it with parse_data=False and get the raw responses.
+        disable it with parse=False and get the raw responses.
         """
         ids = self._set_of_string_ids(ids)
         total_count = len(ids)
@@ -110,7 +110,7 @@ class AnnotatorWithCache():
             logger.info(msg.format(self.name, found_count, total_count,
                                    found_count/total_count))
 
-        if parse_data and hasattr(self, '_parse_annotation'):
+        if parse and hasattr(self, '_parse_annotation'):
             logger.info('{} parsing {} annotations'.format(self.name,
                                                            len(annotations)))
             annotations = self._parse_annotations(annotations)
@@ -120,6 +120,11 @@ class AnnotatorWithCache():
             annotations = {k: v for k, v in annotations.items() if v}
 
         return annotations
+
+    def annotate_one(self, id_, use_cache=True, use_web=True, parse=True):
+        """Annotate one ID. Returns the annotation. Wrapper of annotate()."""
+        return self.annotate(id_, use_cache=use_cache, use_web=use_web,
+                             parse=parse)[id_]
 
     def _parse_annotations(self, annotations):
         """Parse a dict of annotations in parallel. Return a dictionary with

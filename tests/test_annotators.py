@@ -155,6 +155,15 @@ def test_annotator(proxies, annotator_class, params):
     result = annotator.annotate(id_, use_web=False)
     assert id_ in result
 
+    # Test annotate_one
+    assert result[id_] == annotator.annotate_one(id_, use_web=False)
+
+    # Test the annotators can pass the raw data instead of the parsed info
+    if hasattr(annotator, '_parse_annotation'):
+        raw = annotator.annotate(id_, use_web=False, parse=False)
+        assert raw[id_]
+        assert result[id_] != raw[id_]
+
 
 def check_dict_key(dictionary, key_to_check):
     # Some annotations are a list of dicts instead of a single dict
