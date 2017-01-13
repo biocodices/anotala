@@ -2,6 +2,7 @@ import time
 import logging
 from itertools import chain
 from functools import partial
+from os.path import expanduser
 
 import pandas as pd
 import coloredlogs
@@ -98,7 +99,7 @@ class AnnotationPipeline:
         msg = 'Starting annotation pipeline with options:\n\n{}\n'.format(opts)
         logger.info(msg)
 
-        self._read_vcf(vcf_path)
+        self._read_vcf(expanduser(vcf_path))
         self._annotate_rs_variants()
         self._extract_entrez_gene_ids_and_symbols()
         self._annotate_genes()
