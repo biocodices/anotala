@@ -59,8 +59,7 @@ def _test_pipeline_result(pipeline):
     seen_rsids = {entry['rsid'] for entry in clinvar_entries}
     assert seen_rsids == {rsid}
 
-    snpeff = variant['snpeff_myvariant'][0]
-    assert len(snpeff['ann']) == 5
+    assert len(variant['snpeff_myvariant']) == 5
 
     expected_maf_keys = 'esp6500_ea_af_A 1000gp3_af_A exac_eas_af_A'.split()
     assert all(key in variant['maf'][0] for key in expected_maf_keys)

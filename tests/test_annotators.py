@@ -30,9 +30,8 @@ test_params = [
         ),
         (SnpeffAnnotator, {
             'ids_to_annotate': 'rs268 rs199473059',
-            'keys_to_check': ('ann.feature_id ann.feature_type ann.gene_id '
-                              'ann.genename ann.putative_impact ann.hgvs_c '
-                              'ann.transcript_biotype')
+            'keys_to_check': ('feature_id feature_type gene_id genename '
+                              'putative_impact hgvs_c transcript_biotype')
         }),
         (ClinvarRsAnnotator, {
             'ids_to_annotate': 'rs268',
@@ -54,16 +53,12 @@ test_params = [
         (MafAnnotator, {
             'ids_to_annotate': 'rs268',
             'keys_to_check': (
-                '1000gp3_amr_ac_G cadd_af_G cadd_eur_G 1000gp3_eas_ac_G '
-                '1000gp3_eur_ac_G exac_sas_ac_G esp6500_aa_ac_G exac_amr_ac_G '
-                'exac_nfe_af_G 1000gp3_afr_ac_G 1000gp3_sas_af_G esp6500_aa_af_G '
-                'cadd_amr_G esp6500_ea_ac_G exac_adj_ac_G exac_afr_af_G '
-                'exac_ac_G 1000gp3_afr_af_G exac_af_G 1000gp3_af_G '
-                'exac_sas_af_G 1000gp3_eas_af_G exac_nfe_ac_G cadd_afr_G '
-                'exac_amr_af_G exac_afr_ac_G 1000gp3_eur_af_G 1000gp3_sas_ac_G '
-                'exac_eas_af_G esp6500_ea_af_G exac_fin_af_G 1000gp3_ac_G '
-                'exac_adj_af_G exac_fin_ac_G 1000gp3_amr_af_G twinsuk_af_G '
-                '1000gp3_gmaf_G exac_eas_ac_G'
+                ' cadd_af_G cadd_eur_G exac_nfe_af_G 1000gp3_sas_af_G '
+                'esp6500_aa_af_G cadd_amr_G exac_afr_af_G 1000gp3_afr_af_G '
+                'exac_af_G 1000gp3_af_G exac_sas_af_G 1000gp3_eas_af_G  '
+                'cadd_afr_G exac_amr_af_G 1000gp3_eur_af_G exac_eas_af_G '
+                'esp6500_ea_af_G exac_fin_af_G exac_adj_af_G 1000gp3_amr_af_G '
+                'twinsuk_af_G 1000gp3_gmaf_G '
             )
         }),
         (OmimGeneAnnotator, {

@@ -1,5 +1,5 @@
 from operator import itemgetter
-from itertools import groupby
+from itertools import groupby, chain
 import logging
 
 from myvariant import MyVariantInfo
@@ -62,6 +62,11 @@ class MyVariantAnnotator(AnnotatorWithCache):
         hits = sorted(hits, key=itemgetter('_id'))
         annotations = [cls._parse_hit(hit) for hit in hits]
         annotations = [ann for ann in annotations if ann]
+
+        # If the annotations are already lists, merge them into a flat list:
+        if all(isinstance(ann, list) for ann in annotations):
+            annotations = list(chain.from_iterable(annotations))
+
         if annotations:
             return annotations
 
