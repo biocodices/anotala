@@ -53,7 +53,7 @@ test_params = [
         (MafAnnotator, {
             'ids_to_annotate': 'rs268',
             'keys_to_check': (
-                ' cadd_af_G cadd_eur_G exac_nfe_af_G 1000gp3_sas_af_G '
+                'cadd_af_G cadd_eur_G exac_nfe_af_G 1000gp3_sas_af_G '
                 'esp6500_aa_af_G cadd_amr_G exac_afr_af_G 1000gp3_afr_af_G '
                 'exac_af_G 1000gp3_af_G exac_sas_af_G 1000gp3_eas_af_G  '
                 'cadd_afr_G exac_amr_af_G 1000gp3_eur_af_G exac_eas_af_G '
