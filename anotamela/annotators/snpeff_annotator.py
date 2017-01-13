@@ -17,7 +17,7 @@ class SnpeffAnnotator(MyVariantAnnotator):
             annotations = [annotations]
 
         for annotation in annotations:
-            # Make 'effects' always a list, even with only one prediction:
+            # Make 'effects' always a list, even with one or zero predictions
             effects = annotation.get('effect', '').split('&')
             annotation['effects'] = effects
             del(annotation['effect'])
