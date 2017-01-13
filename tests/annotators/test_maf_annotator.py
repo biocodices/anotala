@@ -1,7 +1,7 @@
 from anotamela import MafAnnotator
 
 
-def test_maf_annotator():
+def test_maf_annotator_parse_hit():
     raw = {'_id': 'chr2:g.73679956C>G',
            '_score': 16.956917,
            'dbnsfp': {'exac': {'ac': 36,

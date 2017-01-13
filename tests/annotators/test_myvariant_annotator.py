@@ -1,7 +1,7 @@
 from anotamela.annotators.base_classes import MyVariantAnnotator
 
 
-def test_myvariant_annotator():
+def test_myvariant_annotator_parse_annotation():
     # Test the results are returned in the same order
     hits = [
         {'_id': 'chr1:123A>G', 'expected_ix': 1},

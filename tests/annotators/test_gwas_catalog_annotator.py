@@ -1,7 +1,7 @@
 from anotamela import GwasCatalogAnnotator
 
 
-def test_gwas_catalog_annotator():
+def test_gwas_catalog_annotator_parse_annotation():
     groups = []
     raw = {'grouped': {'resourcename': {'groups': groups}}}
 

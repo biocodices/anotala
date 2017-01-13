@@ -1,7 +1,7 @@
 from anotamela import DbnsfpAnnotator
 
 
-def test_dbnsfp_annotator():
+def test_dbnsfp_annotator_parse_annotation():
     info_1 = {'genename': 'Gene-1'}
     info_2 = {'genename': 'Gene-2'}
 
