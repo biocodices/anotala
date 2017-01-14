@@ -49,20 +49,23 @@ class ClinvarRsAnnotator(MyVariantAnnotator):
         Overrides MyvariantAnnotator._parse_annotation to add the flattening
         of the list of lists logic.
         """
-        associations_lists = [cls._parse_hit(hit) for hit in hits]
-        associations = list(chain.from_iterable(associations_lists))
+        rcv_annotations_lists = [cls._parse_hit(hit) for hit in hits]
+        rcv_annotations = list(chain.from_iterable(rcv_annotations_lists))
 
-        if associations:
-            return associations
+        if rcv_annotations:
+            return rcv_annotations
 
     @classmethod
     def _parse_hit(cls, hit):
         if 'clinvar' not in hit:
             return []
 
-        rcvs = listify(hit['clinvar']['rcv'])
+        rcv_annotations = listify(hit['clinvar']['rcv'])
 
-        for rcv in rcvs:
+        for rcv in rcv_annotations:
+
+            # Some significances are 'compound', like "Pathogenic, risk factor"
+            # We parse them always to a list like ['Pathogenic', 'risk factor']:
             rcv['clinical_significances'] = \
                     rcv['clinical_significance'].split(', ')
             del(rcv['clinical_significance'])
@@ -78,7 +81,7 @@ class ClinvarRsAnnotator(MyVariantAnnotator):
 
             rcv['url'] = cls.url(rcv['accession'])
 
-            name_info = cls._parse_preferred_name(rcv['preferred_name']) or {}
+            name_info = cls._parse_preferred_name(rcv['preferred_name'])
             rcv.update(name_info)
 
             # Copy the variant info to each particular RCV entry:
@@ -94,7 +97,7 @@ class ClinvarRsAnnotator(MyVariantAnnotator):
 
                 rcv[key] = value
 
-        return rcvs
+        return rcv_annotations
 
     @staticmethod
     def url(accession):
@@ -112,4 +115,6 @@ class ClinvarRsAnnotator(MyVariantAnnotator):
             return matches_2.groupdict()
         if matches_3:
             return matches_3.groupdict()
+
+        return {}
 
