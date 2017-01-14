@@ -35,7 +35,7 @@ def test_clinvar_annotator_parse_hit_single_rcv():
 
     rcv_annotation = rcv_annotations[0]
 
-    # Test its parsing the preferred name
+    # Test that it parses the preferred name
     assert rcv_annotation['cds_change'] == 'c.953A>G'
 
     assert 'url' in rcv_annotation
@@ -76,6 +76,11 @@ def test_clinvar_annotator_parse_preferred_name():
     assert parsed['gene'] == 'TTN'
     assert parsed['cds_change'] == 'c.105180G>C'
     assert parsed['prot_change'] == 'p.Glu35060Asp'
+
+    name = 'nothing to match'
+    parsed = ClinvarRsAnnotator._parse_preferred_name(name)
+
+    assert parsed == {}
 
 
 def test_clinvar_annotator_parse_hit_multiple_rcvs():
