@@ -1,4 +1,5 @@
 import re
+from itertools import chain
 
 from anotamela.annotators.base_classes import MyVariantAnnotator
 from anotamela.helpers import listify
@@ -48,21 +49,24 @@ class ClinvarRsAnnotator(MyVariantAnnotator):
         Overrides MyvariantAnnotator._parse_annotation to add the flattening
         of the list of lists logic.
         """
-        rcv_list = []
-        for hit in hits:
-            rcv_list += cls._parse_hit(hit)
+        associations_lists = [cls._parse_hit(hit) for hit in hits]
+        associations = list(chain.from_iterable(associations_lists))
 
-        if rcv_list:
-            return rcv_list
+        if associations:
+            return associations
 
     @classmethod
     def _parse_hit(cls, hit):
-        if not 'clinvar' in hit:
+        if 'clinvar' not in hit:
             return []
 
         rcvs = listify(hit['clinvar']['rcv'])
 
         for rcv in rcvs:
+            rcv['clinical_significances'] = \
+                    rcv['clinical_significance'].split(', ')
+            del(rcv['clinical_significance'])
+
             rcv['conditions'] = listify(rcv['conditions'])
 
             for condition in rcv['conditions']:
@@ -73,7 +77,9 @@ class ClinvarRsAnnotator(MyVariantAnnotator):
                     del(condition['identifiers'])
 
             rcv['url'] = cls.url(rcv['accession'])
-            rcv.update(cls._parse_preferred_name(rcv['preferred_name']))
+
+            name_info = cls._parse_preferred_name(rcv['preferred_name']) or {}
+            rcv.update(name_info)
 
             # Copy the variant info to each particular RCV entry:
             for key, value in hit['clinvar'].items():
