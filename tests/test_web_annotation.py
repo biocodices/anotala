@@ -36,7 +36,7 @@ test_params = [
         (ClinvarRsAnnotator, {
             'ids_to_annotate': 'rs268',
             'keys_to_check': ('accession allele_id alt cds_change chrom '
-                              'clinical_significance conditions.medgen_id '
+                              'clinical_significances conditions.medgen_id '
                               'conditions.name conditions.omim_id cytogenic '
                               'gene gene_id gene_symbol hg19_end hg19_start '
                               'hg38_end hg38_start hgvs_coding hgvs_genomic '
