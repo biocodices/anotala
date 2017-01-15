@@ -1,9 +1,7 @@
 import re
 
 from anotamela.annotators.base_classes import MyVariantAnnotator
-
-
-SNP_RE = re.compile(r'(?P<old_allele>[ATCG])>?(?P<new_allele>[A-Z|=])')
+from anotamela.helpers import SNP_RE
 
 
 class MafAnnotator(MyVariantAnnotator):
@@ -38,5 +36,5 @@ class MafAnnotator(MyVariantAnnotator):
 
         # Remove allele counts, leave frequency
         return {re.sub('_af\b', '', k): v for k, v in annotation.items()
-                if not '_ac_' in k}
+                if '_ac_' not in k}
 

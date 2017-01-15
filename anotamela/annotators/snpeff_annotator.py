@@ -1,4 +1,5 @@
 from anotamela.annotators.base_classes import MyVariantAnnotator
+from anotamela.helpers import SNP_RE
 
 
 class SnpeffAnnotator(MyVariantAnnotator):
@@ -21,6 +22,13 @@ class SnpeffAnnotator(MyVariantAnnotator):
             effects = annotation.get('effect', '').split('&')
             annotation['effects'] = effects
             del(annotation['effect'])
+
+            # Infer the allele being describe in the annotation
+            snp_match = SNP_RE.search(annotation['hgvs_c'])
+            if snp_match:
+                annotation['allele'] == snp_match.group('new_allele')
+            else:
+                annotation['allele'] == annotation['hgvs_c']
 
         return annotations
 

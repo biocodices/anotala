@@ -30,7 +30,7 @@ test_params = [
         ),
         (SnpeffAnnotator, {
             'ids_to_annotate': 'rs268 rs199473059',
-            'keys_to_check': ('feature_id feature_type gene_id genename '
+            'keys_to_check': ('feature_id feature_type gene_id genename allele '
                               'putative_impact hgvs_c transcript_biotype')
         }),
         (ClinvarRsAnnotator, {

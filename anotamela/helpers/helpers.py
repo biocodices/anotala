@@ -5,6 +5,9 @@ from itertools import zip_longest
 from Bio import Entrez
 
 
+SNP_RE = re.compile(r'(?P<old_allele>[ATCG])>?(?P<new_allele>[A-Z|=])')
+
+
 def grouped(iterable, group_size):
     """Split an iterable in lists of <group_size> elements."""
     # Python recipe taken from:
