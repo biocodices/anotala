@@ -5,7 +5,8 @@ from itertools import zip_longest
 from Bio import Entrez
 
 
-SNP_RE = re.compile(r'(?P<old_allele>[ATCG])>?(?P<new_allele>[A-Z|=])')
+SNP_RE = re.compile(r'(?P<old_allele>[ATCG])>(?P<new_allele>[ATCG])')
+DEL_RE = re.compile(r'.*(?P<new_allele>del.*)')
 
 
 def grouped(iterable, group_size):

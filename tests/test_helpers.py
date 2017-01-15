@@ -1,6 +1,10 @@
 import pytest
 
-from anotamela.helpers import is_incidental_gene, is_incidental_pheno
+from anotamela.helpers import (
+    is_incidental_gene,
+    is_incidental_pheno,
+    listify,
+)
 
 
 INCIDENTAL_TEST_PARAMS = [
@@ -23,4 +27,14 @@ def test_is_incidental_gene(mim_id, category, is_incidental):
     else:
         assert not check_func(mim_id)
         assert not check_func(str(mim_id))
+
+
+def test_listify():
+    a_list = ['foo', 'bar']
+    a_dict = {'foo': 'bar'}
+    a_string = 'foo bar'
+
+    assert listify(a_list) == a_list
+    assert listify(a_dict) == [a_dict]
+    assert listify(a_string) == [a_string]
 

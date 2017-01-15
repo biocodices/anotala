@@ -58,7 +58,7 @@ test_params = [
                 'exac_af_G 1000gp3_af_G exac_sas_af_G 1000gp3_eas_af_G  '
                 'cadd_afr_G exac_amr_af_G 1000gp3_eur_af_G exac_eas_af_G '
                 'esp6500_ea_af_G exac_fin_af_G exac_adj_af_G 1000gp3_amr_af_G '
-                'twinsuk_af_G 1000gp3_gmaf_G '
+                'twinsuk_af_G dbsnp_gmaf_G '
             )
         }),
         (OmimGeneAnnotator, {

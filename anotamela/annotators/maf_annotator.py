@@ -1,7 +1,6 @@
 import re
 
 from anotamela.annotators.base_classes import MyVariantAnnotator
-from anotamela.helpers import SNP_RE
 
 
 class MafAnnotator(MyVariantAnnotator):
@@ -12,14 +11,8 @@ class MafAnnotator(MyVariantAnnotator):
 
     @staticmethod
     def _parse_hit(hit):
-        hgvs = hit['_id']
-        if SNP_RE.search(hgvs):
-            allele = SNP_RE.search(hgvs).group('new_allele')
-        else:
-            allele = hgvs
-
         dicts = (
-            ('1000gp3', hit.get('dbsnp', {})),
+            ('dbsnp', hit.get('dbsnp', {})),
             ('1000gp3', hit.get('dbnsfp', {}).get('1000gp3', {})),
             ('esp6500', hit.get('dbnsfp', {}).get('esp6500', {})),
             ('twinsuk', hit.get('dbnsfp', {}).get('twinsuk', {})),
@@ -30,7 +23,8 @@ class MafAnnotator(MyVariantAnnotator):
         annotation = {}
         for source_name, dic in dicts:
             for key, value in dic.items():
-                compound_key = '{}_{}_{}'.format(source_name, key, allele)
+                compound_key = '{}_{}_{}'.format(source_name, key,
+                                                 hit['allele'])
                 # Doesn't make sense to have a MAF with 10 decimals, round it:
                 annotation[compound_key] = round(value, 4)
 
