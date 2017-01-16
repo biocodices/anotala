@@ -5,7 +5,8 @@ from itertools import zip_longest
 from Bio import Entrez
 
 
-SNP_RE = re.compile(r'(?P<old_allele>[ATCG])>(?P<new_allele>[ATCG])')
+SNP_RE = re.compile(r'(?P<old_allele>[ATCG])>(?P<new_allele>[ATCG]|=)')
+SYN_SNP_RE = re.compile(r'(?P<new_allele>[ATCG])=')
 DEL_RE = re.compile(r'.*(?P<new_allele>del.*)')
 
 
@@ -28,16 +29,12 @@ def infer_coding_allele(cds_change):
     if not cds_change:
         return
 
-    snp_match = SNP_RE.search(cds_change)
-    del_match = DEL_RE.search(cds_change)
+    allele = cds_change  # If all fails, return the same cds change
 
-    if snp_match:
-        allele = snp_match.group('new_allele')
-    elif del_match:
-        allele = del_match.group('new_allele')
-    else:
-        # If extractions fail, return the whole change
-        allele = cds_change
+    for regex in [SNP_RE, SYN_SNP_RE, DEL_RE]:
+        match = regex.search(cds_change)
+        if match:
+            allele = match.group('new_allele')
 
     return allele
 

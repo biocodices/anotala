@@ -43,6 +43,7 @@ def test_listify():
 @pytest.mark.parametrize('cds_change,expected_allele', [
     ('NM_1.1:c.123A>T', 'T'),
     ('NM_015001.2:c.*11199_*11199delTTT', 'delTTT'),
+    ('c.123C=', 'C'),
     ('non_matching', 'non_matching'),
     ('', None),
 ])
