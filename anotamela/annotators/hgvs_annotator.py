@@ -1,4 +1,5 @@
 from anotamela.annotators.base_classes import MyVariantAnnotator
+from anotamela.helpers import infer_annotated_allele
 
 
 class HgvsAnnotator(MyVariantAnnotator):
@@ -10,6 +11,7 @@ class HgvsAnnotator(MyVariantAnnotator):
     @staticmethod
     def _parse_hit(hit):
         annotation = {'myvariant_hgvs_g': hit['_id']}
+        annotation['genomic_allele'] = infer_annotated_allele(hit['_id'])
 
         if 'snpeff' in hit:
             annotation['snpeff_hgvs_c'] = []

@@ -4,7 +4,7 @@ from anotamela.helpers import (
     is_incidental_gene,
     is_incidental_pheno,
     listify,
-    infer_coding_allele,
+    infer_annotated_allele,
 )
 
 
@@ -47,6 +47,6 @@ def test_listify():
     ('non_matching', 'non_matching'),
     ('', None),
 ])
-def test_infer_allele(cds_change, expected_allele):
-    assert infer_coding_allele(cds_change) == expected_allele
+def test_infer_annotated_allele(cds_change, expected_allele):
+    assert infer_annotated_allele(cds_change) == expected_allele
 

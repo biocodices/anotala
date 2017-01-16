@@ -24,15 +24,15 @@ def listify(maybe_list):
     return [maybe_list]
 
 
-def infer_coding_allele(cds_change):
-    """Given a *cds_change* like 'c.123A>G', infer the allele 'G'."""
-    if not cds_change:
+def infer_annotated_allele(mutation):
+    """Given a *mutation* like 'c.123A>G', infer the allele 'G'."""
+    if not mutation:
         return
 
-    allele = cds_change  # If all fails, return the same cds change
+    allele = mutation  # If all fails, return the same mutation
 
     for regex in [SNP_RE, SYN_SNP_RE, DEL_RE]:
-        match = regex.search(cds_change)
+        match = regex.search(mutation)
         if match:
             allele = match.group('new_allele')
 

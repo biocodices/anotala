@@ -65,6 +65,7 @@ def _test_pipeline_result(pipeline):
     assert all(key in variant['maf'][0] for key in expected_maf_keys)
 
     assert variant['hgvs'][0] == {
+        'genomic_allele': 'A',
         'clinvar_hgvs_c': ['LRG_672t1:c.937G>T', 'NM_000169.2:c.937G>T'],
         'clinvar_hgvs_g': ['LRG_672:g.14532G>T',
                            'NC_000023.10:g.100653420C>A',

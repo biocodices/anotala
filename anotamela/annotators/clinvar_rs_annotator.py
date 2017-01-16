@@ -4,7 +4,7 @@ from itertools import chain
 from anotamela.annotators.base_classes import MyVariantAnnotator
 from anotamela.helpers import (
     listify,
-    infer_coding_allele
+    infer_annotated_allele,
 )
 
 
@@ -70,7 +70,7 @@ class ClinvarRsAnnotator(MyVariantAnnotator):
 
             annotation['genomic_allele'] = hit['allele']
             annotation['coding_allele'] = \
-                infer_coding_allele(annotation.get('cds_change', ''))
+                infer_annotated_allele(annotation.get('cds_change', ''))
 
             # Copy the variant info to each particular RCV entry:
             for key, value in hit['clinvar'].items():

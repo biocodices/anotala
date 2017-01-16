@@ -1,9 +1,7 @@
 from anotamela.annotators.base_classes import MyVariantAnnotator
 from anotamela.helpers import (
-    SNP_RE,
-    DEL_RE,
     listify,
-    infer_coding_allele
+    infer_annotated_allele,
 )
 
 
@@ -24,7 +22,7 @@ class SnpeffAnnotator(MyVariantAnnotator):
         for annotation in annotations:
             annotation['genomic_allele'] = hit['allele']
             annotation['coding_allele'] = \
-                infer_coding_allele(annotation.get('hgvs_c'))
+                infer_annotated_allele(annotation.get('hgvs_c'))
             annotation['effects'] = annotation.get('effect', '').split('&')
 
             if 'effect' in annotation:
