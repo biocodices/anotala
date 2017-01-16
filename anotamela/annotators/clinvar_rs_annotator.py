@@ -2,7 +2,10 @@ import re
 from itertools import chain
 
 from anotamela.annotators.base_classes import MyVariantAnnotator
-from anotamela.helpers import listify
+from anotamela.helpers import (
+    listify,
+    infer_coding_allele
+)
 
 
 def _build_variant_regex():
@@ -38,69 +41,55 @@ class ClinvarRsAnnotator(MyVariantAnnotator):
     VARIANT_REGEX = _build_variant_regex()
 
     @classmethod
-    def _parse_annotation(cls, hits):
-        """
-        Transforms each of the ClinVar annotations returned by MyVariant to a
-        list of RCV entries. Each RCV describes an association of the given rs
-        ID to a condition. The condition will vary between items in the list,
-        but the variant info will be repeated (e.g. rsid, omim variant id,
-        gene affected, genomic coordinates).
-
-        Overrides MyvariantAnnotator._parse_annotation to add the flattening
-        of the list of lists logic.
-        """
-        rcv_annotations_lists = [cls._parse_hit(hit) for hit in hits]
-        rcv_annotations = list(chain.from_iterable(rcv_annotations_lists))
-
-        if rcv_annotations:
-            return rcv_annotations
-
-    @classmethod
     def _parse_hit(cls, hit):
         if 'clinvar' not in hit:
             return []
 
         rcv_annotations = listify(hit['clinvar']['rcv'])
 
-        for rcv in rcv_annotations:
-
+        for annotation in rcv_annotations:
             # Some significances are 'compound', like "Pathogenic, risk factor"
             # We parse them always to a list like ['Pathogenic', 'risk factor']:
-            rcv['clinical_significances'] = \
-                    rcv['clinical_significance'].split(', ')
-            del(rcv['clinical_significance'])
+            annotation['clinical_significances'] = \
+                annotation.get('clinical_significance', '').split(', ')
 
-            rcv['conditions'] = listify(rcv['conditions'])
+            if 'clinical_significance' in annotation:
+                del(annotation['clinical_significance'])
 
-            for condition in rcv['conditions']:
+            annotation['conditions'] = listify(annotation['conditions'])
+
+            for condition in annotation['conditions']:
+                condition.update(cls._parse_condition_identifiers(condition))
                 if 'identifiers' in condition:
-                    for resource_name, id_ in condition['identifiers'].items():
-                        new_key = '{}_id'.format(resource_name)
-                        condition[new_key] = id_
                     del(condition['identifiers'])
 
-            rcv['url'] = cls.url(rcv['accession'])
+            annotation['url'] = cls._url(annotation['accession'])
 
-            name_info = cls._parse_preferred_name(rcv['preferred_name'])
-            rcv.update(name_info)
+            name_info = cls._parse_preferred_name(annotation['preferred_name'])
+            annotation.update(name_info)
+
+            annotation['genomic_allele'] = hit['allele']
+            annotation['coding_allele'] = \
+                infer_coding_allele(annotation.get('cds_change', ''))
 
             # Copy the variant info to each particular RCV entry:
             for key, value in hit['clinvar'].items():
                 if key == 'rcv':
                     continue
+
                 # Flatten the dicts one level
                 if isinstance(value, dict):
                     for key2, val2 in value.items():
                         compound_key = '{}_{}'.format(key, key2)
-                        rcv[compound_key] = val2
+                        annotation[compound_key] = val2
                     continue
 
-                rcv[key] = value
+                annotation[key] = value
 
         return rcv_annotations
 
     @staticmethod
-    def url(accession):
+    def _url(accession):
         return 'https://www.ncbi.nlm.nih.gov/clinvar/{}'.format(accession)
 
     @classmethod
@@ -117,4 +106,22 @@ class ClinvarRsAnnotator(MyVariantAnnotator):
             return matches_3.groupdict()
 
         return {}
+
+    @staticmethod
+    def _parse_condition_identifiers(condition):
+        """
+        Given a ClinVar condition dictionary, relocate IDs found under
+        'identifiers' to the root level, with a key that indicates their
+        origin. E.g. {'identifiers': {'omim': 1}} becomes {'omim_id': 1}
+        """
+        ids = {}
+
+        if 'identifiers' not in condition:
+            return ids
+
+        for resource_name, id_ in condition['identifiers'].items():
+            new_key = '{}_id'.format(resource_name)
+            ids[new_key] = id_
+
+        return ids
 

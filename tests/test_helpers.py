@@ -4,6 +4,7 @@ from anotamela.helpers import (
     is_incidental_gene,
     is_incidental_pheno,
     listify,
+    infer_coding_allele,
 )
 
 
@@ -37,4 +38,14 @@ def test_listify():
     assert listify(a_list) == a_list
     assert listify(a_dict) == [a_dict]
     assert listify(a_string) == [a_string]
+
+
+@pytest.mark.parametrize('cds_change,expected_allele', [
+    ('NM_1.1:c.123A>T', 'T'),
+    ('NM_015001.2:c.*11199_*11199delTTT', 'delTTT'),
+    ('non_matching', 'non_matching'),
+    ('', None),
+])
+def test_infer_allele(cds_change, expected_allele):
+    assert infer_coding_allele(cds_change) == expected_allele
 

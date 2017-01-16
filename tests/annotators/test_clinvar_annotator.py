@@ -1,28 +1,27 @@
 from anotamela import ClinvarRsAnnotator
 
 
-def test_clinvar_annotator_parse_annotation(monkeypatch):
+def test_parse_annotation(monkeypatch):
     mock_parse_hit = lambda _: ['rcv-1', 'rcv-2']
     monkeypatch.setattr(ClinvarRsAnnotator, '_parse_hit', mock_parse_hit)
 
     # The mocked _parse_hit will transform each annotation {} into a list
-    hits = [{}, {}, {}]
+    hits = [{'_id': 'A'}, {'_id': 'B'}, {'_id': 'C'}]
 
     # Make sure the lists are flattened, so we get 6 elements, not 3:
     assert len(ClinvarRsAnnotator._parse_annotation(hits)) == 6
 
 
-def test_clinvar_annotator_parse_hit_single_rcv():
+def test_parse_hit_single_rcv():
     single_rcv_hit = {
+        'allele': 'G',
         'clinvar': {
             'root_level_key': 'root_level_value',
             'rcv': {
                 'accession': 'RCV1',
                 'clinical_significance': 'Pathogenic, risk factor',
                 'preferred_name': 'NM_000237.2(LPL):c.953A>G (p.Asn318Ser)',
-                'conditions': [{
-                    'identifiers': {'omim': 'MIM-1', 'medgen': 'MG-1'}
-                }]
+                'conditions': [{'identifiers': {}}]
             }
         }
     }
@@ -39,11 +38,11 @@ def test_clinvar_annotator_parse_hit_single_rcv():
     assert rcv_annotation['cds_change'] == 'c.953A>G'
 
     assert 'url' in rcv_annotation
+    assert 'genomic_allele' in rcv_annotation
+    assert 'coding_allele' in rcv_annotation
 
     # Test identifiers are parsed
     condition = rcv_annotation['conditions'][0]
-    assert condition['omim_id'] == 'MIM-1'
-    assert condition['medgen_id'] == 'MG-1'
     assert 'identifiers' not in condition
 
     # Test clinsig is parsed
@@ -54,9 +53,10 @@ def test_clinvar_annotator_parse_hit_single_rcv():
     assert rcv_annotation['root_level_key'] == 'root_level_value'
 
 
-def test_clinvar_annotator_parse_preferred_name():
+def test_parse_preferred_name():
+    func = ClinvarRsAnnotator._parse_preferred_name
     name = 'NM_000237.2(LPL):c.953A>G (p.Asn318Ser)'
-    parsed = ClinvarRsAnnotator._parse_preferred_name(name)
+    parsed = func(name)
 
     assert parsed['transcript'] == 'NM_000237.2'
     assert parsed['gene'] == 'LPL'
@@ -64,45 +64,65 @@ def test_clinvar_annotator_parse_preferred_name():
     assert parsed['prot_change'] == 'p.Asn318Ser'
 
     name = 'NM_000116.4(TAZ):c.646+14C>T'
-    parsed = ClinvarRsAnnotator._parse_preferred_name(name)
+    parsed = func(name)
 
     assert parsed['transcript'] == 'NM_000116.4'
     assert parsed['gene'] == 'TAZ'
     assert parsed['cds_change'] == 'c.646+14C>T'
 
     name = 'TTN:c.105180G>C (p.Glu35060Asp)'
-    parsed = ClinvarRsAnnotator._parse_preferred_name(name)
+    parsed = func(name)
 
     assert parsed['gene'] == 'TTN'
     assert parsed['cds_change'] == 'c.105180G>C'
     assert parsed['prot_change'] == 'p.Glu35060Asp'
 
     name = 'nothing to match'
-    parsed = ClinvarRsAnnotator._parse_preferred_name(name)
+    parsed = func(name)
 
     assert parsed == {}
 
 
-def test_clinvar_annotator_parse_hit_multiple_rcvs():
+def test_parse_hit_multiple_rcvs():
     multiple_rcv_hits = {
+        'allele': 'A',
         'clinvar': {
-            'rcv': [{'conditions': [],
+            'rcv': [{'conditions': {},  # dict instead of list!
                      'preferred_name': '',
                      'accession': '',
-                     'clinical_significance': ''},
+                     'clinical_significance': 'sig1'},
 
                     {'conditions': [],
                      'preferred_name': '',
                      'accession': '',
-                     'clinical_significance': ''},
+                     'clinical_significance': 'sig2'},
 
                     {'conditions': [],
                      'preferred_name': '',
                      'accession': '',
-                     'clinical_significance': ''}]
+                     'clinical_significance': 'sig3, sig4'}]
         }
     }
 
     rcv_annotations = ClinvarRsAnnotator._parse_hit(multiple_rcv_hits)
+
+    # One annotation per RCV entry:
     assert len(rcv_annotations) == 3
+
+    # Listify the conditions
+    assert all(isinstance(ann['conditions'], list) for ann in rcv_annotations)
+
+    # Split significances
+    assert [ann['clinical_significances'] for ann in rcv_annotations] == \
+           [['sig1'], ['sig2'], ['sig3', 'sig4']]
+
+    assert all('clinical_significance' not in ann for ann in rcv_annotations)
+
+
+def test_parse_condition_identifiers():
+    func = ClinvarRsAnnotator._parse_condition_identifiers
+    assert func({}) == {}
+
+    condition = {'identifiers': {'medgen': 'MG1', 'omim': 'MIM1'}}
+    assert func(condition) == {'medgen_id': 'MG1', 'omim_id': 'MIM1'}
 

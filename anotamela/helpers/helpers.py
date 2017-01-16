@@ -23,6 +23,25 @@ def listify(maybe_list):
     return [maybe_list]
 
 
+def infer_coding_allele(cds_change):
+    """Given a *cds_change* like 'c.123A>G', infer the allele 'G'."""
+    if not cds_change:
+        return
+
+    snp_match = SNP_RE.search(cds_change)
+    del_match = DEL_RE.search(cds_change)
+
+    if snp_match:
+        allele = snp_match.group('new_allele')
+    elif del_match:
+        allele = del_match.group('new_allele')
+    else:
+        # If extractions fail, return the whole change
+        allele = cds_change
+
+    return allele
+
+
 def set_email_for_entrez():
     email_filepath = expanduser('~/.mail_address_for_Entrez')
 

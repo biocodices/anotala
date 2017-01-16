@@ -30,8 +30,9 @@ test_params = [
         ),
         (SnpeffAnnotator, {
             'ids_to_annotate': 'rs268 rs199473059',
-            'keys_to_check': ('feature_id feature_type gene_id genename allele '
-                              'putative_impact hgvs_c transcript_biotype')
+            'keys_to_check': ('feature_id feature_type gene_id genename '
+                              'genomic_allele coding_allele putative_impact hgvs_c '
+                              'transcript_biotype')
         }),
         (ClinvarRsAnnotator, {
             'ids_to_annotate': 'rs268',
@@ -43,7 +44,7 @@ test_params = [
                               'last_evaluated number_submitters omim '
                               'origin preferred_name prot_change ref '
                               'review_status rsid transcript type url '
-                              'variant_id')
+                              'variant_id genomic_allele coding_allele')
         }),
         (HgvsAnnotator, {
             'ids_to_annotate': 'rs268 rs199473059',
