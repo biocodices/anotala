@@ -20,7 +20,7 @@ def test_parse_hit_single_rcv():
             'rcv': {
                 'accession': 'RCV1',
                 'clinical_significance': 'Pathogenic, risk factor',
-                'preferred_name': 'NM_000237.2(LPL):c.953A>G (p.Asn318Ser)',
+                'preferred_name': 'NM_000237.2(LPL):c.953A>G (p.Asn318=)',
                 'conditions': [{'identifiers': {}}]
             }
         }
@@ -40,6 +40,9 @@ def test_parse_hit_single_rcv():
     assert 'url' in rcv_annotation
     assert 'genomic_allele' in rcv_annotation
     assert 'coding_allele' in rcv_annotation
+
+    # Test prot change is parsed, with the '=' replace with an aminoacid
+    assert rcv_annotation['prot_change'] == 'p.Asn318Asn'
 
     # Test identifiers are parsed
     condition = rcv_annotation['conditions'][0]

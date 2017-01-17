@@ -7,7 +7,8 @@ from Bio import Entrez
 
 SNP_RE = re.compile(r'(?P<old_allele>[ATCG])>(?P<new_allele>[ATCG])')
 SYN_SNP_RE = re.compile(r'(?P<new_allele>[ATCG])=')
-INDEL_RE = re.compile(r'.*(?P<new_allele>del.*|ins.*|dup.*)', )
+INDEL_RE = re.compile(r'.*(?P<new_allele>del.*|ins.*|dup.*)')
+PROT_RE = re.compile(r'(?P<aa1>[A-Za-z]{3})(?P<pos>\d+)(?P<aa2>[A-Za-z]{3}|=)')
 
 
 def grouped(iterable, group_size):
@@ -37,6 +38,27 @@ def infer_annotated_allele(mutation):
             allele = match.group('new_allele')
 
     return allele
+
+
+def parse_prot_change(prot_change):
+    """
+    Given a protein change like p.Ala123=, convert the '=' to the aminoacid
+    ('Ala' in this case). If no '=' is found, leave as is.
+    """
+    match = PROT_RE.search(prot_change)
+
+    if not match or re.search('(ins|del|dup)', prot_change):
+        return prot_change
+
+    info = match.groupdict()
+
+    if info['aa2'] == '=':
+        info['aa2'] = info['aa1']
+    elif info['aa2'] == 'Ter':
+        # This unifies ClinVar's "Ter" with SnpEff's "*":
+        info['aa2'] = '*'
+
+    return 'p.{aa1}{pos}{aa2}'.format(**info)
 
 
 def set_email_for_entrez():

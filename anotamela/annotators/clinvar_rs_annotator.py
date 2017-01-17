@@ -1,10 +1,10 @@
 import re
-from itertools import chain
 
 from anotamela.annotators.base_classes import MyVariantAnnotator
 from anotamela.helpers import (
     listify,
     infer_annotated_allele,
+    parse_prot_change,
 )
 
 
@@ -67,6 +67,10 @@ class ClinvarRsAnnotator(MyVariantAnnotator):
 
             name_info = cls._parse_preferred_name(annotation['preferred_name'])
             annotation.update(name_info)
+
+            if 'prot_change' in annotation:
+                annotation['prot_change'] = \
+                    parse_prot_change(annotation.get('prot_change'))
 
             annotation['genomic_allele'] = hit['allele']
             annotation['coding_allele'] = \

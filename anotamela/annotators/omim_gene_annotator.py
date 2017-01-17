@@ -5,10 +5,12 @@ from operator import itemgetter
 from bs4 import BeautifulSoup
 
 from anotamela.annotators.base_classes import ParallelAnnotator
-from anotamela.helpers import (gene_to_mim,
-                               mim_to_gene,
-                               is_incidental_gene,
-                               is_incidental_pheno)
+from anotamela.helpers import (
+    gene_to_mim,
+    mim_to_gene,
+    is_incidental_gene,
+    is_incidental_pheno,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -42,10 +44,7 @@ class OmimGeneAnnotator(ParallelAnnotator):
 
     OMIM_URL = 'http://www.omim.org/entry/{}'
     PUBMED_URL = 'https://www.ncbi.nlm.nih.gov/pubmed/{}'
-    REGEX = {
-        'rsid': re.compile(r'dbSNP:(rs\d+)'),
-        'aminoacids': re.compile(r'([A-Z]{3})-?(\d+)([A-Z]{3}|=)'),
-    }
+    PROT_RE = re.compile(r'([A-Z]{3})-?(\d+)([A-Z]{3}|=)')
 
     def annotate_from_entrez_ids(self, entrez_ids, **kwargs):
         entrez_ids = set(entrez_ids)
@@ -386,7 +385,7 @@ class OmimGeneAnnotator(ParallelAnnotator):
 
     @classmethod
     def _camelcase_prot_change(cls, prot_change):
-        aa_matches = cls.REGEX['aminoacids'].search(prot_change)
+        aa_matches = cls.PROT_RE.search(prot_change)
         if aa_matches:
             # Change a protein change like GLY96ALA to Gly96Ala
             aa1, pos, aa2 = aa_matches.groups()
