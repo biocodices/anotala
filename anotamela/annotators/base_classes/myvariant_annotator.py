@@ -8,8 +8,7 @@ from tqdm import tqdm
 from anotamela.annotators.base_classes import AnnotatorWithCache
 from anotamela.helpers import (
     grouped,
-    SNP_RE,
-    DEL_RE
+    infer_annotated_allele,
 )
 
 
@@ -66,7 +65,7 @@ class MyVariantAnnotator(AnnotatorWithCache):
         hits = sorted(hits, key=itemgetter('_id'))
 
         for hit in hits:
-            hit['allele'] = cls._infer_allele(hit['_id'])
+            hit['allele'] = infer_annotated_allele(hit['_id'])
 
         annotations = [cls._parse_hit(hit) for hit in hits]
         annotations = [ann for ann in annotations if ann]
@@ -81,15 +80,4 @@ class MyVariantAnnotator(AnnotatorWithCache):
     @staticmethod
     def _parse_hit(hit):
         return hit
-
-    @staticmethod
-    def _infer_allele(id_):
-        if SNP_RE.search(id_):
-            allele = SNP_RE.search(id_).group('new_allele')
-        elif DEL_RE.search(id_):
-            allele = DEL_RE.search(id_).group('new_allele')
-        else:
-            allele = id_
-
-        return allele
 

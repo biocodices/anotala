@@ -5,9 +5,9 @@ from itertools import zip_longest
 from Bio import Entrez
 
 
-SNP_RE = re.compile(r'(?P<old_allele>[ATCG])>(?P<new_allele>[ATCG]|=)')
+SNP_RE = re.compile(r'(?P<old_allele>[ATCG])>(?P<new_allele>[ATCG])')
 SYN_SNP_RE = re.compile(r'(?P<new_allele>[ATCG])=')
-DEL_RE = re.compile(r'.*(?P<new_allele>del.*)')
+INDEL_RE = re.compile(r'.*(?P<new_allele>del.*|ins.*|dup.*)', )
 
 
 def grouped(iterable, group_size):
@@ -31,7 +31,7 @@ def infer_annotated_allele(mutation):
 
     allele = mutation  # If all fails, return the same mutation
 
-    for regex in [SNP_RE, SYN_SNP_RE, DEL_RE]:
+    for regex in [SNP_RE, SYN_SNP_RE, INDEL_RE]:
         match = regex.search(mutation)
         if match:
             allele = match.group('new_allele')

@@ -1,5 +1,3 @@
-import pytest
-
 from anotamela.annotators.base_classes import MyVariantAnnotator
 
 
@@ -34,13 +32,4 @@ def test_myvariant_annotator_parse_annotation(monkeypatch):
 
     # The three annotations inside 'test-list' keys should be in a flat list:
     assert len(annotations) == 3
-
-
-@pytest.mark.parametrize('id_,expected_allele', [
-    ('chr1:g.2985844G>A', 'A'),
-    ('chr1:g.16270668_16270683del', 'del'),
-    ('non-matching-id', 'non-matching-id'),
-])
-def test_infer_allele(id_, expected_allele):
-    assert MyVariantAnnotator._infer_allele(id_) == expected_allele
 
