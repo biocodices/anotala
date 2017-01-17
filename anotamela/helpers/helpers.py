@@ -42,8 +42,10 @@ def infer_annotated_allele(mutation):
 
 def parse_prot_change(prot_change):
     """
-    Given a protein change like p.Ala123=, convert the '=' to the aminoacid
-    ('Ala' in this case). If no '=' is found, leave as is.
+    Given a protein change like p.Ala123= or p.Ala123Ter, convert the '=' to
+    the aminoacid ('Ala' in this case) or Ter to '*'.
+
+    Leave the rest of the changes as they are.
     """
     match = PROT_RE.search(prot_change)
 

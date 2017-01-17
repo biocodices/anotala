@@ -70,7 +70,7 @@ class ClinvarRsAnnotator(MyVariantAnnotator):
 
             if 'prot_change' in annotation:
                 annotation['prot_change'] = \
-                    parse_prot_change(annotation.get('prot_change'))
+                    parse_prot_change(annotation['prot_change'])
 
             annotation['genomic_allele'] = hit['allele']
             annotation['coding_allele'] = \
