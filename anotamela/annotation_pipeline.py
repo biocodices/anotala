@@ -6,12 +6,14 @@ from os.path import expanduser
 
 import pandas as pd
 import coloredlogs
-from vcf_to_dataframe import vcf_to_dataframe
 from humanfriendly import format_timespan
 from pprint import pformat
 
 from anotamela.cache import create_cache, Cache
 from anotamela.annotators import *
+from anotamela.pipeline import (
+    read_variants_from_vcf,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -95,11 +97,19 @@ class AnnotationPipeline:
         """
         self.start_time = time.time()
 
-        opts = pformat({**self.__dict__, 'vcf_path': vcf_path} , width=50)
-        msg = 'Starting annotation pipeline with options:\n\n{}\n'.format(opts)
-        logger.info(msg)
+        #  opts = pformat({**self.__dict__, 'vcf_path': vcf_path} , width=50)
+        #  logger.info('Starting annotation pipeline with options:\n\n{}\n'
+                    #  .format(opts))
 
-        _read_vcf(expanduser(vcf_path))
+        logger.info('Read "{}"'.format(vcf_path))
+
+        variants = read_variants_from_vcf(expanduser(vcf_path))
+        self.rs_variants = variants['rs_variants']
+        self.other_variants = variants['other_variants']
+
+        logger.info('{} variants with single rs'.format(len(self.rs_variants)))
+        logger.info('{} other variants'.format(len(self.other_variants)))
+
         self._annotate_rs_variants()
         self._extract_entrez_gene_ids_and_symbols()
         self._annotate_genes()
@@ -131,7 +141,9 @@ class AnnotationPipeline:
         two fields in the dataframe self.rs_variants."""
 
         def extraction_func(dbsnp_entries, field):
-            if not dbsnp_entries: return []
+            if not dbsnp_entries:
+                return []
+
             ids = {gene.get(field) for entry in dbsnp_entries
                                    for gene in entry.get('gene', {})}
             return list(ids)

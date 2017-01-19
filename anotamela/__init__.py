@@ -5,7 +5,7 @@ from Bio import Entrez
 import coloredlogs
 
 from .annotators import *
-from .pipeline import AnnotationPipeline
+from .annotation_pipeline import AnnotationPipeline
 
 
 coloredlogs.DEFAULT_LOG_FORMAT = \

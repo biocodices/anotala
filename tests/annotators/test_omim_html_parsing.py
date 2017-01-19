@@ -2,7 +2,6 @@ import pytest
 from bs4 import BeautifulSoup
 
 from anotamela import OmimGeneAnnotator
-from helpers import get_test_file
 
 
 TEST_ENTRY_ID = '609708'
@@ -18,7 +17,7 @@ def annotator(proxies):
 
 @pytest.fixture(scope='module')
 def html(annotator):
-    fn = get_test_file('htmls/omim_{}.html'.format(TEST_ENTRY_ID))
+    fn = pytest.helpers.file('htmls/omim_{}.html'.format(TEST_ENTRY_ID))
     with open(fn) as f:
         html = f.read()
     return html
@@ -26,7 +25,7 @@ def html(annotator):
 
 @pytest.fixture(scope='module')
 def pheno_page_soup(annotator):
-    fn = get_test_file('htmls/omim_{}.html'.format(TEST_PHENO_ENTRY_ID))
+    fn = pytest.helpers.file('htmls/omim_{}.html'.format(TEST_PHENO_ENTRY_ID))
     with open(fn) as f:
         html = f.read()
     return BeautifulSoup(html, 'lxml')

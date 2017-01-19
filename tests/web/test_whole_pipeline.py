@@ -2,7 +2,6 @@ import pytest
 
 from anotamela import AnnotationPipeline
 from anotamela.cache import DictCache
-from helpers import get_test_file
 
 
 TEST_PARAMS = [
@@ -22,12 +21,12 @@ def test_pipeline(proxies, vcf_filename, test_web, cache):
     if test_web:
         web_pipeline = AnnotationPipeline(cache=cache, use_cache=False,
                                           proxies=proxies)
-        web_pipeline.run(vcf_path=get_test_file(vcf_filename))
+        web_pipeline.run(vcf_path=pytest.helpers.file(vcf_filename))
         _test_pipeline_result(web_pipeline)
 
     # Test the pipeline again, now using the cache built previously
     cache_pipeline = AnnotationPipeline(cache=cache, use_web=False)
-    cache_pipeline.run(vcf_path=get_test_file(vcf_filename))
+    cache_pipeline.run(vcf_path=pytest.helpers.file(vcf_filename))
     _test_pipeline_result(cache_pipeline)
 
 
