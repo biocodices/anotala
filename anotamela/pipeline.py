@@ -99,7 +99,7 @@ class AnnotationPipeline:
         msg = 'Starting annotation pipeline with options:\n\n{}\n'.format(opts)
         logger.info(msg)
 
-        self._read_vcf(expanduser(vcf_path))
+        _read_vcf(expanduser(vcf_path))
         self._annotate_rs_variants()
         self._extract_entrez_gene_ids_and_symbols()
         self._annotate_genes()
@@ -115,16 +115,6 @@ class AnnotationPipeline:
         logger.info('Done! Took {} to complete the pipeline'.format(elapsed))
 
         return self.rs_variants
-
-    def _read_vcf(self, vcf_path):
-        """Read the VCF and keep the variants with rs ID."""
-        logger.info('Read "{}"'.format(vcf_path))
-        self.variants = vcf_to_dataframe(vcf_path)
-        have_single_rs = self.variants['id'].str.match(r'^rs\d+$')
-        self.rs_variants = self.variants[have_single_rs].reset_index(drop=True)
-        self.other_variants = self.variants[~have_single_rs].reset_index(drop=True)
-        logger.info('{} variants with single rs'.format(len(self.rs_variants)))
-        logger.info('{} other variants'.format(len(self.other_variants)))
 
     def _annotate_rs_variants(self):
         for annotator_class in self.snp_annotator_classes:
