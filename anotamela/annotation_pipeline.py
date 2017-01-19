@@ -97,9 +97,9 @@ class AnnotationPipeline:
         """
         self.start_time = time.time()
 
-        #  opts = pformat({**self.__dict__, 'vcf_path': vcf_path} , width=50)
-        #  logger.info('Starting annotation pipeline with options:\n\n{}\n'
-                    #  .format(opts))
+        opts = pformat({**self.__dict__, 'vcf_path': vcf_path} , width=50)
+        logger.info('Starting annotation pipeline with options:\n\n{}\n'
+                    .format(opts))
 
         logger.info('Read "{}"'.format(vcf_path))
 

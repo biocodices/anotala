@@ -51,6 +51,8 @@ class HgvsAnnotator(MyVariantAnnotator):
         info['snpeff_hgvs_p'] = []
 
         annotations = hit['snpeff']['ann']
+        # 'ann' is sometimes a list of annotations (each one a dict) and
+        # sometimes a single dict. Make sure we always deal with lists:
         if isinstance(annotations, dict):
             annotations = [annotations]
 
