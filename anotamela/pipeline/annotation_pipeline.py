@@ -1,5 +1,6 @@
 import time
 import logging
+import warnings
 from itertools import chain
 from os.path import expanduser
 
@@ -70,6 +71,16 @@ class AnnotationPipeline:
             'sleep_time': sleep_time,
         }
 
+        if proxies is None:
+            warnings.warn("It's not advisable to run the complete pipeline "
+                          "without proxies, specially if you're going to "
+                          "annotate a lot of variants. OMIM scraping can get "
+                          "your IP banned. Try installing Tor locally and pass "
+                          "something this: "
+                          "proxies={'http': 'socks5://localhost:9050'}. If you "
+                          "still want to run without proxies, set proxies "
+                          "explicitely as an empty dict (proxies={}).")
+
     def run_from_vcf(self, vcf_path):
         """
         Annotate the given VCF file (accepts gzipped files too). Returns
@@ -117,7 +128,8 @@ class AnnotationPipeline:
     def run_from_rsids(self, rsids):
         """
         Given a list of rs IDs, annotate them and return the annotations in
-        a pandas DataFrame.
+        a pandas DataFrame. Variant annotations will be stored in
+        self.rs_variants and related gene annotations in self.gene_annotations.
         """
         start_time = time.time()
 
