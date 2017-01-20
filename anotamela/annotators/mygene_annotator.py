@@ -40,7 +40,9 @@ class MygeneAnnotator(AnnotatorWithCache):
         annotation = {k: v for k, v in raw_annotation.items()
                       if k in fields_to_keep}
         if 'uniprot' in annotation:
-            annotation['swissprot'] = annotation['uniprot']['Swiss-Prot']
+            swissprot_id = annotation['uniprot'].get('Swiss-Prot')
+            if swissprot_id:
+                annotation['swissprot'] = swissprot_id
             del(annotation['uniprot'])
         return annotation
 

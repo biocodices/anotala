@@ -21,12 +21,12 @@ def test_pipeline(proxies, vcf_filename, test_web, cache):
     if test_web:
         web_pipeline = AnnotationPipeline(cache=cache, use_cache=False,
                                           proxies=proxies)
-        web_pipeline.run(vcf_path=pytest.helpers.file(vcf_filename))
+        web_pipeline.run_from_vcf(vcf_path=pytest.helpers.file(vcf_filename))
         _test_pipeline_result(web_pipeline)
 
     # Test the pipeline again, now using the cache built previously
     cache_pipeline = AnnotationPipeline(cache=cache, use_web=False)
-    cache_pipeline.run(vcf_path=pytest.helpers.file(vcf_filename))
+    cache_pipeline.run_from_vcf(vcf_path=pytest.helpers.file(vcf_filename))
     _test_pipeline_result(cache_pipeline)
 
 
@@ -96,5 +96,5 @@ def _test_pipeline_result(pipeline):
     gene_ids = {'2717', '100529097'}
     assert set(variant['entrez_gene_ids']) == gene_ids
     assert set(variant['entrez_gene_symbols']) == {'RPL36A-HNRNPH2', 'GLA'}
-    assert set(pipeline.gene_annotations['entrez_id'].values) == gene_ids
+    assert set(pipeline.gene_annotations['entrez_gene_id'].values) == gene_ids
 

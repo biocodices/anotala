@@ -21,11 +21,8 @@ class GwasCatalogAnnotator(ParallelAnnotator):
         groups = {group['groupValue']: group['doclist']['docs']
                   for group in response['grouped']['resourcename']['groups']}
 
-        if not groups:
+        if not groups or 'association' not in groups:
             return
-
-        assert 'study' in groups
-        assert 'diseasetrait' in groups
 
         return groups['association']
 

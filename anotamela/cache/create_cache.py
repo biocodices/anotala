@@ -4,7 +4,7 @@ from anotamela.cache import PostgresCache, RedisCache, DictCache
 AVAILABLE_CACHES = {
         'redis': RedisCache,
         'postgres': PostgresCache,
-        '_dict': DictCache,
+        'dict': DictCache,
     }
 
 

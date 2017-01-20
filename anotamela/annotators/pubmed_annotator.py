@@ -29,6 +29,12 @@ class PubmedAnnotator(EntrezAnnotator):
 
     @classmethod
     def _parse_annotation(cls, record):
+        if isinstance(record, list):
+            if not len(record) == 1:
+                raise ValueError('This PubMed entry has many records: {}'
+                                 .format(record))
+            record = record[0]
+
         new_record = {}
         new_record['AMA_Citation'] = cls._generate_citation(record)
         new_record['CitationData'] = cls._generate_citation(record, as_dict=True)
@@ -45,12 +51,22 @@ class PubmedAnnotator(EntrezAnnotator):
             nicer_key = keys_to_keep[key]
             new_record[nicer_key] = value
 
-        new_record['Ids'] = {i['IdType']: i['value']
-                             for i in new_record['Ids']}
+        # Rarely, some entry will have a list instead of a dict here.
+        # We skip those:
+        if isinstance(new_record['Ids'], dict):
+            new_record['Ids'] = {i['IdType']: i['value']
+                                for i in new_record['Ids']}
 
         if new_record['Mesh']:
-            new_record['Mesh'] = [m['DescriptorName']['value']
-                                  for m in new_record['Mesh']]
+            try:
+                new_record['Mesh'] = [m['DescriptorName']['value']
+                                    for m in new_record['Mesh']]
+            except TypeError:
+                # Rarely, the mesh DescriptorNames will be strings instead of
+                # dicts (for instance, in PMID 6860421). For those, we parse
+                # the list differently:
+                new_record['Mesh'] = [m['DescriptorName']
+                                      for m in new_record['Mesh']]
 
         return new_record
 
@@ -67,9 +83,21 @@ class PubmedAnnotator(EntrezAnnotator):
         citation_data = {
             'title': article['ArticleTitle'],
             'journal': article['Journal']['ISOAbbreviation'].replace('.', ''),
-            'volume': article['Journal']['JournalIssue']['Volume'],
-            'pages': article['Pagination']['MedlinePgn'],
         }
+
+        try:
+            volume = article['Journal']['JournalIssue']['Volume']
+        except KeyError:
+            volume = ''
+
+        citation_data['volume'] = volume
+
+        try:
+            pages = article['Pagination']['MedlinePgn']
+        except KeyError:
+            pages = ''
+
+        citation_data['pages'] = pages
 
         try:
             citation_data['issue'] = article['Journal']['JournalIssue']['Issue']
