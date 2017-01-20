@@ -12,7 +12,7 @@ AVAILABLE_CACHES['mock_cache'] = AVAILABLE_CACHES['_dict']
 
 @pytest.fixture(scope='session')
 def proxies():
-    return {}  # {'http': 'socks5://localhost:9050'}
+    return {'http': 'socks5://localhost:9050'}
 
 
 @pytest.helpers.register

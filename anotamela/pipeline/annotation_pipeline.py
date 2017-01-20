@@ -10,9 +10,12 @@ from humanfriendly import format_timespan
 from pprint import pformat
 
 from anotamela.cache import create_cache, Cache
-from anotamela.annotators import *
+from anotamela.annotators import RS_ANNOTATOR_CLASSES
 from anotamela.pipeline import (
     read_variants_from_vcf,
+    annotate_rsids,
+    extract_entrez_genes,
+    annotate_entrez_gene_ids,
 )
 
 
@@ -23,7 +26,7 @@ coloredlogs.install(level='INFO')
 
 class AnnotationPipeline:
     def __init__(self, cache, use_cache=True, use_web=True, proxies=None,
-                 **cache_kwargs):
+                 sleep_time=None, **cache_kwargs):
         """
         Initialize a pipeline with a given set of options. The options will
         be used for any subsequent pipeline.run() actions.
@@ -41,6 +44,8 @@ class AnnotationPipeline:
         - proxies (default=None) is optional. If set, it should be a dictionary
           of proxies that will be used by the requests library. For instance:
           {'http': 'socks5://localhost:9050'}
+        - sleep_time (default=None) is optional. If set, it will be used to
+          override all annotators SLEEP_TIME between queries.
         - **cache_kwargs will be passed to the Cache constructor if the cache
           option is not already a Cache instance.
 
@@ -49,22 +54,20 @@ class AnnotationPipeline:
         self.use_cache = use_cache
         self.use_web = use_web
         self.proxies = proxies
+        self.sleep_time = sleep_time
 
         if isinstance(cache, Cache):
             self.cache = cache
         else:
             self.cache = create_cache(cache, **cache_kwargs)
 
-        self.snp_annotator_classes = [
-            ClinvarRsAnnotator,
-            SnpeffAnnotator,
-            MafAnnotator,
-            HgvsAnnotator,
-            DbsnpMyvariantAnnotator,
-            DbsnpEntrezAnnotator,
-            DbnsfpAnnotator,
-            GwasCatalogAnnotator,
-        ]
+        self.annotation_kwargs = {
+            'cache': self.cache,
+            'use_cache': self.use_cache,
+            'use_web': self.use_web,
+            'proxies': self.proxies,
+            'sleep_time': self.sleep_time,
+        }
 
     def run(self, vcf_path):
         """
@@ -110,9 +113,26 @@ class AnnotationPipeline:
         logger.info('{} variants with single rs'.format(len(self.rs_variants)))
         logger.info('{} other variants'.format(len(self.other_variants)))
 
-        self._annotate_rs_variants()
-        self._extract_entrez_gene_ids_and_symbols()
-        self._annotate_genes()
+        logger.info('Annotate the variants with rs ID')
+        rs_annotations = annotate_rsids(self.rs_variants['id'],
+                                        **self.annotation_kwargs)
+        self.rs_variants = pd.merge(self.rs_variants, rs_annotations,
+                                    on='id', how='left')
+
+        logger.info('Extract Entrez gene data from the variants')
+
+        dbsnp = self.rs_variants['dbsnp_myvariant']
+        self.rs_variants['entrez_gene_ids'] = \
+                dbsnp.fillna(False).apply(extract_entrez_gene, field='geneid')
+        self.rs_variants['entez_gene_symbols'] = \
+                dbsnp.fillna(False).apply(extract_entrez_gene, field='symbol')
+
+        logger.info('Annotate the Entrez genes associated to the variants')
+
+        entrez_gene_ids = chain.from_iterable(self.rs_variants['entrez_gene_ids'])
+        self.gene_annotations = annotate_entrez_genes(list(entrez_gene_ids),
+                                                      **self.annotation_kwargs)
+
         self._add_omim_variants_info()
         self._add_pubmed_entries_to_omim_entries()
         self._add_uniprot_variants_info()
@@ -125,57 +145,6 @@ class AnnotationPipeline:
         logger.info('Done! Took {} to complete the pipeline'.format(elapsed))
 
         return self.rs_variants
-
-    def _annotate_rs_variants(self):
-        for annotator_class in self.snp_annotator_classes:
-            annotator = annotator_class(self.cache)
-            annotator.PROXIES = self.proxies
-            self._annotate_ids_and_add_series(
-                    annotator=annotator,
-                    id_series=self.rs_variants['id'],
-                    df_to_modify=self.rs_variants,
-                )
-
-    def _extract_entrez_gene_ids_and_symbols(self):
-        """Extract Entrez Gene IDs and symbols from dbsnp annotations. Adds
-        two fields in the dataframe self.rs_variants."""
-
-        def extraction_func(dbsnp_entries, field):
-            if not dbsnp_entries:
-                return []
-
-            ids = {gene.get(field) for entry in dbsnp_entries
-                                   for gene in entry.get('gene', {})}
-            return list(ids)
-
-
-        func = partial(extraction_func, field='geneid')
-        self.rs_variants['entrez_gene_ids'] = \
-                self.rs_variants['dbsnp_myvariant'].fillna(False).map(func)
-
-        func = partial(extraction_func, field='symbol')
-        self.rs_variants['entrez_gene_symbols'] = \
-                self.rs_variants['dbsnp_myvariant'].fillna(False).map(func)
-
-    def _annotate_genes(self):
-        """Annotate Entrez genes; generate a dataframe with annotations."""
-        # FIXME: gene annotation could follow the same logic than
-        # omim variants and uniprot variants annotation later:
-        # grab the unique ids and annotate in the same method
-        # without adding an extra column in the rs_variants dataframe
-        gene_ids = chain.from_iterable(self.rs_variants['entrez_gene_ids'])
-        gene_annotations = pd.DataFrame({'entrez_id': list(set(gene_ids))})
-
-        gene_annotator_classes = [MygeneAnnotator, GeneEntrezAnnotator]
-        for annotator_class in gene_annotator_classes:
-            annotator = annotator_class(cache=self.cache)
-            self._annotate_ids_and_add_series(
-                    annotator=annotator,
-                    id_series=gene_annotations['entrez_id'],
-                    df_to_modify=gene_annotations,
-                )
-
-        self.gene_annotations = gene_annotations
 
     def _add_omim_variants_info(self):
         # Get all OMIM variants in the affected genes
@@ -263,25 +232,4 @@ class AnnotationPipeline:
 
         else:
             logger.warning('No uniprot variants annotated?')
-
-
-    def _annotate_ids_and_add_series(self, annotator, id_series, df_to_modify):
-        """
-        Annotate the IDs in id_series with the passed annotator object and add
-        the resulting Series to the df_to_modify.
-        """
-        annotations_dict = annotator.annotate(
-                id_series,
-                use_web=self.use_web,
-                use_cache=self.use_cache,
-            )
-        annotations = id_series.map(annotations_dict)
-
-        total = len(annotations)
-        annotated_count = len(annotations[annotations.notnull()])
-        msg = '{}/{} ({:.2%}) variants have {} data'
-        logger.info(msg.format(annotated_count, total, annotated_count/total,
-                               annotator.SOURCE_NAME))
-
-        df_to_modify[annotator.SOURCE_NAME] = annotations
 
