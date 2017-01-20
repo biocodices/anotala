@@ -15,4 +15,6 @@ def test_annotate_swissprot_ids(monkeypatch):
                                     use_cache=True, proxies={'foo': 'bar'})
 
     assert len(result) == 4  # 2 fake variants * 2 ids
+    assert {'foo': 'bar'} in result
+    assert {'baz': 'qux'} in result
 

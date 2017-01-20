@@ -14,5 +14,5 @@ def annotate_swissprot_ids(swissprot_ids, cache, use_web=True, use_cache=True,
                       use_web=use_web, use_cache=use_cache, proxies=proxies,
                       sleep_time=sleep_time)
 
-    return list(chain.from_iterable(df['uniprot'].values))
+    return list(chain.from_iterable(df['uniprot'].dropna().values))
 

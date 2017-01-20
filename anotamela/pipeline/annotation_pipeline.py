@@ -57,22 +57,17 @@ class AnnotationPipeline:
 
         See the docstring of Pipeline.run for some usage examples.
         """
-        self.use_cache = use_cache
-        self.use_web = use_web
-        self.proxies = proxies
-        self.sleep_time = sleep_time
-
         if isinstance(cache, Cache):
-            self.cache = cache
+            cache = cache
         else:
-            self.cache = create_cache(cache, **cache_kwargs)
+            cache = create_cache(cache, **cache_kwargs)
 
         self.annotation_kwargs = {
-            'cache': self.cache,
-            'use_cache': self.use_cache,
-            'use_web': self.use_web,
-            'proxies': self.proxies,
-            'sleep_time': self.sleep_time,
+            'cache': cache,
+            'use_cache': use_cache,
+            'use_web': use_web,
+            'proxies': proxies,
+            'sleep_time': sleep_time,
         }
 
     def run_from_vcf(self, vcf_path):
@@ -115,10 +110,9 @@ class AnnotationPipeline:
         logger.info('{} other variants'.format(len(other_variants)))
 
         rs_annotations = self.run_from_rsids(rs_variants['id'])
-        import q; q(rs_variants.columns)
         self.rs_variants = pd.merge(rs_variants, rs_annotations,
                                     left_on='id', right_on='rsid', how='left')
-
+        self.other_variants = other_variants
 
     def run_from_rsids(self, rsids):
         """
@@ -138,7 +132,7 @@ class AnnotationPipeline:
         dbsnp = rs_variants['dbsnp_myvariant']
         rs_variants['entrez_gene_ids'] = \
             dbsnp.fillna(False).apply(extract_entrez_genes, field='geneid')
-        rs_variants['entez_gene_symbols'] = \
+        rs_variants['entrez_gene_symbols'] = \
             dbsnp.fillna(False).apply(extract_entrez_genes, field='symbol')
 
         logger.info('Annotate the Entrez genes associated to the variants')

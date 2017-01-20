@@ -13,10 +13,10 @@ def annotate_ids(ids, annotator_classes, cache, use_web=True, use_cache=True,
     all the given annotators, using the passed *cache*. The rest of the
     kwargs apply to all the annotators.
 
-    This method is meant as a common logic for annotate_rsids and
-    annotate_entrez_ids methods.
+    This method is meant as a common logic for annotate_rsids,
+    annotate_entrez_ids, annotate_swissprot_ids, annotate_pmids methods.
     """
-    df = pd.DataFrame({'id': list(ids)})
+    df = pd.DataFrame({'id': ids}).drop_duplicates()
 
     for annotator_class in annotator_classes:
         annotator = annotator_class(cache)

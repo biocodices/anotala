@@ -13,5 +13,5 @@ def annotate_pmids(pmids, cache, use_web=True, use_cache=True, proxies={},
                       sleep_time=sleep_time)
 
     df.rename(columns={'id': 'pmid'}, inplace=True)
-    return df.set_index('pmid', drop=False).to_dict('index')
+    return df.set_index('pmid', drop=False)['pubmed'].to_dict()
 

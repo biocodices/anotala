@@ -13,4 +13,5 @@ def test_annotate_pmids(monkeypatch):
                             use_cache=True, proxies={'foo': 'bar'})
 
     assert all([id_ in result for id_ in ids])
+    assert result['PM1'] == 'PM1-ann'
 
