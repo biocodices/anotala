@@ -16,7 +16,7 @@ def annotate_ids(ids, annotator_classes, cache, use_web=True, use_cache=True,
     This method is meant as a common logic for annotate_rsids and
     annotate_entrez_ids methods.
     """
-    df = pd.DataFrame({'id': ids})
+    df = pd.DataFrame({'id': list(ids)})
 
     for annotator_class in annotator_classes:
         annotator = annotator_class(cache)
@@ -33,8 +33,9 @@ def annotate_ids(ids, annotator_classes, cache, use_web=True, use_cache=True,
 
         found = len(annotations)
         total = len(df)
+        ratio = found / total if total > 0 else 0
         logger.info('{}/{} ({:.2%}) variants have {} data'
-                    .format(found, total, found/total, annotator.SOURCE_NAME))
+                    .format(found, total, ratio, annotator.SOURCE_NAME))
 
     return df
 

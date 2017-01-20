@@ -1,7 +1,6 @@
 import time
 import logging
 from itertools import chain
-from functools import partial
 from os.path import expanduser
 
 import pandas as pd
@@ -10,12 +9,19 @@ from humanfriendly import format_timespan
 from pprint import pformat
 
 from anotamela.cache import create_cache, Cache
-from anotamela.annotators import RS_ANNOTATOR_CLASSES
 from anotamela.pipeline import (
     read_variants_from_vcf,
     annotate_rsids,
     extract_entrez_genes,
     annotate_entrez_gene_ids,
+    get_omim_variants_from_entrez_genes,
+    group_omim_variants_by_rsid,
+    extract_pmids,
+    annotate_pmids,
+    assign_pubmed_entries_to_omim_entries,
+    extract_swissprot_ids,
+    annotate_swissprot_ids,
+    group_swissprot_variants_by_rsid,
 )
 
 
@@ -69,7 +75,7 @@ class AnnotationPipeline:
             'sleep_time': self.sleep_time,
         }
 
-    def run(self, vcf_path):
+    def run_from_vcf(self, vcf_path):
         """
         Annotate the given VCF file (accepts gzipped files too). Returns
         a DataFrame of annotations per rs ID. The IDs that weren't regular
@@ -98,138 +104,89 @@ class AnnotationPipeline:
             > pipeline.run('~/variants.vcf')
 
         """
-        self.start_time = time.time()
+        self.vcf = vcf_path
+        logger.info('Read "{}"'.format(self.vcf))
 
-        opts = pformat({**self.__dict__, 'vcf_path': vcf_path} , width=50)
+        variants = read_variants_from_vcf(expanduser(self.vcf))
+        rs_variants = variants['rs_variants']
+        other_variants = variants['other_variants']
+
+        logger.info('{} variants with single rs'.format(len(rs_variants)))
+        logger.info('{} other variants'.format(len(other_variants)))
+
+        rs_annotations = self.run_from_rsids(rs_variants['id'])
+        import q; q(rs_variants.columns)
+        self.rs_variants = pd.merge(rs_variants, rs_annotations,
+                                    left_on='id', right_on='rsid', how='left')
+
+
+    def run_from_rsids(self, rsids):
+        """
+        Given a list of rs IDs, annotate them and return the annotations in
+        a pandas DataFrame.
+        """
+        start_time = time.time()
+
+        opts = pformat({**self.__dict__} , width=50)
         logger.info('Starting annotation pipeline with options:\n\n{}\n'
                     .format(opts))
 
-        logger.info('Read "{}"'.format(vcf_path))
-
-        variants = read_variants_from_vcf(expanduser(vcf_path))
-        self.rs_variants = variants['rs_variants']
-        self.other_variants = variants['other_variants']
-
-        logger.info('{} variants with single rs'.format(len(self.rs_variants)))
-        logger.info('{} other variants'.format(len(self.other_variants)))
-
         logger.info('Annotate the variants with rs ID')
-        rs_annotations = annotate_rsids(self.rs_variants['id'],
-                                        **self.annotation_kwargs)
-        self.rs_variants = pd.merge(self.rs_variants, rs_annotations,
-                                    on='id', how='left')
+        rs_variants = annotate_rsids(rsids, **self.annotation_kwargs)
 
         logger.info('Extract Entrez gene data from the variants')
-
-        dbsnp = self.rs_variants['dbsnp_myvariant']
-        self.rs_variants['entrez_gene_ids'] = \
-                dbsnp.fillna(False).apply(extract_entrez_gene, field='geneid')
-        self.rs_variants['entez_gene_symbols'] = \
-                dbsnp.fillna(False).apply(extract_entrez_gene, field='symbol')
+        dbsnp = rs_variants['dbsnp_myvariant']
+        rs_variants['entrez_gene_ids'] = \
+            dbsnp.fillna(False).apply(extract_entrez_genes, field='geneid')
+        rs_variants['entez_gene_symbols'] = \
+            dbsnp.fillna(False).apply(extract_entrez_genes, field='symbol')
 
         logger.info('Annotate the Entrez genes associated to the variants')
+        entrez_gene_ids = \
+            list(chain.from_iterable(rs_variants['entrez_gene_ids']))
+        gene_annotations = annotate_entrez_gene_ids(entrez_gene_ids,
+                                                    **self.annotation_kwargs)
 
-        entrez_gene_ids = chain.from_iterable(self.rs_variants['entrez_gene_ids'])
-        self.gene_annotations = annotate_entrez_genes(list(entrez_gene_ids),
-                                                      **self.annotation_kwargs)
+        logger.info('Get the OMIM variants described for the Entrez genes')
+        omim_variants = \
+            get_omim_variants_from_entrez_genes(entrez_gene_ids,
+                                                **self.annotation_kwargs)
 
-        self._add_omim_variants_info()
-        self._add_pubmed_entries_to_omim_entries()
-        self._add_uniprot_variants_info()
+        logger.info('Extract PMIDs from the OMIM variants')
+        pmids = extract_pmids(omim_variants)
 
-        self.rs_variants.rename(columns={'clinvar_rs': 'clinvar_entries'},
-                                inplace=True)
+        logger.info('Annotate the PMIDs')
+        pubmed_entries = annotate_pmids(pmids, **self.annotation_kwargs)
 
-        self.end_time = time.time()
-        elapsed = format_timespan(self.end_time - self.start_time)
-        logger.info('Done! Took {} to complete the pipeline'.format(elapsed))
+        logger.info('Associate OMIM variants to annotated PubMed entries')
+        omim_variants = assign_pubmed_entries_to_omim_entries(omim_variants,
+                                                              pubmed_entries)
+
+        logger.info('Associate each rs ID to a list of OMIM variants')
+        rs_to_omim_variants = group_omim_variants_by_rsid(omim_variants)
+        rs_variants['omim_entries'] = rs_variants['rsid'].map(rs_to_omim_variants)
+
+        logger.info('Extract Swissprot IDs')
+        swissprot_ids = extract_swissprot_ids(gene_annotations['mygene'])
+
+        logger.info('Get Swissprot variants from the swissprot gene IDs')
+        swissprot_variants = annotate_swissprot_ids(swissprot_ids,
+                                                    **self.annotation_kwargs)
+
+        logger.info('Associate Swissprot variants to the rs IDs')
+        rs_to_swissprot_variants = \
+            group_swissprot_variants_by_rsid(swissprot_variants)
+        rs_variants['uniprot_entries'] = \
+            rs_variants['rsid'].map(rs_to_swissprot_variants)
+
+        rs_variants.rename(columns={'clinvar_rs': 'clinvar_entries'},
+                           inplace=True)
+
+        self.rs_variants = rs_variants
+        self.gene_annotations = gene_annotations
+
+        logger.info('Done! Took {} to complete the annotation'
+                    .format(format_timespan(time.time() - start_time)))
 
         return self.rs_variants
-
-    def _add_omim_variants_info(self):
-        # Get all OMIM variants in the affected genes
-        annotator = OmimGeneAnnotator(cache=self.cache)
-        annotator.PROXIES = self.proxies
-        omim_variants_per_gene = annotator.annotate_from_entrez_ids(
-                self.gene_annotations['entrez_id'],
-                use_cache=self.use_cache,
-                use_web=self.use_web,
-            )
-
-        # Keep the variants with the rs IDs that we are interested in
-        rs_to_omim_variants = {}
-
-        omim_variants = [v for gene_variants in omim_variants_per_gene.values()
-                           for v in gene_variants]
-
-        for omim_variant in omim_variants:
-            # One OMIM variant might correspond to many
-            # rs IDs, so we need to check each rs associated to an OMIM
-            # variant.
-            for rs in omim_variant.get('rsids', []):
-                if rs not in self.rs_variants['id'].values:
-                    continue
-
-                if rs not in rs_to_omim_variants:
-                    # There might be more than one OMIM variant for a given rs
-                    # --the typical case is the one of multiallelic SNPs.
-                    # Hence, we return the OMIM annotation for an rs always as
-                    # a *list* of entries.
-                    rs_to_omim_variants[rs] = []
-
-                rs_to_omim_variants[rs].append(omim_variant)
-
-        self.rs_variants['omim_entries'] = \
-                self.rs_variants['id'].map(rs_to_omim_variants)
-
-    def _add_pubmed_entries_to_omim_entries(self):
-        pubmed_ids = set()
-
-        for omim_entries in self.rs_variants['omim_entries'].dropna():
-            for entry in omim_entries:
-                for pubmed in entry.get('pubmed_entries', []):
-                    pubmed_ids.add(pubmed['pmid'])
-
-        pubmed_annotations = \
-                PubmedAnnotator(cache=self.cache).annotate(pubmed_ids)
-
-        for omim_entries in self.rs_variants['omim_entries'].dropna():
-            for entry in omim_entries:
-                for pubmed in entry.get('pubmed_entries', []):
-                    extra_info = pubmed_annotations[pubmed['pmid']]
-                    pubmed.update(extra_info)
-
-    def _add_uniprot_variants_info(self):
-        uniprot_ids = set()
-
-        for gene in self.gene_annotations['mygene'].fillna(False):
-            if gene and 'swissprot' in gene:
-                ids = gene['swissprot']
-                if not isinstance(ids, list):
-                    ids = [ids]
-                uniprot_ids = uniprot_ids | set(ids)
-
-        annotator = UniprotAnnotator(cache=self.cache)
-        annotator.PROXIES = self.proxies
-        uniprot_annotations = annotator.annotate(
-            uniprot_ids,
-            use_cache=self.use_cache,
-            use_web=self.use_web
-        )
-        uniprot_variants = list(chain.from_iterable(uniprot_annotations.values()))
-
-        if uniprot_variants:
-            uniprot_df = pd.DataFrame(uniprot_variants)
-            uniprot_df = uniprot_df.set_index('rsid', drop=False)
-
-            def rs_to_uniprot_variants(rs):
-                if rs not in uniprot_df.index:
-                    return None
-                return uniprot_df.loc[[rs]].to_dict('records')
-
-            self.rs_variants['uniprot_entries'] = \
-                self.rs_variants['id'].map(rs_to_uniprot_variants)
-
-        else:
-            logger.warning('No uniprot variants annotated?')
 

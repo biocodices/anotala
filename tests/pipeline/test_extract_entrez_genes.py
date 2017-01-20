@@ -8,8 +8,8 @@ def test_extract_entrez_genes():
     ]
 
     ids = extract_entrez_genes(dbsnp_entries, field='geneid')
-    assert ids == [1, 2]
+    assert set(ids) == {1, 2}
 
     symbols = extract_entrez_genes(dbsnp_entries, field='symbol')
-    assert symbols == ['GENE-1', 'GENE-2']
+    assert set(symbols) == {'GENE-1', 'GENE-2'}
 

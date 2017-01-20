@@ -67,9 +67,21 @@ class PubmedAnnotator(EntrezAnnotator):
         citation_data = {
             'title': article['ArticleTitle'],
             'journal': article['Journal']['ISOAbbreviation'].replace('.', ''),
-            'volume': article['Journal']['JournalIssue']['Volume'],
-            'pages': article['Pagination']['MedlinePgn'],
         }
+
+        try:
+            volume = article['Journal']['JournalIssue']['Volume']
+        except KeyError:
+            volume = ''
+
+        citation_data['volume'] = volume
+
+        try:
+            pages = article['Pagination']['MedlinePgn']
+        except KeyError:
+            pages = ''
+
+        citation_data['pages'] = pages
 
         try:
             citation_data['issue'] = article['Journal']['JournalIssue']['Issue']
