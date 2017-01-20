@@ -25,15 +25,15 @@ def test_run_from_rsids(proxies):
     with open(pytest.helpers.file('dict_cache_storage.pickle'), 'rb') as f:
         dict_cache.storage = pickle.load(f)
 
-    # Every annotation will be brought from the pickle loaded cache
+    # Every annotation will be brought from the pickle-loaded cache
     pipe = AnnotationPipeline(cache=dict_cache, use_web=False)
 
     # The .pickle loaded above has annotations for this single rs ID,
     # to allow this test to run fast with real data.
     rsid = 'rs1799983'
-    # The pickle file was the result of pickle.dump() the
+    # The pickle file was the result of pickle.dump()ing the
     # pipe.annotation_kwargs['cache'].storage after choosing 'dict' as the
-    # cache of an annotation.
+    # cache of an annotation and pipe.run_from_rsids(['rs1799983']).
     # The chosen SNP has info from ClinVar, OMIM and Uniprot, but not from
     # GWAS Catalog, so that's a blind spot in this test.
 
