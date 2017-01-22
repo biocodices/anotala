@@ -12,8 +12,7 @@ test_params = [
         }),
         (DbsnpEntrezAnnotator, {
             'ids_to_annotate': 'rs268',
-            'keys_to_check': ('hgvs alleles type links fxn '
-                              'clinical_significance synonyms frequency')
+            'keys_to_check': ('hgvs alleles type links fxn synonyms frequency')
         }),
         (DbsnpMyvariantAnnotator, {
             'ids_to_annotate': 'rs268 rs123',

@@ -84,7 +84,6 @@ def _test_pipeline_result(pipeline):
     entrez_snp = variant['dbsnp_entrez']
     assert entrez_snp['rsid'] == rsid
     assert len(entrez_snp['hgvs']) == 16
-    assert entrez_snp['clinical_significance'] == 'drug-response'
     assert entrez_snp['alleles'] == 'G/T'
 
     uniprot_entry = variant['uniprot_entries'][0]

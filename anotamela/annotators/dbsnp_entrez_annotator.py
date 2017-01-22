@@ -62,15 +62,21 @@ class DbsnpEntrezAnnotator(EntrezAnnotator):
         for synonym in e.select('mergehistory'):
             ann['synonyms'].append('rs' + synonym['rsid'])
 
-        clinsigs = [sig.text
-                    for sig in e.select('phenotype clinicalsignificance')]
-        ann['clinical_significance'] = ','.join(clinsigs) or None
+        # I'm removing 'clinical significance' since I found too many
+        # inconsistencies between these data and ClinVar's own data on the
+        # *same* SNPs. I'd rather not have information than misleading
+        # information:
+
+        #  clinsigs = [sig.text
+                    #  for sig in e.select('phenotype clinicalsignificance')]
+        #  ann['clinical_significance'] = ','.join(clinsigs) or None
 
         ann['hgvs'] = []
         for hgvs in e.select('hgvs'):
             ann['hgvs'].append(hgvs.text)
 
         ann['frequency'] = e.frequency and e.frequency.attrs
+
         ann['fxn'] = [fx.attrs for fx in e.select('fxnset')]
 
         return ann
