@@ -11,6 +11,7 @@ def test_gwas_catalog_annotator_parse_annotation():
 
     association_data = [{
         'rsId': ['rs1'],
+        'strongestAllele': ['rs123-A'],
         'pValueExponent': -10,
         'pubmedId': 'PM1',
         'numberOfIndividuals': [100, 50],
@@ -53,8 +54,10 @@ def test_gwas_catalog_annotator_parse_annotation():
         'pubmed_entries',
         'entrez_mapped_genes',
         'reported_genes',
+        'genomic_alleles',
     ]
-    assert all(key in parsed for key in expected_new_keys)
+    for key in expected_new_keys:
+        assert key in parsed
 
     # Test it sorts the mapped genes by relative position
     assert parsed['entrez_mapped_genes'][0]['symbol'] == 'closest'
@@ -65,11 +68,17 @@ def test_gwas_catalog_annotator_parse_annotation():
 
 
 @pytest.mark.parametrize('rsid_allele,expected_tuple', [
-    ('rs1800562-A', ('rs1800562', 'A')),
-    ('rs1800562-?', ('rs1800562', None)),
+    ('rs123-A', [('rs123', 'A')]),
+    ('rs123-?', [('rs123', None)]),
+    ('rs123-A; rs234-T', [('rs123', 'A'), ('rs234', 'T')])
 ])
 def test_infer_allele(rsid_allele, expected_tuple):
     assert GwasCatalogAnnotator._infer_allele(rsid_allele) == expected_tuple
+
+
+def test_infer_allele_raise():
+    with pytest.raises(ValueError):
+        GwasCatalogAnnotator._infer_allele('nonmatching-rsid')
 
 
 @pytest.mark.parametrize('association_entry,expected_pubmed_entries', [

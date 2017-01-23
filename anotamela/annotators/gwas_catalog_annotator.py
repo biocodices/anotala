@@ -67,7 +67,7 @@ class GwasCatalogAnnotator(ParallelAnnotator):
             'risk_allele_frequency_in_controls': 'riskFrequency'
         }
 
-    STRONGEST_ALLELE_REGEX = re.compile(r'(?P<rsid>rs\d+)-(?P<allele>.+)')
+    STRONGEST_ALLELE_REGEX = re.compile(r'(?P<rsid>rs\d+) ?-(?P<allele>.+)')
 
     @staticmethod
     def _url(id_):
@@ -112,9 +112,9 @@ class GwasCatalogAnnotator(ParallelAnnotator):
         info['urls'] = {rsid: cls._web_url(rsid) for rsid in info['rsids']}
 
         if 'strongest_alleles' in info:
-            info['genomic_alleles'] = [cls._infer_allele(rsid_allele)
-                                       for rsid_allele
-                                       in info['strongest_alleles']]
+            info['genomic_alleles'] = []
+            for rsid_allele in info['strongest_alleles']:
+                info['genomic_alleles'] += cls._infer_allele(rsid_allele)
 
         if 'sample_size' in info:
             info['sample_size'] = cls._parse_sample_size(info['sample_size'])
@@ -144,14 +144,25 @@ class GwasCatalogAnnotator(ParallelAnnotator):
         return 'https://www.ebi.ac.uk/gwas/search?query={}'.format(rsid)
 
     @classmethod
-    def _infer_allele(cls, rsid_allele):
+    def _infer_allele(cls, rsid_alleles):
         """
-        Given a 'strongest_allele' datum from GWAS Catalog like 'rs123-A',
-        return a tuple of the rs ID and the allele: ('rs123', 'A').
+        Given a 'strongest_allele' datum from GWAS Catalog like 'rs123-A' or
+        'rs123-A; rs234-T', return a list of tuples with the rs IDs and the
+        alleles: [('rs123', 'A'), ('rs234', 'T')].
         """
-        match = cls.STRONGEST_ALLELE_REGEX.search(rsid_allele)
-        allele = match.group('allele')
-        return (match.group('rsid'), (None if allele == '?' else allele))
+        rsid_alleles = rsid_alleles.split('; ')
+
+        tuples = []
+        for rsid_allele in rsid_alleles:
+            match = cls.STRONGEST_ALLELE_REGEX.search(rsid_allele)
+            if not match:
+                raise ValueError("Couldn't parse the rsid_allele '{}'"
+                                 .format(rsid_allele))
+            allele = match.group('allele')
+            tup = (match.group('rsid'), (None if allele == '?' else allele))
+            tuples.append(tup)
+
+        return tuples
 
     @staticmethod
     def _parse_pubmed_entries(association):
