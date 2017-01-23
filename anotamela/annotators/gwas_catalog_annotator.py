@@ -57,7 +57,7 @@ class GwasCatalogAnnotator(ParallelAnnotator):
             'pmid': 'pubmedId',
             'authors': 'author_s',
             'location_grch38': 'chromosomePosition',
-            'pvalue_base': 'pValueMantissa',
+            'p_value_base': 'pValueMantissa',
             'beta': 'betaNum',
             'ontology_ids': 'shortForm',
             'ontology_links': 'efoLink',  # needs parsing label|efo_id|efo_url
