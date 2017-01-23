@@ -8,7 +8,7 @@ def test_annotate_pmids(monkeypatch):
     monkeypatch.setattr(PubmedAnnotator, 'annotate',
                         pytest.helpers.mock_annotate)
 
-    ids = ['PM1', 'PM2', 'PM3']
+    ids = ['PM1', 'PM1', 'PM1', 'PM2', 'PM3']
     result = annotate_pmids(ids, cache='mock_cache', use_web=True,
                             use_cache=True, proxies={'foo': 'bar'})
 

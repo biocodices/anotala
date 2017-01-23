@@ -1,7 +1,7 @@
 from copy import deepcopy
 
 
-def assign_pubmed_entries_to_omim_entries(omim_entries, pubmed_entries_by_pmid):
+def update_pubmed_entries(omim_entries, pubmed_entries_by_pmid):
     """
     Given a list of *omim_entries*, which have 'pubmed_entries' in them,
     update the info of each PubMed entry with the annotations by PMID in

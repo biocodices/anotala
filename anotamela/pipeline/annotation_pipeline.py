@@ -3,6 +3,7 @@ import logging
 import warnings
 from itertools import chain
 from os.path import expanduser
+from functools import partial
 
 import pandas as pd
 import coloredlogs
@@ -19,7 +20,7 @@ from anotamela.pipeline import (
     group_omim_variants_by_rsid,
     extract_pmids,
     annotate_pmids,
-    assign_pubmed_entries_to_omim_entries,
+    update_pubmed_entries,
     extract_swissprot_ids,
     annotate_swissprot_ids,
     group_swissprot_variants_by_rsid,
@@ -161,16 +162,25 @@ class AnnotationPipeline:
         logger.info('Extract PMIDs from the OMIM variants')
         pmids = extract_pmids(omim_variants)
 
+        logger.info('Extract PMIDs from the GWAS Catalog entries')
+        for gwas_entries in rs_variants['gwas_catalog'].dropna():
+            pmids += extract_pmids(gwas_entries)
+
         logger.info('Annotate the PMIDs')
         pubmed_entries = annotate_pmids(pmids, **self.annotation_kwargs)
 
-        logger.info('Associate OMIM variants to annotated PubMed entries')
-        omim_variants = assign_pubmed_entries_to_omim_entries(omim_variants,
-                                                              pubmed_entries)
+        logger.info("Update OMIM's PubMed entries with the PubMed annotations")
+        omim_variants = update_pubmed_entries(omim_variants, pubmed_entries)
 
         logger.info('Associate each rs ID to a list of OMIM variants')
         rs_to_omim_variants = group_omim_variants_by_rsid(omim_variants)
         rs_variants['omim_entries'] = rs_variants['rsid'].map(rs_to_omim_variants)
+
+        logger.info('Update GWAS PubMed entries with the PubMed annotations')
+        func = partial(update_pubmed_entries,
+                       pubmed_entries_by_pmid=pubmed_entries)
+        rs_variants['gwas_catalog'] = \
+            rs_variants['gwas_catalog'].map(func, na_action='ignore')
 
         logger.info('Extract Swissprot IDs')
         swissprot_ids = extract_swissprot_ids(gene_annotations['mygene'])

@@ -1,10 +1,11 @@
-def extract_pmids(omim_entries):
+def extract_pmids(entries):
     """
-    Given a list of omim variant entries, extact the unique PubMed IDs cited.
+    Given a list of entries with 'pubmed_entries' inside, extact the unique
+    PubMed IDs mentioned.
     """
     pmids = set()
 
-    for entry in omim_entries:
+    for entry in entries:
         for pubmed in entry.get('pubmed_entries', []):
             pmids.add(pubmed['pmid'])
 

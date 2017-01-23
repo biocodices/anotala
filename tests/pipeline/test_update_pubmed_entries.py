@@ -1,7 +1,7 @@
-from anotamela.pipeline import assign_pubmed_entries_to_omim_entries
+from anotamela.pipeline import update_pubmed_entries
 
 
-def test_assign_pubmed_entries_to_omim_entries():
+def test_update_pubmed_entries():
     omim_entries = [
         {'id': 1},  # Has no 'pubmed_entries'
         {'id': 2, 'pubmed_entries': []},
@@ -15,8 +15,7 @@ def test_assign_pubmed_entries_to_omim_entries():
         # No annotation for pmid 3
     }
 
-    new_omim_entries = assign_pubmed_entries_to_omim_entries(omim_entries,
-                                                             pubmed_entries)
+    new_omim_entries = update_pubmed_entries(omim_entries, pubmed_entries)
 
     for omim_entry in new_omim_entries:
         id_ = omim_entry['id']

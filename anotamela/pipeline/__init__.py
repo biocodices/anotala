@@ -6,7 +6,7 @@ from .get_omim_variants_from_entrez_genes import get_omim_variants_from_entrez_g
 from .group_omim_variants_by_rsid import group_omim_variants_by_rsid
 from .extract_pmids import extract_pmids
 from .annotate_pmids import annotate_pmids
-from .assign_pubmed_entries_to_omim_entries import assign_pubmed_entries_to_omim_entries
+from .update_pubmed_entries import update_pubmed_entries
 from .extract_entrez_genes import extract_entrez_genes
 from .extract_swissprot_ids import extract_swissprot_ids
 from .annotate_swissprot_ids import annotate_swissprot_ids
