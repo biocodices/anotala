@@ -106,26 +106,7 @@ test_params = [
         }),
         (GwasCatalogAnnotator, {
             'ids_to_annotate': 'rs7329174',
-            'keys_to_check': ('entrezMappedGenes ancestralGroups resourcename '
-                              'publicationDate region riskFrequency '
-                              'strongestAllele rsId pubmedId '
-                              'entrezMappedGeneLinks chromosomePosition '
-                              'publication multiSnpHaplotype chromosomeName '
-                              'shortform_autosuggest synonym_autosuggest '
-                              'replicateSampleDescription publicationLink '
-                              'positionLinks context reportedGene '
-                              'catalogPublishDate numberOfIndividuals '
-                              'countriesOfRecruitment chromLocation author '
-                              'label_autosuggest_ws shortForm merged '
-                              'orPerCopyNum reportedGeneLinks id title '
-                              'ancestryLinks label_autosuggest author_s '
-                              'label synonym_autosuggest_e synonym traitName '
-                              'initialSampleDescription traitName_s efoLink '
-                              'pValueExponent currentSnp pValueMantissa '
-                              'label_autosuggest_e mappedUri mappedLabel '
-                              'locusDescription synonym_autosuggest_ws '
-                              'platform snpInteraction parent range '
-                              'accessionId _version_ studyId')
+            'keys_to_check': ('rsids strongest_alleles p_value_exponent')
         })
     ]
 
