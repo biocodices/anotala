@@ -57,7 +57,7 @@ def test_gwas_catalog_annotator_parse_annotation():
         'genomic_alleles',
     ]
     for key in expected_new_keys:
-        assert key in parsed
+        assert key and parsed[key]
 
     # Test it sorts the mapped genes by relative position
     assert parsed['entrez_mapped_genes'][0]['symbol'] == 'closest'

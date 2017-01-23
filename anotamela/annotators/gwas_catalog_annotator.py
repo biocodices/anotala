@@ -134,7 +134,7 @@ class GwasCatalogAnnotator(ParallelAnnotator):
             info['reported_genes'] = reported_genes
             del(info['reported_gene_links'])
 
-        info['pubmed_entries'] = cls._parse_pubmed_entries(association)
+        info['pubmed_entries'] = cls._parse_pubmed_entries(info)
 
         return info
 
