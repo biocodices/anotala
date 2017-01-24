@@ -49,7 +49,7 @@ class GwasCatalogAnnotator(ParallelAnnotator):
     KEYS_TO_RENAME = {
             'rsids': 'rsId',
             'strongest_alleles': 'strongestAllele',
-            'allele_impact': 'context',
+            'allele_impacts': 'context',
             'entrez_mapped_gene_symbols': 'entrezMappedGenes',
             'sample_size': 'numberOfIndividuals',
             'gwas_catalog_version': '_version_',
@@ -111,12 +111,28 @@ class GwasCatalogAnnotator(ParallelAnnotator):
 
         info = {k: v for k, v in info.items() if v}
 
+
+        info['rsids'] = cls._parse_colon_separated_values(info['rsids'])
+
+        # Some fields contain annotations for the different rs ids found in the
+        # study. Split those and associate each annotation to the corresponding
+        # rs ID:
+        multiannotation_fields = [
+            'strongest_alleles',
+            'allele_impacts',
+            'chrom_location',
+            'entrez_mapped_gene_symbols',
+        ]
+        for field in multiannotation_fields:
+            info[field] = cls._parse_colon_separated_values(info[field])
+            info[field] = dict(zip(info['rsids'], info[field]))
+
         info['urls'] = {rsid: cls._web_url(rsid) for rsid in info['rsids']}
 
         if 'strongest_alleles' in info:
-            info['genomic_alleles'] = []
-            for rsid_allele in info['strongest_alleles']:
-                info['genomic_alleles'] += cls._infer_allele(rsid_allele)
+            info['genomic_alleles'] = {}
+            for rsid, rsid_allele in info['strongest_alleles']:
+                info['genomic_alleles'][rsid] = cls._infer_allele(rsid_allele)
 
         if 'sample_size' in info:
             info['sample_size'] = cls._parse_sample_size(info['sample_size'])
@@ -154,23 +170,15 @@ class GwasCatalogAnnotator(ParallelAnnotator):
     @classmethod
     def _infer_allele(cls, rsid_alleles):
         """
-        Given a 'strongest_allele' datum from GWAS Catalog like 'rs123-A' or
-        'rs123-A; rs234-T', return a list of tuples with the rs IDs and the
-        alleles: [('rs123', 'A'), ('rs234', 'T')].
+        Given a 'strongest_allele' datum from GWAS Catalog like 'rs123-A',
+        return a tuple with the rs IDs and the allele: ('rs123', 'A').
         """
-        rsid_alleles = rsid_alleles.split('; ')
-
-        tuples = []
-        for rsid_allele in rsid_alleles:
-            match = cls.STRONGEST_ALLELE_REGEX.search(rsid_allele)
-            if not match:
-                raise ValueError("Couldn't parse the rsid_allele '{}'"
-                                 .format(rsid_allele))
-            allele = match.group('allele')
-            tup = (match.group('rsid'), (None if allele == '?' else allele))
-            tuples.append(tup)
-
-        return tuples
+        match = cls.STRONGEST_ALLELE_REGEX.search(rsid_allele)
+        if not match:
+            raise ValueError("Couldn't parse the rsid_allele '{}'"
+                             .format(rsid_allele))
+        allele = match.group('allele')
+        return (match.group('rsid'), (None if allele == '?' else allele))
 
     @staticmethod
     def _parse_pubmed_entries(association):
@@ -302,4 +310,28 @@ class GwasCatalogAnnotator(ParallelAnnotator):
         return {study_type: list(studies)
                 for study_type, studies
                 in groupby(sample_info, itemgetter('study_type'))}
+
+    @staticmethod
+    def _parse_colon_separated_values(values):
+        """
+        Given a list of values separated by colons, as given by GWAS Catalog
+        annotation, parse them and return the values in the same order.
+        Returns a list.
+
+        Example:
+
+            > _parse_colon_separated_values(['intron_variant; intron_variant'])
+              # => ['intron_variant', 'intron_variant']
+            > _parse_colon_separated_values(['rs123; rs234'])
+              # => ['rs123', 'rs234']
+        """
+        parsed_values = []
+
+        for value in values:
+            # some are simple like 'intron_variant', others are compound like
+            # 'intron_variant; intron_variant; 3_prime_UTR_variant',
+            # so we need to split those:
+            parsed_values += value.split('; ')
+
+        return parsed_values
 

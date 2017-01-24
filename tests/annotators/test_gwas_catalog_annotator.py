@@ -70,9 +70,8 @@ def test_gwas_catalog_annotator_parse_annotation():
 
 
 @pytest.mark.parametrize('rsid_allele,expected_tuple', [
-    ('rs123-A', [('rs123', 'A')]),
-    ('rs123-?', [('rs123', None)]),
-    ('rs123-A; rs234-T', [('rs123', 'A'), ('rs234', 'T')])
+    ('rs123-A', ('rs123', 'A')),
+    ('rs123-?', ('rs123', None)),
 ])
 def test_infer_allele(rsid_allele, expected_tuple):
     assert GwasCatalogAnnotator._infer_allele(rsid_allele) == expected_tuple
@@ -172,4 +171,17 @@ def test_group_sample_info():
     grouped = GwasCatalogAnnotator._group_sample_info(sample_info)
     assert grouped['initial'] == [initial_study]
     assert grouped['replication'] == replication_studies
+
+
+@pytest.mark.parametrize('impacts,expected_result', [
+    (['intron_variant'], ['intron_variant']),
+
+    (['intron_variant; intron_variant'], ['intron_variant']),
+
+    (['intron_variant; 3_prime_UTR_variant'],
+     ['3_prime_UTR_variant', 'intron_variant'])
+])
+def test_parse_colon_separated_values(values, expected_result):
+    result = GwasCatalogAnnotator._parse_allele_impacts(values)
+    assert result == expected_result
 
