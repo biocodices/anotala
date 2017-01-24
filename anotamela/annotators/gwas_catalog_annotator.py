@@ -139,6 +139,7 @@ class GwasCatalogAnnotator(ParallelAnnotator):
             info['sample_info'] = [cls._parse_ancestry_link(ancestry_link)
                                    for ancestry_link in info['ancestry_links']]
             info['sample_info'] = cls._group_sample_info(info['sample_info'])
+            del(info['ancestry_links'])
 
         info['pubmed_entries'] = cls._parse_pubmed_entries(info)
 
