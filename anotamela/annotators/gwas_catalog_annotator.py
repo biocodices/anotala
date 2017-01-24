@@ -1,3 +1,4 @@
+from itertools import groupby
 from operator import itemgetter
 import re
 
@@ -30,7 +31,7 @@ class GwasCatalogAnnotator(ParallelAnnotator):
             'accessionId',
             'countriesOfRecruitment',
             'ancestralGroups',
-            'ancestryLinks',  # ^ needs parsing
+            'ancestryLinks',
             'initialSampleDescription',
             'replicateSampleDescription',
             'reportedGene',
@@ -133,6 +134,11 @@ class GwasCatalogAnnotator(ParallelAnnotator):
                               for gene_link in info['reported_gene_links']]
             info['reported_genes'] = reported_genes
             del(info['reported_gene_links'])
+
+        if 'ancestry_links' in info:
+            info['sample_info'] = [cls._parse_ancestry_link(ancestry_link)
+                                   for ancestry_link in info['ancestry_links']]
+            info['sample_info'] = cls._group_sample_info(info['sample_info'])
 
         info['pubmed_entries'] = cls._parse_pubmed_entries(info)
 
@@ -241,4 +247,59 @@ class GwasCatalogAnnotator(ParallelAnnotator):
             'ensembl_id',
         ]
         return dict(zip(fields, gene_link.split('|')))
+
+    @staticmethod
+    def _parse_ancestry_link(ancestry_link):
+        """
+        Given an ancestry link from GWAS Catalog, return a dictionary with the
+        parsed information. Example:
+
+            > link = ('initial|Netherlands|Netherlands|European|911|Utrecht, '
+                      'Netherlands; St Radboud, Netherlands;')
+            > _parse_ancestry_link(link)
+            > # => {'study': 'initial',
+                    'exta': 'Netherlands',
+                    'countries': ['Netherlands'],
+                    'ancestries': ['European'],
+                    'sample_size': 911,
+                    'cities': ['Utrecht, Netherlands',
+                               'St RAdboud, Netherlands']}
+        """
+        fields = [
+            'study_type',
+            'extra',
+            'countries',
+            'ancestries',
+            'sample_size',
+            'cities',
+        ]
+        info = dict(zip(fields, ancestry_link.split('|')))
+
+        info['sample_size'] = int(info['sample_size'])
+
+        info['ancestries'] = info['ancestries'].split(',')
+        info['countries'] = info['countries'].split(',')
+        info['cities'] = [city.strip() for city in info['cities'].split(';')
+                          if city]
+
+        na_values = ['NA', 'NR']
+        for key in ['ancestries', 'countries', 'cities']:
+            info[key] = [value for value in info[key]
+                         if value not in na_values]
+
+        # Include the raw input for checks of possibly missing data
+        info['raw'] = ancestry_link
+
+        return {k: v for k, v in info.items() if v and v not in na_values}
+
+    @staticmethod
+    def _group_sample_info(sample_info):
+        """
+        Given samples information parsed by _parse_ancestry_link, groups the
+        entries by study type (i.e. 'initial' vs 'replication'). Returns a
+        dictionary.
+        """
+        return {study_type: list(studies)
+                for study_type, studies
+                in groupby(sample_info, itemgetter('study_type'))}
 

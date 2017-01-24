@@ -19,6 +19,7 @@ def test_gwas_catalog_annotator_parse_annotation():
                                   'mid|3|5|1',
                                   'closest|1|0|1'],
         'reportedGeneLinks': ['GENE1|1|ENSG01'],
+        'ancestryLinks': ['initial|NR|U.S.|European|100|NR'],
     }]
     study_data = []
     disease_trait_data = []
@@ -48,13 +49,14 @@ def test_gwas_catalog_annotator_parse_annotation():
     # Test it renames some keys
     assert parsed['pmid'] == original['pubmedId']
 
-    # Test it adds new data
+    # Test it adds new data after parsing
     expected_new_keys = [
         'urls',
         'pubmed_entries',
         'entrez_mapped_genes',
         'reported_genes',
         'genomic_alleles',
+        'sample_info',
     ]
     for key in expected_new_keys:
         assert key and parsed[key]
@@ -135,4 +137,45 @@ def test_parse_reported_gene_link():
                        'entrez_gene_id': '1',
                        'ensembl_id': 'ENSG01'}
     assert result == expected_result
+
+
+@pytest.mark.parametrize('ancestry_link,expected_info', [
+    ('initial|NR|NR|European|100|NA',
+     {'ancestries': ['European'], 'sample_size': 100,
+      'raw': 'initial|NR|NR|European|100|NA',
+      'study_type': 'initial'}),
+
+    ('replication|NR|Germany,U.K.|European|100|Augsburg, Germany;',
+     {'ancestries': ['European'],
+      'raw': 'replication|NR|Germany,U.K.|European|100|Augsburg, Germany;',
+      'cities': ['Augsburg, Germany'],
+      'countries': ['Germany', 'U.K.'],
+      'sample_size': 100,
+      'study_type': 'replication'})
+
+])
+def test_parse_ancestry_link(ancestry_link, expected_info):
+    parsed_info = GwasCatalogAnnotator._parse_ancestry_link(ancestry_link)
+    assert parsed_info == expected_info
+
+
+def test_group_sample_info():
+    initial_study = {'ancestries': ['Euro'],
+                     'sample_size': 100,
+                     'study_type': 'initial'}
+
+    replication_studies = [
+        {'ancestries': ['Afro'],
+         'sample_size': 50,
+         'study_type': 'replication'},
+
+        {'ancestries': ['Asian'],
+         'sample_size': 25,
+         'study_type': 'replication'},
+    ]
+
+    sample_info = [initial_study] + replication_studies
+    grouped = GwasCatalogAnnotator._group_sample_info(sample_info)
+    assert grouped['initial'] == [initial_study]
+    assert grouped['replication'] == replication_studies
 
