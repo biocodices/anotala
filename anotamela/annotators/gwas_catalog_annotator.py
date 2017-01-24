@@ -65,7 +65,8 @@ class GwasCatalogAnnotator(ParallelAnnotator):
             'CI_range': 'range',
             'trait': 'traitName_s',
             'chromosome': 'chromosomeName',
-            'risk_allele_frequency_in_controls': 'riskFrequency'
+            'risk_allele_frequency_in_controls': 'riskFrequency',
+            'odds_ratio_per_copy': 'orPerCopyNum',
         }
 
     STRONGEST_ALLELE_REGEX = re.compile(r'(?P<rsid>rs\d+) ?-(?P<allele>.+)')
