@@ -141,7 +141,8 @@ def test_parse_reported_gene_link():
 
 @pytest.mark.parametrize('ancestry_link,expected_info', [
     ('initial|NR|NR|European|100|NA',
-     {'ancestries': ['European'], 'sample_size': 100,
+     {'ancestries': ['European'],
+      'sample_size': 100,
       'raw': 'initial|NR|NR|European|100|NA',
       'study_type': 'initial'}),
 
@@ -160,18 +161,11 @@ def test_parse_ancestry_link(ancestry_link, expected_info):
 
 
 def test_group_sample_info():
-    initial_study = {'ancestries': ['Euro'],
-                     'sample_size': 100,
-                     'study_type': 'initial'}
+    initial_study = {'ancestries': ['Euro'], 'study_type': 'initial'}
 
     replication_studies = [
-        {'ancestries': ['Afro'],
-         'sample_size': 50,
-         'study_type': 'replication'},
-
-        {'ancestries': ['Asian'],
-         'sample_size': 25,
-         'study_type': 'replication'},
+        {'ancestries': ['Afro'], 'study_type': 'replication'},
+        {'ancestries': ['Asian'], 'study_type': 'replication'},
     ]
 
     sample_info = [initial_study] + replication_studies

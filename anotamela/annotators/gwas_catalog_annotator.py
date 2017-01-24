@@ -136,9 +136,9 @@ class GwasCatalogAnnotator(ParallelAnnotator):
             del(info['reported_gene_links'])
 
         if 'ancestry_links' in info:
-            info['sample_info'] = [cls._parse_ancestry_link(ancestry_link)
-                                   for ancestry_link in info['ancestry_links']]
-            info['sample_info'] = cls._group_sample_info(info['sample_info'])
+            sample_info = [cls._parse_ancestry_link(ancestry_link)
+                           for ancestry_link in info['ancestry_links']]
+            info['sample_info'] = cls._group_sample_info(sample_info)
             del(info['ancestry_links'])
 
         info['pubmed_entries'] = cls._parse_pubmed_entries(info)
@@ -259,7 +259,7 @@ class GwasCatalogAnnotator(ParallelAnnotator):
                       'Netherlands; St Radboud, Netherlands;')
             > _parse_ancestry_link(link)
             > # => {'study': 'initial',
-                    'exta': 'Netherlands',
+                    'extra': 'Netherlands',
                     'countries': ['Netherlands'],
                     'ancestries': ['European'],
                     'sample_size': 911,
@@ -275,18 +275,16 @@ class GwasCatalogAnnotator(ParallelAnnotator):
             'cities',
         ]
         info = dict(zip(fields, ancestry_link.split('|')))
-
         info['sample_size'] = int(info['sample_size'])
-
         info['ancestries'] = info['ancestries'].split(',')
         info['countries'] = info['countries'].split(',')
-        info['cities'] = [city.strip() for city in info['cities'].split(';')
-                          if city]
+        info['cities'] = [city.strip() for city in info['cities'].split(';')]
 
+        # Remove NA values inside lists
         na_values = ['NA', 'NR']
         for key in ['ancestries', 'countries', 'cities']:
             info[key] = [value for value in info[key]
-                         if value not in na_values]
+                         if value and value not in na_values]
 
         # Include the raw input for checks of possibly missing data
         info['raw'] = ancestry_link
