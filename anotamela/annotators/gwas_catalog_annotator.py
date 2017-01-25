@@ -64,6 +64,7 @@ class GwasCatalogAnnotator(ParallelAnnotator):
         }
 
     STRONGEST_ALLELE_REGEX = re.compile(r'(?P<rsid>rs\d+) ?-(?P<allele>.+)')
+    NA_VALUES = ['NA', 'NR']
 
     @staticmethod
     def _url(id_):
@@ -102,7 +103,7 @@ class GwasCatalogAnnotator(ParallelAnnotator):
         for new_key, key in cls.KEYS_TO_RENAME.items():
             info[new_key] = association.get(key)
 
-        info = {k: v for k, v in info.items() if v}
+        info = {k: v for k, v in info.items() if v and v not in cls.NA_VALUES}
 
 
         info['rsids'] = cls._parse_colon_separated_values(info['rsids'])
@@ -121,6 +122,10 @@ class GwasCatalogAnnotator(ParallelAnnotator):
             info[field] = dict(zip(info['rsids'], info[field]))
 
         info['urls'] = {rsid: cls._web_url(rsid) for rsid in info['rsids']}
+
+        float_key = 'risk_allele_frequency_in_controls'
+        if float_key in info:
+            info[float_key] = float(info[float_key])
 
         if 'strongest_alleles' in info:
             info['genomic_alleles'] = {}
@@ -251,8 +256,8 @@ class GwasCatalogAnnotator(ParallelAnnotator):
         ]
         return dict(zip(fields, gene_link.split('|')))
 
-    @staticmethod
-    def _parse_ancestry_link(ancestry_link):
+    @classmethod
+    def _parse_ancestry_link(cls, ancestry_link):
         """
         Given an ancestry link from GWAS Catalog, return a dictionary with the
         parsed information. Example:
@@ -283,15 +288,14 @@ class GwasCatalogAnnotator(ParallelAnnotator):
         info['cities'] = [city.strip() for city in info['cities'].split(';')]
 
         # Remove NA values inside lists
-        na_values = ['NA', 'NR']
         for key in ['ancestries', 'countries', 'cities']:
             info[key] = [value for value in info[key]
-                         if value and value not in na_values]
+                         if value and value not in cls.NA_VALUES]
 
         # Include the raw input for checks of possibly missing data
         info['raw'] = ancestry_link
 
-        return {k: v for k, v in info.items() if v and v not in na_values}
+        return {k: v for k, v in info.items() if v and v not in cls.NA_VALUES}
 
     @staticmethod
     def _group_sample_info(sample_info):

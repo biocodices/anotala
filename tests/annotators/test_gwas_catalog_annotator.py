@@ -16,6 +16,8 @@ def test_gwas_catalog_annotator_parse_annotation():
         'chromLocation': ['chr1:1; chr1:2'],
         'pValueExponent': -10,
         'pubmedId': 'PM1',
+        'riskFrequency': '0.02',
+        'betaDirection': 'NR',
         'numberOfIndividuals': [100, 50],
         'entrezMappedGenes': ['GENE1; GENE2'],
         'entrezMappedGeneLinks': ['furthest|2|-10|1',
@@ -45,6 +47,12 @@ def test_gwas_catalog_annotator_parse_annotation():
     parsed_data = GwasCatalogAnnotator._parse_annotation(raw)
     original = association_data[0]
     parsed = parsed_data[0]
+
+    # Test it removes NR values
+    assert 'beta_direction' not in parsed
+
+    # Test it parses floats
+    assert isinstance(parsed['risk_allele_frequency_in_controls'], float)
 
     # Test it parses colon separated values and associates the values with rsids
     multiannotation_fields = [
