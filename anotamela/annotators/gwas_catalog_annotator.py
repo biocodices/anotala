@@ -35,7 +35,6 @@ class GwasCatalogAnnotator(ParallelAnnotator):
             'reportedGene',
             'title',
             'region',
-            'chromLocation',
             'traitUri',
             'parent',
         ]
@@ -43,6 +42,7 @@ class GwasCatalogAnnotator(ParallelAnnotator):
     KEYS_TO_RENAME = {
             'rsids': 'rsId',
             'strongest_alleles': 'strongestAllele',
+            'chrom_locations': 'chromLocation',
             'allele_impacts': 'context',
             'entrez_mapped_gene_symbols': 'entrezMappedGenes',
             'sample_size': 'numberOfIndividuals',
@@ -113,7 +113,7 @@ class GwasCatalogAnnotator(ParallelAnnotator):
         multiannotation_fields = [
             'strongest_alleles',
             'allele_impacts',
-            'chrom_location',
+            'chrom_locations',
             'entrez_mapped_gene_symbols',
         ]
         for field in multiannotation_fields:

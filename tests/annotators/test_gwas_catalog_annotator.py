@@ -50,7 +50,7 @@ def test_gwas_catalog_annotator_parse_annotation():
     multiannotation_fields = [
         'strongest_alleles',
         'allele_impacts',
-        'chrom_location',
+        'chrom_locations',
         'entrez_mapped_gene_symbols',
     ]
     for field in multiannotation_fields:
