@@ -24,8 +24,6 @@ class GwasCatalogAnnotator(ParallelAnnotator):
             'publicationDate',
             'entrezMappedGeneLinks',
             'pValueExponent',
-            'betaNum',
-            'shortForm',
             'catalogPublishDate',
             'betaDirection',
             'accessionId',
@@ -35,15 +33,11 @@ class GwasCatalogAnnotator(ParallelAnnotator):
             'initialSampleDescription',
             'replicateSampleDescription',
             'reportedGene',
-            'range',
             'title',
             'region',
             'chromLocation',
-            'traitName_s',
             'traitUri',
             'parent',
-            'chromosomeName',
-            'riskFrequency',
         ]
 
     KEYS_TO_RENAME = {
@@ -90,9 +84,8 @@ class GwasCatalogAnnotator(ParallelAnnotator):
         if not groups or 'association' not in groups:
             return
 
-        associations = groups['association']
         return [cls._parse_association_entry(association)
-                for association in associations]
+                for association in groups['association']]
 
     @classmethod
     def _parse_association_entry(cls, association):
@@ -131,7 +124,7 @@ class GwasCatalogAnnotator(ParallelAnnotator):
 
         if 'strongest_alleles' in info:
             info['genomic_alleles'] = {}
-            for rsid, rsid_allele in info['strongest_alleles']:
+            for rsid, rsid_allele in info['strongest_alleles'].items():
                 info['genomic_alleles'][rsid] = cls._infer_allele(rsid_allele)
 
         if 'sample_size' in info:
@@ -168,7 +161,7 @@ class GwasCatalogAnnotator(ParallelAnnotator):
         return 'https://www.ebi.ac.uk/gwas/search?query={}'.format(rsid)
 
     @classmethod
-    def _infer_allele(cls, rsid_alleles):
+    def _infer_allele(cls, rsid_allele):
         """
         Given a 'strongest_allele' datum from GWAS Catalog like 'rs123-A',
         return a tuple with the rs IDs and the allele: ('rs123', 'A').
@@ -178,7 +171,7 @@ class GwasCatalogAnnotator(ParallelAnnotator):
             raise ValueError("Couldn't parse the rsid_allele '{}'"
                              .format(rsid_allele))
         allele = match.group('allele')
-        return (match.group('rsid'), (None if allele == '?' else allele))
+        return None if allele == '?' else allele
 
     @staticmethod
     def _parse_pubmed_entries(association):

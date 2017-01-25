@@ -10,11 +10,14 @@ def test_gwas_catalog_annotator_parse_annotation():
     assert GwasCatalogAnnotator._parse_annotation(raw) is None
 
     association_data = [{
-        'rsId': ['rs1'],
-        'strongestAllele': ['rs123-A'],
+        'rsId': ['rs1; rs2'],
+        'strongestAllele': ['rs1-A; rs2-T'],
+        'context': ['intron_variant; intron_variant'],
+        'chromLocation': ['chr1:1; chr1:2'],
         'pValueExponent': -10,
         'pubmedId': 'PM1',
         'numberOfIndividuals': [100, 50],
+        'entrezMappedGenes': ['GENE1; GENE2'],
         'entrezMappedGeneLinks': ['furthest|2|-10|1',
                                   'mid|3|5|1',
                                   'closest|1|0|1'],
@@ -43,6 +46,17 @@ def test_gwas_catalog_annotator_parse_annotation():
     original = association_data[0]
     parsed = parsed_data[0]
 
+    # Test it parses colon separated values and associates the values with rsids
+    multiannotation_fields = [
+        'strongest_alleles',
+        'allele_impacts',
+        'chrom_location',
+        'entrez_mapped_gene_symbols',
+    ]
+    for field in multiannotation_fields:
+        assert len(parsed[field]) == 2
+        assert sorted(parsed[field]) == ['rs1', 'rs2']
+
     # Test it transforms the keys from camelCase to snake_case
     assert parsed['p_value_exponent'] == original['pValueExponent']
 
@@ -70,8 +84,8 @@ def test_gwas_catalog_annotator_parse_annotation():
 
 
 @pytest.mark.parametrize('rsid_allele,expected_tuple', [
-    ('rs123-A', ('rs123', 'A')),
-    ('rs123-?', ('rs123', None)),
+    ('rs123-A', 'A'),
+    ('rs123-?', None),
 ])
 def test_infer_allele(rsid_allele, expected_tuple):
     assert GwasCatalogAnnotator._infer_allele(rsid_allele) == expected_tuple
@@ -173,15 +187,14 @@ def test_group_sample_info():
     assert grouped['replication'] == replication_studies
 
 
-@pytest.mark.parametrize('impacts,expected_result', [
+@pytest.mark.parametrize('values,expected_result', [
     (['intron_variant'], ['intron_variant']),
-
-    (['intron_variant; intron_variant'], ['intron_variant']),
-
+    (['intron_variant; intron_variant'], ['intron_variant', 'intron_variant']),
+    (['rs123-A; rs234-T'], ['rs123-A', 'rs234-T']),
     (['intron_variant; 3_prime_UTR_variant'],
-     ['3_prime_UTR_variant', 'intron_variant'])
+     ['intron_variant', '3_prime_UTR_variant'])
 ])
 def test_parse_colon_separated_values(values, expected_result):
-    result = GwasCatalogAnnotator._parse_allele_impacts(values)
+    result = GwasCatalogAnnotator._parse_colon_separated_values(values)
     assert result == expected_result
 
