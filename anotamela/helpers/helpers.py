@@ -57,7 +57,7 @@ def parse_prot_change(prot_change):
     if info['aa2'] == '=':
         info['aa2'] = info['aa1']
     elif info['aa2'] == 'Ter':
-        # This unifies ClinVar's "Ter" with SnpEff's "*":
+        # This unifies ClinVar's and OMIM's "Ter" with SnpEff's "*":
         info['aa2'] = '*'
 
     return 'p.{aa1}{pos}{aa2}'.format(**info)

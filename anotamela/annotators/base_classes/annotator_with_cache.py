@@ -124,6 +124,7 @@ class AnnotatorWithCache():
 
     def annotate_one(self, id_, use_cache=True, use_web=True, parse=True):
         """Annotate one ID. Returns the annotation. Wrapper of annotate()."""
+        id_ = str(id_)
         return self.annotate(id_, use_cache=use_cache, use_web=use_web,
                              parse=parse).get(id_)
 
@@ -149,6 +150,6 @@ class AnnotatorWithCache():
     @staticmethod
     def _set_of_string_ids(ids):
         if isinstance(ids, str) or isinstance(ids, int):
-            ids = [ids]
+            ids = [str(ids)]
         return set(str(id_) for id_ in set(ids) if id_)
 

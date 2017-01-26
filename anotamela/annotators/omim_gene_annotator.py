@@ -10,6 +10,7 @@ from anotamela.helpers import (
     mim_to_gene,
     is_incidental_gene,
     is_incidental_pheno,
+    parse_prot_change,
 )
 
 
@@ -348,6 +349,8 @@ class OmimGeneAnnotator(ParallelAnnotator):
         variant['gene_url'] = (cls.OMIM_URL.format(variant['gene_omim_id']))
         variant['incidental_gene'] = is_incidental_gene(variant['gene_omim_id'])
         variant['prot_changes'] = [cls._camelcase_prot_change(prot_change)
+                                   for prot_change in variant['prot_changes']]
+        variant['prot_changes'] = [parse_prot_change(prot_change)
                                    for prot_change in variant['prot_changes']]
         variant['url'] = cls.OMIM_URL.format(
                 variant['gene_omim_id'] + '#' + variant['sub_id']
