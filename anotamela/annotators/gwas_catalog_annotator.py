@@ -64,6 +64,7 @@ class GwasCatalogAnnotator(ParallelAnnotator):
         }
 
     STRONGEST_ALLELE_REGEX = re.compile(r'(?P<rsid>rs\d+) ?-(?P<allele>.+)')
+    CI_RANGE_REGEX = re.compile(r'\[(?P<lower_limit>.+)-(?P<upper_limit>.+)\]')
     NA_VALUES = ['NA', 'NR']
 
     @staticmethod
@@ -104,7 +105,6 @@ class GwasCatalogAnnotator(ParallelAnnotator):
             info[new_key] = association.get(key)
 
         info = {k: v for k, v in info.items() if v and v not in cls.NA_VALUES}
-
 
         info['rsids'] = cls._parse_colon_separated_values(info['rsids'])
 
@@ -155,6 +155,9 @@ class GwasCatalogAnnotator(ParallelAnnotator):
                            for ancestry_link in info['ancestry_links']]
             info['sample_info'] = cls._group_sample_info(sample_info)
             del(info['ancestry_links'])
+
+        if 'CI_range' in info:
+            info['CI_range'] = cls._parse_ci_range(info['CI_range'])
 
         info['pubmed_entries'] = cls._parse_pubmed_entries(info)
 
@@ -331,4 +334,18 @@ class GwasCatalogAnnotator(ParallelAnnotator):
             parsed_values += value.split('; ')
 
         return parsed_values
+
+    @classmethod
+    def _parse_ci_range(cls, ci_range):
+        """
+        Given a confidence interval range as a string like '[1.01-1.25]',
+        parse it to get the numbers in a tuple like (1.01, 1.25).
+
+        Return None for '[NR]' values.
+        """
+        if ci_range == '[NR]':
+            return None
+
+        return {k: float(v) for k, v in
+                cls.CI_RANGE_REGEX.search(ci_range).groupdict().items()}
 

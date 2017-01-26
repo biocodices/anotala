@@ -206,3 +206,10 @@ def test_parse_colon_separated_values(values, expected_result):
     result = GwasCatalogAnnotator._parse_colon_separated_values(values)
     assert result == expected_result
 
+
+def test_parse_ci_range():
+    f = GwasCatalogAnnotator._parse_ci_range
+
+    assert f('[NR]') is None
+    assert f('[1.10-1.25]') == {'lower_limit': 1.1, 'upper_limit': 1.25}
+
