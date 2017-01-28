@@ -56,6 +56,7 @@ def test_run_from_rsids(proxies):
         'entrez_gene_symbols',
         'omim_entries',
         'uniprot_entries',
+        'ensembl',
     ]
     for field in annotations_to_expect:
         assert field in pipe.rs_variants

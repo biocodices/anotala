@@ -26,7 +26,7 @@ class AnnotatorWithCache():
 
         - either a `_query()` method to fetch a single ID's data --the
           annotation will be parallelized with multithread calls to that
-          method-- or a `_batch_query_and_cache()` method to fetch a group of
+          method-- or a `_batch_query()` method to fetch a group of
           IDs, in case you want to implement parallelization in a different way
 
         - an optional @classmethod or @staticmethod _parse_annotation() that

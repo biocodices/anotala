@@ -7,6 +7,7 @@ from .hgvs_annotator import HgvsAnnotator
 from .snpeff_annotator import SnpeffAnnotator
 from .maf_annotator import MafAnnotator
 from .gwas_catalog_annotator import GwasCatalogAnnotator
+from .ensembl_annotator import EnsemblAnnotator
 
 from .omim_gene_annotator import OmimGeneAnnotator
 from .omim_variant_annotator import OmimVariantAnnotator
@@ -26,6 +27,7 @@ RS_ANNOTATOR_CLASSES = {
     # 'dbsnp_web': DbsnpWebAnnotator,
     'dbnsfp': DbnsfpAnnotator,
     'gwas_catalog': GwasCatalogAnnotator,
+    'ensembl': EnsemblAnnotator,
 }
 
 ENTREZ_GENE_ANNOTATOR_CLASSES = {
