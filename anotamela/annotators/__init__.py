@@ -24,7 +24,7 @@ RS_ANNOTATOR_CLASSES = {
     'maf': MafAnnotator,
     'dbsnp_myvariant': DbsnpMyvariantAnnotator,
     'dbsnp_entrez': DbsnpEntrezAnnotator,
-    # 'dbsnp_web': DbsnpWebAnnotator,
+    'dbsnp_web': DbsnpWebAnnotator,
     'dbnsfp': DbnsfpAnnotator,
     'gwas_catalog': GwasCatalogAnnotator,
     'ensembl': EnsemblAnnotator,
