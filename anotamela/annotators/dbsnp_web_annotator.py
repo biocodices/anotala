@@ -23,6 +23,26 @@ class DbsnpWebAnnotator(ParallelAnnotator):
         path = 'https://www.ncbi.nlm.nih.gov/projects/SNP/snp_gene.cgi?rs={0}'
         return path.format(rs)
 
+    @staticmethod
+    def _parse_annotation(annotation):
+        assemblies = ['GRCh37.p13', 'GRCh38.p7']
+
+        for assembly_name in assemblies:
+            entries = annotation['assembly'].get(assembly_name)
+            if not entries:
+                continue
+
+            entries = [e for e in entries if e['groupTerm'] == 'Primary_Assembly']
+            entry = entries.pop()
+            assert not entries
+
+            key = '{}_reverse'.format(assembly_name)
+
+            # Convert values '0' and '1' into False and True:
+            annotation[key] = bool(int(entry['snp2chrOrien']))
+
+        return annotation
+
     def genes(self, rs, use_web=False):
         """Annotate the genes for a given rs."""
         ann = self.annotate(rs, use_web=use_web).get(rs)

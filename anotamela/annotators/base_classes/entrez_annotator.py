@@ -50,9 +50,9 @@ class EntrezAnnotator(AnnotatorWithCache):
             set_email_for_entrez()
 
         total = len(ids)
-        msg = 'Fetch {} entries from Entrez "{}" in batches of {}'.format(
-            total, self.ENTREZ_PARAMS['db'], min(self.batch_size, total))
-        logger.info(msg)
+        logger.info('Fetch {} entries from Entrez "{}" in batches of {}'
+                    .format(total, self.ENTREZ_PARAMS['db'],
+                            min(self.batch_size, total)))
 
         for ids_group, handle in self._query_method(list(ids)):
             if hasattr(self, 'USE_ENTREZ_READER'):

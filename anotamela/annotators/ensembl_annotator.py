@@ -1,9 +1,15 @@
 import requests
 import json
 import time
+import logging
+
+from tqdm import tqdm
 
 from anotamela.annotators.base_classes import AnnotatorWithCache
 from anotamela.helpers import grouped
+
+
+logger = logging.getLogger(__name__)
 
 
 class EnsemblAnnotator(AnnotatorWithCache):
@@ -15,14 +21,14 @@ class EnsemblAnnotator(AnnotatorWithCache):
     """
     SOURCE_NAME = 'ensembl'
     ANNOTATIONS_ARE_JSON = True
-    BATCH_SIZE = 1000
+    BATCH_SIZE = 50
     SLEEP_TIME = 0
 
     full_info = False
 
     @classmethod
     def _batch_query(cls, ids):
-        for group_of_ids in grouped(ids, cls.BATCH_SIZE):
+        for group_of_ids in tqdm(grouped(ids, cls.BATCH_SIZE)):
             yield cls._post_query(group_of_ids)
             time.sleep(cls.SLEEP_TIME)
 
@@ -47,7 +53,11 @@ class EnsemblAnnotator(AnnotatorWithCache):
         payload = {'ids': list(ids)}
 
         response = requests.post(url, headers=headers, data=json.dumps(payload))
-        return response.json()
+
+        if response.ok:
+            return response.json()
+        else:
+            logger.warn('Ensembl Error on ids: {}'.format(ids))
 
     @classmethod
     def _parse_annotation(cls, annotation):
