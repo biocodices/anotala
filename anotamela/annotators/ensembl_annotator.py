@@ -21,14 +21,14 @@ class EnsemblAnnotator(AnnotatorWithCache):
     """
     SOURCE_NAME = 'ensembl'
     ANNOTATIONS_ARE_JSON = True
-    BATCH_SIZE = 50
+    BATCH_SIZE = 100
     SLEEP_TIME = 0
 
     full_info = False
 
     @classmethod
     def _batch_query(cls, ids):
-        for group_of_ids in tqdm(grouped(ids, cls.BATCH_SIZE)):
+        for group_of_ids in tqdm(grouped(ids, cls.BATCH_SIZE, as_list=True)):
             yield cls._post_query(group_of_ids)
             time.sleep(cls.SLEEP_TIME)
 
@@ -57,7 +57,8 @@ class EnsemblAnnotator(AnnotatorWithCache):
         if response.ok:
             return response.json()
         else:
-            logger.warn('Ensembl Error on ids: {}'.format(ids))
+            logger.warn('Ensembl Error: {}'.format(response.text))
+            response.raise_for_status()
 
     @classmethod
     def _parse_annotation(cls, annotation):

@@ -1,4 +1,5 @@
 import pytest
+import types
 
 from anotamela.helpers import (
     is_incidental_gene,
@@ -6,6 +7,7 @@ from anotamela.helpers import (
     listify,
     infer_annotated_allele,
     parse_prot_change,
+    grouped,
 )
 
 
@@ -63,4 +65,20 @@ def test_listify():
 ])
 def test_infer_annotated_allele(cds_change, expected_allele):
     assert infer_annotated_allele(cds_change) == expected_allele
+
+
+def test_grouped():
+    items = [1, 2, 3, 4]
+    result = grouped(items, 2)
+    expected_result = [[1, 2], [3, 4]]
+
+    assert isinstance(result, types.GeneratorType)
+    assert list(result) == expected_result
+
+    result = grouped(items, 2, as_list=True)
+    assert isinstance(result, list)
+    assert result == expected_result
+
+    result = grouped(items, 3, as_list=True)
+    assert result == [[1, 2, 3], [4]]  # No None items, a shorter last group
 

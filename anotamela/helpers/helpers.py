@@ -11,12 +11,16 @@ INDEL_RE = re.compile(r'.*(?P<new_allele>del.*|ins.*|dup.*)')
 PROT_RE = re.compile(r'(?P<aa1>[A-Za-z]{3})(?P<pos>\d+)(?P<aa2>[A-Za-z]{3}|=)')
 
 
-def grouped(iterable, group_size):
+def grouped(iterable, group_size, as_list=False):
     """Split an iterable in lists of <group_size> elements."""
     # Python recipe taken from:
     # https://docs.python.org/3.1/library/itertools.html#recipes
     args = [iter(iterable)] * group_size
-    return ([e for e in t if e is not None] for t in zip_longest(*args))
+    gen = ([e for e in t if e is not None] for t in zip_longest(*args))
+    if as_list:
+        return list(gen)
+    else:
+        return gen
 
 
 def listify(maybe_list):
