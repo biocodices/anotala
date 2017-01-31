@@ -2,7 +2,7 @@ from os.path import expanduser, abspath
 import yaml
 import logging
 
-from sqlalchemy import Table, Column, String, DateTime, MetaData, func
+from sqlalchemy import Table, Column, String, Text, DateTime, MetaData, func
 
 from anotamela.cache import Cache
 
@@ -139,7 +139,7 @@ class SqlCache(Cache):
 
         Returns a sqlalchemy.Table instance.
         """
-        annotation_column_type = self.JSON_TYPE if as_json else String
+        annotation_column_type = self.JSON_TYPE if as_json else Text
 
         Table(tablename, self.metadata,
               Column('id', String(60), primary_key=True),
