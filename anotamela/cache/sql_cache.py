@@ -47,9 +47,8 @@ class SqlCache(Cache):
 
     def __init__(self, credentials_filepath=None):
         """
-        Accepts a filepath to a YAML file with keys: host, user, pass, port,
-        db. It will try to connect to a PostgreSQL database with those
-        credentials.
+        Accepts a filepath to a YAML file with credentials that will be used to
+        connect to a database.
         """
         self.credentials_filepath = \
             abspath(expanduser(credentials_filepath or self.CREDS_FILE))
@@ -86,7 +85,7 @@ class SqlCache(Cache):
 
     def _client_set(self, info_dict, namespace, as_json):
         """
-        Accepts and *info_dict* with IDs as keys and annotations as values.
+        Accepts an *info_dict* with IDs as keys and annotations as values.
         It will write the annotations to a table named after the *namespace*
         in the database. If some IDs already exist, those rows will be
         overwritten.
@@ -174,7 +173,7 @@ class SqlCache(Cache):
                 return yaml.load(f.read())
         except IOError as error:
             msg = "Couldn't read a YAML with PostgreSQL credentials in '{}'"
-            msg += '. It should include: host, user, pass, port, db.'
+            msg += '. It should include: host, user, pass, port, db, driver.'
             msg = msg.format(filepath)
             raise IOError(msg).with_traceback(error.__traceback__)
 
