@@ -1,11 +1,19 @@
-from anotamela.cache import PostgresCache, RedisCache, DictCache
+from anotamela.cache import (
+    MysqlCache,
+    PostgresCache,
+    RedisCache,
+    DictCache,
+)
 
 
 AVAILABLE_CACHES = {
-        'redis': RedisCache,
-        'postgres': PostgresCache,
-        'dict': DictCache,
-    }
+    'redis': RedisCache,
+    'postgres': PostgresCache,
+    'mysql': MysqlCache,
+    'dict': DictCache,
+}
+
+AVAILABLE_CACHES['psql'] = AVAILABLE_CACHES['postgres']
 
 
 def create_cache(cache_name, **cache_kwargs):
