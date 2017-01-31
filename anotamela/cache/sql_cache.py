@@ -139,7 +139,6 @@ class SqlCache(Cache):
 
         Returns a sqlalchemy.Table instance.
         """
-        print('Create {} called'.format(tablename))
         annotation_column_type = self.JSON_TYPE if as_json else String
 
         Table(tablename, self.metadata,
