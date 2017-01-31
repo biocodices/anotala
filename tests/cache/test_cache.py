@@ -17,14 +17,14 @@ TEST_PARAMS = [
 ]
 
 
-@pytest.mark.parametrize('cache_get', [pytest.helpers.get_redis_cache,
-                                       pytest.helpers.get_postgres_cache])
-def test_get_nonexistent_key(cache_get):
-    cache = cache_get()
+def test_get_nonexistent_key():
+    cache = (pytest.helpers.get_cache('mysql') or
+             pytest.helpers.get_cache('psql'))
     if cache:
         # Should not explode:
-        cache.get('non-existent-key', 'some-namespace', load_as_json=True)
-        cache.get('non-existent-key', 'some-namespace', load_as_json=False)
+        cache.get('non-existent-key', '_anotamela_test', as_json=True)
+        cache.get('non-existent-key', '_anotamela_test_json', as_json=False)
+
 
 @pytest.mark.parametrize('test_data,namespace,as_json', TEST_PARAMS)
 def test_get(namespace, test_data, as_json):
@@ -38,7 +38,7 @@ def test_get(namespace, test_data, as_json):
 
     # Test the get method, which should automatically json-load if needed:
     test_keys = list(test_data.keys())
-    cached_data = mock_cache.get(test_keys, namespace, load_as_json=as_json)
+    cached_data = mock_cache.get(test_keys, namespace, as_json=as_json)
     assert all([cached_data[k] == test_data[k] for k in test_keys])
 
 

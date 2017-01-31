@@ -18,7 +18,7 @@ class Cache:
         - _client_set(info_dict, namespace, json_type)
 
     """
-    def get(self, ids, namespace, load_as_json):
+    def get(self, ids, namespace, as_json):
         """
         Get data for a list of ids from cache. Returns an info dict like:
 
@@ -31,9 +31,9 @@ class Cache:
         During retrieval, the <namespace> will be used as a tablename or id
         prefix according to each particular Cache class.
 
-        If load_as_json = True, values will be json-loaded.
+        If as_json = True, values will be json-loaded.
         """
-        cached_data = self._client_get(ids, namespace, load_as_json)
+        cached_data = self._client_get(ids, namespace, as_json)
 
         logger.info('{} found {}/{}'.format(self.__class__.__name__,
                                             len(cached_data), len(ids)))

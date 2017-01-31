@@ -12,10 +12,10 @@ TEST_PARAMS = [
 @pytest.mark.parametrize('test_data,namespace,as_json', TEST_PARAMS)
 def test_cache(namespace, test_data, as_json):
     cache = pytest.helpers.get_cache('postgres')
-    _test_cache_operations(cache, test_data, as_json)
+    _test_cache_operations(cache, test_data, namespace, as_json)
 
     cache = pytest.helpers.get_cache('mysql')
-    _test_cache_operations(cache, test_data, as_json)
+    _test_cache_operations(cache, test_data, namespace, as_json)
 
 
 def _test_cache_operations(cache_instance, test_data, namespace, as_json):

@@ -1,7 +1,6 @@
 from os.path import expanduser, abspath
 import yaml
 import logging
-from datetime import datetime
 
 from sqlalchemy import Table, Column, String, DateTime, MetaData, func
 
@@ -16,7 +15,8 @@ class SqlCache(Cache):
     Base class for PostgresCache and MysqlCache. To implement a SqlCache class,
     define:
 
-        - CREDS_FILE specific to that service, in yaml format. Example:
+        - CREDS_FILE filepath with credentials for the database, in yaml.
+          For instance:
 
             host: localhost
             port: 5432

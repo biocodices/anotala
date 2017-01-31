@@ -83,7 +83,7 @@ class AnnotatorWithCache():
             cached_data = self.cache.get(
                     ids,
                     namespace=self.SOURCE_NAME,
-                    load_as_json=self.ANNOTATIONS_ARE_JSON
+                    as_json=self.ANNOTATIONS_ARE_JSON
                 )
             annotations.update(cached_data)
             ids = ids - annotations.keys()
