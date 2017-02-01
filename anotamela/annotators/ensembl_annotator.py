@@ -71,5 +71,8 @@ class EnsemblAnnotator(AnnotatorWithCache):
             for key in keys_to_remove:
                 del(annotation[key])
 
+        if 'MAF' in annotation:
+            annotation['MAF'] = float(annotation['MAF'])
+
         return annotation
 
