@@ -40,13 +40,17 @@ class AnnotatorWithCache():
     ANNOTATIONS_ARE_JSON = False  # Default to be overriden
     SOURCE_NAME = ''
 
-    def __init__(self, cache='redis', **cache_kwargs):
+    def __init__(self, cache='redis', proxies=None, **cache_kwargs):
         """
         Initialize with a cache name ('redis', 'postgres') or a Cache instance
         (RedisCache, PostgresCache). Extra kwargs can be passed to the cache
         initializer.
+
+        Set proxies as a dict like {'http': 'socks5://localhost:9050'} or as
+        an empty dict in case you're using a ParallelAnnotator.
         """
         self.name = self.__class__.__name__
+        self.proxies = proxies
         self.cache_kwargs = cache_kwargs
 
         if isinstance(cache, Cache):

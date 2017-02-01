@@ -43,7 +43,6 @@ class SqlCache(Cache):
 
     CREDS_FILE = None  # Overwrite this value in the subclass
     JSON_TYPE = None  # Overwrite this value in the subclass
-    DIALECT_DRIVER = None  # Overwrite this value in the subclass
 
     def __init__(self, credentials_filepath=None):
         """
