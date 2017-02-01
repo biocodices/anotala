@@ -29,11 +29,15 @@ class FrequenciesAnnotator(MyVariantAnnotator):
         }
 
         for source_name, source_dict in sources.items():
-            frequencies[allele][source_name] = info = {}
+            info = {}
+
             for population, freq in source_dict.items():
                 population = cls._parse_population(population)
                 if population:
                     info[population] = cls._parse_frequency(freq)
+
+            if info:
+                frequencies[allele][source_name] = info
 
         return dict(frequencies)
 

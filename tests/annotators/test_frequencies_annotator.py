@@ -1,10 +1,11 @@
 from anotamela import FrequenciesAnnotator
 
 
-def test_frequencies_annotator_parse_hit():
-    freq, count = 0.123401, 100  # Fake frequency and allele count data
-    rounded_freq = 0.1234  # Rounded!
+freq, count = 0.123401, 100  # Fake frequency and allele count data
+rounded_freq = 0.1234  # Rounded!
 
+
+def test_frequencies_annotator_parse_hit():
     hit = {
         'allele': 'G',  # This datum comes from a previous parsing
 
@@ -112,4 +113,15 @@ def test_frequencies_annotator_parse_hit():
         assert G['dbNSFP_ExAC'][population] == rounded_freq
 
     assert G['dbNSFP_twinsUK']['General'] == rounded_freq
+
+
+def test_parse_hit_with_few_data():
+    hit = {
+        'allele': 'G',
+        'cadd': {'1000g': {'afr_af': freq}}
+    }
+
+    r = FrequenciesAnnotator._parse_hit(hit)
+
+    assert r == {'G': {'CADD_1000g': {'African': rounded_freq}}}
 
