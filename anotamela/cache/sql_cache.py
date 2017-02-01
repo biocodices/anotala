@@ -63,6 +63,16 @@ class SqlCache(Cache):
         return "{}('{}')".format(self.__class__.__name__,
                                  self.credentials_filepath)
 
+    @classmethod
+    def _connect_to_db(cls, credentials):
+        """
+        Connect to the database and read the available tables.
+        Returns a SQLAlchemy MetaData instance.
+        """
+        metadata = MetaData(bind=cls.URL.format(**credentials))
+        metadata.reflect()  # Gets a list of all Tables in the database
+        return metadata
+
     def _client_get(self, ids, namespace, as_json):
         """
         Gets data for a list of IDs in the given namespace.
@@ -108,17 +118,6 @@ class SqlCache(Cache):
         table = self._get_table(namespace)
         delete_query = table.delete().where(table.c.id.in_(ids))
         self.engine.execute(delete_query)
-
-    @staticmethod
-    def _connect_to_db(credentials):
-        """
-        Connect to the database and read the available tables.
-        Returns a SQLAlchemy MetaData instance.
-        """
-        url = '{driver}://{user}:{pass}@{host}:{port}/{db}?charset=utf8'
-        metadata = MetaData(bind=url.format(**credentials))
-        metadata.reflect()  # Gets a list of all Tables in the database
-        return metadata
 
     def _get_table(self, tablename, as_json=False):
         """
