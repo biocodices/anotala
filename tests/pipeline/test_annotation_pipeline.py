@@ -46,7 +46,7 @@ def test_run_from_rsids(proxies):
         'rsid',
         'dbsnp_entrez',
         'dbsnp_myvariant',
-        'maf',
+        'frequencies',
         'hgvs',
         'clinvar_entries',
         'gwas_catalog',
@@ -88,8 +88,9 @@ def test_run_from_rsids(proxies):
     hgvs = variant['hgvs'][0]
     assert hgvs['myvariant_hgvs_g'] == 'chr7:g.150696111T>G'
 
-    maf = variant['maf'][0]
-    assert maf['1000gp3_af_G'] == 0.8237
+    freqs = variant['frequencies'][0]
+    assert freqs['T']['dbSNP']['General'] == 0.1763
+    assert freqs['G']['dbNSFP_ExAC']['Finnish'] == 0.7079
 
     dbnsfp = variant['dbnsfp'][0]
     assert dbnsfp['cds_strand'] == '+'

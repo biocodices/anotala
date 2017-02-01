@@ -37,8 +37,8 @@ def _test_pipeline_result(pipeline):
     assert rsid in pipeline.rs_variants['id'].values
 
     vcf_fields = 'chrom pos id ref alt qual filter info'.split()
-    annotation_fields = ('clinvar_entries snpeff_myvariant maf hgvs dbnsfp '
-                         'dbsnp_myvariant entrez_gene_ids dbsnp_entrez '
+    annotation_fields = ('clinvar_entries snpeff_myvariant frequencies hgvs '
+                         'dbnsfp dbsnp_myvariant entrez_gene_ids dbsnp_entrez '
                          'omim_entries uniprot_entries gwas_catalog').split()
 
     for vcf_field in vcf_fields:
@@ -61,7 +61,8 @@ def _test_pipeline_result(pipeline):
     assert len(variant['snpeff_myvariant']) == 5
 
     expected_maf_keys = 'esp6500_ea_af_A 1000gp3_af_A exac_eas_af_A'.split()
-    assert all(key in variant['maf'][0] for key in expected_maf_keys)
+    for key in expected_maf_keys:
+        assert key in variant['maf'][0]
 
     assert variant['hgvs'][0] == {
         'genomic_allele': 'A',

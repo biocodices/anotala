@@ -50,15 +50,12 @@ test_params = [
             'keys_to_check': ('clinvar_hgvs_g clinvar_hgvs_c myvariant_hgvs_g '
                               'snpeff_hgvs_c snpeff_hgvs_p')
         }),
-        (MafAnnotator, {
+        (FrequenciesAnnotator, {
             'ids_to_annotate': 'rs268',
             'keys_to_check': (
-                'cadd_af_G cadd_eur_G exac_nfe_af_G 1000gp3_sas_af_G '
-                'esp6500_aa_af_G cadd_amr_G exac_afr_af_G 1000gp3_afr_af_G '
-                'exac_af_G 1000gp3_af_G exac_sas_af_G 1000gp3_eas_af_G  '
-                'cadd_afr_G exac_amr_af_G 1000gp3_eur_af_G exac_eas_af_G '
-                'esp6500_ea_af_G exac_fin_af_G exac_adj_af_G 1000gp3_amr_af_G '
-                'twinsuk_af_G dbsnp_gmaf_G '
+                'A.dbSNP.General G.CADD_1000g.African G.dbNSFP_1000gp3.European '
+                'G.dbNSFP_ESP6500 G.dbNSFP_ExAC.Finnish G.dbNSFP_twinsUK.General '
+                'G.dbSNP.General'
             )
         }),
         (OmimGeneAnnotator, {

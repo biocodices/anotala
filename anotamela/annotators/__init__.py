@@ -5,7 +5,7 @@ from .dbnsfp_annotator import DbnsfpAnnotator
 from .clinvar_rs_annotator import ClinvarRsAnnotator
 from .hgvs_annotator import HgvsAnnotator
 from .snpeff_annotator import SnpeffAnnotator
-from .maf_annotator import MafAnnotator
+from .frequencies_annotator import FrequenciesAnnotator
 from .gwas_catalog_annotator import GwasCatalogAnnotator
 from .ensembl_annotator import EnsemblAnnotator
 
@@ -21,7 +21,7 @@ RS_ANNOTATOR_CLASSES = {
     'clinvar': ClinvarRsAnnotator,
     'snpeff': SnpeffAnnotator,
     'hgvs': HgvsAnnotator,
-    'maf': MafAnnotator,
+    'frequencies': FrequenciesAnnotator,
     'dbsnp_myvariant': DbsnpMyvariantAnnotator,
     'dbsnp_entrez': DbsnpEntrezAnnotator,
     'dbsnp_web': DbsnpWebAnnotator,
