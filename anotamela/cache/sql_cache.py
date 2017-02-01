@@ -115,7 +115,7 @@ class SqlCache(Cache):
         Connect to the database and read the available tables.
         Returns a SQLAlchemy MetaData instance.
         """
-        url = '{driver}://{user}:{pass}@{host}:{port}/{db}'
+        url = '{driver}://{user}:{pass}@{host}:{port}/{db}?charset=utf8'
         metadata = MetaData(bind=url.format(**credentials))
         metadata.reflect()  # Gets a list of all Tables in the database
         return metadata
