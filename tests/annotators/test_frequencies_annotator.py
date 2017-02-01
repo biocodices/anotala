@@ -1,7 +1,7 @@
 from anotamela import FrequenciesAnnotator
 
 
-def test_maf_annotator_parse_hit():
+def test_frequencies_annotator_parse_hit():
     freq, count = 0.123401, 100  # Fake frequency and allele count data
     rounded_freq = 0.1234  # Rounded!
 

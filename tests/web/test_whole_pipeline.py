@@ -60,10 +60,6 @@ def _test_pipeline_result(pipeline):
 
     assert len(variant['snpeff_myvariant']) == 5
 
-    expected_maf_keys = 'esp6500_ea_af_A 1000gp3_af_A exac_eas_af_A'.split()
-    for key in expected_maf_keys:
-        assert key in variant['maf'][0]
-
     assert variant['hgvs'][0] == {
         'genomic_allele': 'A',
         'clinvar_hgvs_c': ['LRG_672t1:c.937G>T', 'NM_000169.2:c.937G>T'],
