@@ -62,6 +62,7 @@ class FrequenciesAnnotator(MyVariantAnnotator):
             'aa': 'African American',
             'adj': 'General (Adj.)',
             'amr': 'American (native)',
+            'asn': 'Asian',
             'eur': 'European',
             'afr': 'African',
             'eas': 'East Asian',
