@@ -23,21 +23,21 @@ class RedisCache(Cache):
         return rep.format(**self.connection_data,
                           name=self.__class__.__name__)
 
-    def _client_get(self, ids, namespace, load_as_json):
+    def _client_get(self, ids, namespace, as_json):
         keys = [self._id_to_key(id_, namespace) for id_ in ids]
         # Redis client returns the values in the same order as the queried keys
         annotations = {id_: ann.decode('utf-8')
                        for id_, ann in zip(ids, self.client.mget(keys)) if ann}
 
-        if load_as_json:
+        if as_json:
             annotations = self._jsonload_dict_values(annotations)
 
         return annotations
 
-    def _client_set(self, data_to_cache, namespace, save_as_json):
+    def _client_set(self, data_to_cache, namespace, as_json):
         data_to_cache = {self._id_to_key(id_, namespace): value
                          for id_, value in data_to_cache.items()}
-        if save_as_json:
+        if as_json:
             data_to_cache = self._jsondump_dict_values(data_to_cache)
 
         self.client.mset(data_to_cache)

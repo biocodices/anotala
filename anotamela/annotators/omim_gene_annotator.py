@@ -36,11 +36,15 @@ class OmimGeneAnnotator(ParallelAnnotator):
     """
     SOURCE_NAME = 'omim_genes'
 
-    # OMIM is quite strict against web crawlers and it will ban your IP.
-    # That's why we just avoid parallelization (BATCH_SIZE = 1) and we make
-    # sure that there's a high random sleep time between requests:
     BATCH_SIZE = 1
-    SLEEP_TIME = 60
+    # ^ OMIM guize are quite strict against web crawlers and they will ban your
+    # IP. That's why we avoid parallelization (BATCH_SIZE=1) and we make
+    # sure that there's a high random sleep time between requests:
+    SLEEP_TIME = 20
+    # However, OMIM *will ban your IP anyway* even with sleep times of around
+    # 60 seconds, if you happen to leave this code scraping their site for a
+    # couple of hours straight. So, be wise and don't use this without Tor
+    # proxies!
     RANDOMIZE_SLEEP_TIME = True
 
     OMIM_URL = 'http://www.omim.org/entry/{}'

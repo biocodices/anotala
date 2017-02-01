@@ -1,5 +1,3 @@
-import pandas as pd
-
 from anotamela.annotators.base_classes import AnnotatorWithCache
 from anotamela.annotators import OmimGeneAnnotator
 
@@ -26,8 +24,7 @@ class OmimVariantAnnotator(AnnotatorWithCache):
 
     # These attributes will be used for the OmimGeneAnnotator:
     BATCH_SIZE = 1
-    SLEEP_TIME = 60
-    PROXIES = {}
+    SLEEP_TIME = 20
 
     def _batch_query(self, ids):
         """
@@ -63,10 +60,10 @@ class OmimVariantAnnotator(AnnotatorWithCache):
     @property
     def omim_gene_annotator(self):
         if not hasattr(self, '_omim_gene_annotator'):
-            self._omim_gene_annotator = OmimGeneAnnotator(cache=self.cache)
+            self._omim_gene_annotator = OmimGeneAnnotator(cache=self.cache,
+                                                          proxies=self.proxies)
             self._omim_gene_annotator.BATCH_SIZE = self.BATCH_SIZE
             self._omim_gene_annotator.SLEEP_TIME = self.SLEEP_TIME
-            self._omim_gene_annotator.PROXIES = self.PROXIES
 
         return self._omim_gene_annotator
 

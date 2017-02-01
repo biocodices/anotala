@@ -43,6 +43,7 @@ class SqlCache(Cache):
 
     CREDS_FILE = None  # Overwrite this value in the subclass
     JSON_TYPE = None  # Overwrite this value in the subclass
+    TEXT_TYPE = Text  # Optionally, overwrite this value in the subclass
 
     def __init__(self, credentials_filepath=None):
         """
@@ -138,7 +139,7 @@ class SqlCache(Cache):
 
         Returns a sqlalchemy.Table instance.
         """
-        annotation_column_type = self.JSON_TYPE if as_json else Text
+        annotation_column_type = self.JSON_TYPE if as_json else self.TEXT_TYPE
 
         Table(tablename, self.metadata,
               Column('id', String(60), primary_key=True),

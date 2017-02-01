@@ -3,7 +3,7 @@ from anotamela.pipeline import annotate_ids
 
 
 def annotate_entrez_gene_ids(entrez_gene_ids, cache, use_web=True,
-                             use_cache=True, proxies={}, sleep_time=None):
+                             use_cache=True, proxies=None, sleep_time=None):
     """
     Given a list of *entrez_gene_ids*, return a dataframe with the passed IDs
     annotated with various annotators. The passed cache will be used for all

@@ -3,7 +3,7 @@ from anotamela import OmimGeneAnnotator
 
 def get_omim_variants_from_entrez_genes(entrez_gene_ids, cache,
                                         use_web=True, use_cache=True,
-                                        proxies={}, sleep_time=None):
+                                        proxies=None, sleep_time=None):
     """
     Given a list of Entrez genes, annotate the OMIM genes IDs associated to
     them and return a dictionary with the variants found in those genes and
@@ -19,8 +19,7 @@ def get_omim_variants_from_entrez_genes(entrez_gene_ids, cache,
 
     """
     # Annotate with OMIM
-    annotator = OmimGeneAnnotator(cache=cache)
-    annotator.PROXIES = proxies
+    annotator = OmimGeneAnnotator(cache=cache, proxies=proxies)
     if sleep_time:
         annotator.SLEEP_TIME = sleep_time
     omim_variants = annotator.annotate_from_entrez_ids(entrez_gene_ids,

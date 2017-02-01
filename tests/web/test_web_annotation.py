@@ -116,8 +116,7 @@ test_params = [
 @pytest.mark.parametrize('annotator_class,params', test_params)
 def test_annotator(proxies, annotator_class, params):
     ids_to_annotate = params['ids_to_annotate'].split()
-    annotator = annotator_class(cache='mock_cache')
-    annotator.PROXIES = proxies
+    annotator = annotator_class(cache='mock_cache', proxies=proxies)
 
     # Test annotation from web
 

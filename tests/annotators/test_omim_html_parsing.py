@@ -10,8 +10,7 @@ TEST_PHENO_ENTRY_ID = '100070'
 
 @pytest.fixture(scope='module')
 def annotator(proxies):
-    annotator = OmimGeneAnnotator('mock_cache')
-    annotator.PROXIES = proxies
+    annotator = OmimGeneAnnotator('mock_cache', proxies=proxies)
     return annotator
 
 

@@ -39,7 +39,7 @@ class Cache:
                                             len(cached_data), len(ids)))
         return cached_data
 
-    def set(self, info_dict, namespace, save_as_json):
+    def set(self, info_dict, namespace, as_json):
         """
         Set the cache for a list of ids. Expects a dict with the form:
 
@@ -52,12 +52,12 @@ class Cache:
         The namespace will be used as a tablename or id prefix according to
         each particular Cache class.
 
-        If save_as_json = True, the values will be json-dumped.
+        If as_json = True, the values will be json-dumped.
         """
         data_to_cache = {id_: ann for id_, ann in info_dict.items() if ann}
 
         if data_to_cache:
-            self._client_set(data_to_cache, namespace, save_as_json)
+            self._client_set(data_to_cache, namespace, as_json)
 
     @staticmethod
     def _jsondump_dict_values(dictionary):

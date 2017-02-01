@@ -47,7 +47,7 @@ def test_set(namespace, test_data, as_json):
     mock_cache = create_cache('mock_cache')
 
     # Test the set method
-    mock_cache.set(test_data, namespace, save_as_json=as_json)
+    mock_cache.set(test_data, namespace, as_json=as_json)
 
     # Manually get the test values to compare them, json-load if necessary
     cached_data = mock_cache.storage[namespace]

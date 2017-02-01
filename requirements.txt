@@ -3,5 +3,6 @@ mygene
 pandas
 redis
 sqlalchemy>=1.1.5
+pymysql>=0.7.9
 psycopg2
 fake-useragent

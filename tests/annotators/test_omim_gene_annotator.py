@@ -10,8 +10,7 @@ TEST_PHENO_ENTRY_ID = '100070'
 
 @pytest.fixture(scope='module')
 def annotator(proxies):
-    annotator = OmimGeneAnnotator('mock_cache')
-    annotator.PROXIES = proxies
+    annotator = OmimGeneAnnotator('mock_cache', proxies=proxies)
     return annotator
 
 
@@ -205,8 +204,7 @@ def test_omim_annotate_from_entrez_ids(proxies):
     mim_id = '605557'
     gene_symbol = 'PRDM16'
 
-    annotator = OmimGeneAnnotator(cache='mock_cache')
-    annotator.PROXIES = proxies
+    annotator = OmimGeneAnnotator(cache='mock_cache', proxies=proxies)
     variants = annotator.annotate_from_entrez_ids([entrez_id])[entrez_id]
 
     assert len(variants) == 6

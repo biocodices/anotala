@@ -102,7 +102,7 @@ class AnnotatorWithCache():
                     self.cache.set(
                             batch_annotations,
                             namespace=self.SOURCE_NAME,
-                            save_as_json=self.ANNOTATIONS_ARE_JSON
+                            as_json=self.ANNOTATIONS_ARE_JSON
                         )
                     annotations.update(batch_annotations)
                     ids = ids - batch_annotations.keys()
