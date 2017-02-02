@@ -9,6 +9,19 @@ class FrequenciesAnnotator(MyVariantAnnotator):
     FIELDS = ('dbsnp.alleles dbnsfp.1000gp3 dbnsfp.exac '
               'dbnsfp.esp6500 dbnsfp.twinsuk.af cadd.1000g').split()
 
+    @staticmethod
+    def _parse_annotations_hook(annotations):
+        """
+        Given the list of frequencies from MyVariant for different alleles
+        of the same rs ID, merge them in a single dictionary.
+        """
+        merged_frequencies = defaultdict(dict)
+        for frequencies in annotations:
+            for allele, allele_frequencies in frequencies.items():
+                merged_frequencies[allele].update(allele_frequencies)
+
+        return dict(merged_frequencies)
+
     @classmethod
     def _parse_hit(cls, hit):
         allele = hit['allele']

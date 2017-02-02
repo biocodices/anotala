@@ -88,7 +88,7 @@ def test_run_from_rsids(proxies):
     hgvs = variant['hgvs'][0]
     assert hgvs['myvariant_hgvs_g'] == 'chr7:g.150696111T>G'
 
-    freqs = variant['frequencies'][0]
+    freqs = variant['frequencies']
     assert freqs['T']['dbSNP']['General'] == 0.1763
     assert freqs['G']['dbNSFP_ExAC']['Finnish'] == 0.7079
 

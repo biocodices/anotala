@@ -74,10 +74,17 @@ class MyVariantAnnotator(AnnotatorWithCache):
         if all(isinstance(ann, list) for ann in annotations):
             annotations = list(chain.from_iterable(annotations))
 
+        # Let subclasses do some optional extra parsing here
+        annotations = cls._parse_annotations_hook(annotations)
+
         if annotations:
             return annotations
 
     @staticmethod
     def _parse_hit(hit):
         return hit
+
+    @staticmethod
+    def _parse_annotations_hook(annotations):
+        return annotations
 

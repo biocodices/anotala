@@ -125,3 +125,14 @@ def test_parse_hit_with_few_data():
 
     assert r == {'G': {'CADD_1000g': {'African': rounded_freq}}}
 
+
+def test_parse_annotations_hook():
+    annotations = [
+        {'A': {'foo': 'bar'}, 'G': {'baz': 'qux'}},
+        {'G': {'spam': 'eggs'}},
+    ]
+
+    result = FrequenciesAnnotator._parse_annotations_hook(annotations)
+    assert result['G'] == {'baz': 'qux', 'spam': 'eggs'}
+    assert result['A'] == {'foo': 'bar'}
+
