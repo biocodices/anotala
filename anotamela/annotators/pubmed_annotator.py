@@ -22,9 +22,14 @@ class PubmedAnnotator(EntrezAnnotator):
 
     @classmethod
     def _annotations_by_id(cls, _, pubmed_response):
-        pubmed_records = pubmed_response['PubmedArticle'] + \
-                         pubmed_response['PubmedBookArticle']
-        yield from ((cls._extract_pmid(record), cls._parse_record(record))
+        pubmed_records = (pubmed_response['PubmedArticle'] +
+                          pubmed_response['PubmedBookArticle'])
+
+        # Convert Entrez types to Python types:
+        pubmed_records = [cls._parse_record(record)
+                          for record in pubmed_records]
+
+        yield from ((cls._extract_pmid(record), record)
                     for record in pubmed_records)
 
     @classmethod
@@ -36,6 +41,9 @@ class PubmedAnnotator(EntrezAnnotator):
             record = record[0]
 
         new_record = {}
+        pmid = cls._extract_pmid(record)
+        new_record['url'] = cls._url(pmid)
+        new_record['pmid'] = pmid
         new_record['AMA_Citation'] = cls._generate_citation(record)
         new_record['CitationData'] = cls._generate_citation(record, as_dict=True)
         keys_to_keep = {
@@ -55,16 +63,15 @@ class PubmedAnnotator(EntrezAnnotator):
         # We skip those:
         if isinstance(new_record['Ids'], dict):
             new_record['Ids'] = {i['IdType']: i['value']
-                                for i in new_record['Ids']}
+                                 for i in new_record['Ids']}
 
         if new_record['Mesh']:
             try:
                 new_record['Mesh'] = [m['DescriptorName']['value']
-                                    for m in new_record['Mesh']]
+                                      for m in new_record['Mesh']]
             except TypeError:
                 # Rarely, the mesh DescriptorNames will be strings instead of
-                # dicts (for instance, in PMID 6860421). For those, we parse
-                # the list differently:
+                # dicts. For those, we parse the list differently:
                 new_record['Mesh'] = [m['DescriptorName']
                                       for m in new_record['Mesh']]
 
@@ -72,9 +79,13 @@ class PubmedAnnotator(EntrezAnnotator):
 
     @staticmethod
     def _extract_pmid(record):
-        for id_ in record['PubmedData']['ArticleIdList']:
-            if id_.attributes['IdType'] == 'pubmed':
-                return str(id_)
+        for entry in record['PubmedData']['ArticleIdList']:
+            if entry['IdType'] == 'pubmed':
+                return str(entry['value'])
+
+    @staticmethod
+    def _url(pmid):
+        return 'https://www.ncbi.nlm.nih.gov/pubmed/{}'.format(pmid)
 
     @staticmethod
     def _generate_citation(record, as_dict=False):
