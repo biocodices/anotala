@@ -21,7 +21,10 @@ class EnsemblAnnotator(AnnotatorWithCache):
     """
     SOURCE_NAME = 'ensembl'
     ANNOTATIONS_ARE_JSON = True
-    BATCH_SIZE = 100
+    BATCH_SIZE = 25
+    # In theory Ensembl POST requests can handle up to 1,000 variants,
+    # but I get timeouts when I try to get the full info for as low as 100
+    # variants at a time.
     SLEEP_TIME = 0
 
     full_info = False
