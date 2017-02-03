@@ -21,8 +21,9 @@ class NoProxiesException(Exception):
 
 class ParallelAnnotator(AnnotatorWithCache):
     """
-    Base class for annotators that have a _url(id_) method. This class
-    implements a 'manual' parallelization with threads.
+    Base class for annotators that have a _url(id_) method or alternatively
+    a _query(id) method. This class implements a 'manual' parallelization with
+    threads.
 
     - Modify the class variables BATCH_SIZE and SLEEP_TIME to tweak the
       parallelization behavior.

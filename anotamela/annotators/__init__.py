@@ -16,6 +16,8 @@ from .gene_entrez_annotator import GeneEntrezAnnotator
 from .uniprot_annotator import UniprotAnnotator
 from .pubmed_annotator import PubmedAnnotator
 
+from .biomart_regions_annotator import BiomartRegionsAnnotator
+
 
 RS_ANNOTATOR_CLASSES = {
     'clinvar': ClinvarRsAnnotator,
