@@ -1,3 +1,4 @@
+import os
 import logging
 
 import Bio
@@ -48,6 +49,12 @@ class EntrezAnnotator(AnnotatorWithCache):
 
         if not Entrez.email:
             set_email_for_entrez()
+
+        if self.proxies:
+            # Biopython's Entrez service uses proxies when they're set as
+            # an env variable 'http_proxy'. See:
+            # http://biopython.org/DIST/docs/tutorial/Tutorial.html#htoc126
+            os.environ['http_proxy'] = self.proxies['http']
 
         total = len(ids)
         logger.info('Fetch {} entries from Entrez "{}" in batches of {}'
