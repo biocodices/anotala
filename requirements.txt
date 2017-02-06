@@ -1,6 +1,7 @@
 myvariant
 mygene
 pandas>=0.19.1
+requests[socks]
 redis
 sqlalchemy>=1.1.5
 pymysql>=0.7.9
@@ -9,4 +10,5 @@ fake-useragent
 tqdm>=4.11.2
 biopython>=1.68
 bs4>=0.0.1
+lxml
 biomart>=0.9.2
