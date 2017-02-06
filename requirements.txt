@@ -1,8 +1,12 @@
 myvariant
 mygene
-pandas
+pandas>=0.19.1
 redis
 sqlalchemy>=1.1.5
 pymysql>=0.7.9
 psycopg2
 fake-useragent
+tqdm>=4.11.2
+biopython>=1.68
+bs4>=0.0.1
+biomart>=0.9.2
