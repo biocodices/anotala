@@ -313,7 +313,7 @@ class OmimGeneAnnotator(ParallelAnnotator):
         if not pheno_table:
             return phenotypes
 
-        fields = 'name', 'id', 'inheritance', 'key'
+        fields = 'name', 'id', 'inheritances', 'key'
 
         for tr in pheno_table.select('tbody tr'):  # Skips header
             row = [td.text.strip() for td in tr.select('td')
@@ -322,6 +322,13 @@ class OmimGeneAnnotator(ParallelAnnotator):
             # Some phenotype names have surrounding curly braces or square
             # brackests (!) and might begin with a '?' sign (!!)
             phenotype['name'] = re.sub(r'[\[\]{}\?]', '', phenotype['name'])
+
+            # Sometimes the inheritance comes with many comma-sep values
+            # I have to tuple-ize the resulting list because otherwise
+            # phenos can't be checked for uniqueness
+            phenotype['inheritances'] = \
+                tuple([inh for inh in phenotype['inheritances'].split(', ')
+                       if inh])
             phenotypes.append(phenotype)
 
         return phenotypes
@@ -384,9 +391,12 @@ class OmimGeneAnnotator(ParallelAnnotator):
         unique_phenotypes = sorted(unique_phenotypes, key=itemgetter('name'))
 
         # Add extra info to the selected phenotypes
+        # And revert a previous hack where the inheritance values where put
+        # in a tuple instead of in a list
         for pheno in unique_phenotypes:
             pheno['url'] = cls.OMIM_URL.format(pheno['id'])
             pheno['incidental'] = is_incidental_pheno(pheno['id'])
+            pheno['inheritances'] = list(pheno['inheritances'])  # Hack, see ^
 
         variant['phenotypes'] = (unique_phenotypes or [])
 

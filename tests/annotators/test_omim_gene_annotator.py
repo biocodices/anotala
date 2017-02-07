@@ -168,11 +168,11 @@ def test_parse_empty_div(annotator, get_subdivs):
 def test_extract_phenotypes_from_soup(annotator, soup):
     phenos = annotator._extract_phenotypes_from_soup(soup)
     assert phenos == [
-        {'id': '144250', 'inheritance': 'AD', 'key': '3',
+        {'id': '144250', 'inheritances': ('AD',), 'key': '3',
          'name': 'Combined hyperlipidemia, familial'},
-        {'id': '238600', 'inheritance': 'AR', 'key': '3',
+        {'id': '238600', 'inheritances': ('AR',), 'key': '3',
          'name': 'Lipoprotein lipase deficiency'},
-        {'id': '', 'inheritance': '', 'key': '3',
+        {'id': '', 'inheritances': (), 'key': '3',
          'name': 'High density lipoprotein cholesterol level QTL 11'}
     ]
 

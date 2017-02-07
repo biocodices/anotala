@@ -71,7 +71,7 @@ test_params = [
             'ids_to_annotate': '605557.0003',
             'keys_to_check': ('gene_omim_id gene_name gene_symbol gene_url url '
                               'linked_mim_ids phenotypes.url '
-                              'phenotypes.id phenotypes.inheritance '
+                              'phenotypes.id phenotypes.inheritances '
                               'phenotypes.name prot_changes '
                               'pubmed_entries.pmid pubmed_entries.citation '
                               'pubmed_entries.short_mention pubmed_entries.url '
