@@ -27,6 +27,7 @@ class EnsemblAnnotator(AnnotatorWithCache):
     # variants at a time.
     SLEEP_TIME = 0
 
+    api_version = 'GRCh37'
     full_info = False
 
     @classmethod
@@ -35,14 +36,18 @@ class EnsemblAnnotator(AnnotatorWithCache):
             yield cls._post_query(group_of_ids)
             time.sleep(cls.SLEEP_TIME)
 
-    @staticmethod
-    def _post_query(ids):
+    @classmethod
+    def _post_query(cls, ids):
         """
         Do a POST request to Ensembl REST api for a group of *ids*. Returns
         a dictionary with annotations per id. Requests should be done in
         batches of 1000 or less.
         """
-        url = 'http://rest.ensembl.org/variation/homo_sapiens/?'
+        # No prefix needed for GRCh38
+        url_prefix = 'grch37.' if cls.api_version == 'GRCh37' else ''
+        url = ('http://{}rest.ensembl.org/variation/homo_sapiens/?'
+               .format(url_prefix))
+
         headers = {'Content-Type': 'application/json',
                    'Accept': 'application/json'}
 
