@@ -30,21 +30,22 @@ class EnsemblAnnotator(AnnotatorWithCache):
     api_version = 'GRCh37'
     full_info = False
 
-    @classmethod
-    def _batch_query(cls, ids):
-        for group_of_ids in tqdm(grouped(ids, cls.BATCH_SIZE, as_list=True)):
-            yield cls._post_query(group_of_ids)
-            time.sleep(cls.SLEEP_TIME)
+    def _batch_query(self, ids):
+        if self.proxies:
+            logger.info('{} using proxies: {}'.format(self.name, self.proxies))
 
-    @classmethod
-    def _post_query(cls, ids):
+        for group_of_ids in tqdm(grouped(ids, self.BATCH_SIZE, as_list=True)):
+            yield self._post_query(group_of_ids)
+            time.sleep(self.SLEEP_TIME)
+
+    def _post_query(self, ids):
         """
         Do a POST request to Ensembl REST api for a group of *ids*. Returns
         a dictionary with annotations per id. Requests should be done in
         batches of 1000 or less.
         """
         # No prefix needed for GRCh38
-        url_prefix = 'grch37.' if cls.api_version == 'GRCh37' else ''
+        url_prefix = 'grch37.' if self.api_version == 'GRCh37' else ''
         url = ('http://{}rest.ensembl.org/variation/homo_sapiens/?'
                .format(url_prefix))
 
@@ -60,7 +61,10 @@ class EnsemblAnnotator(AnnotatorWithCache):
 
         payload = {'ids': list(ids)}
 
-        response = requests.post(url, headers=headers, data=json.dumps(payload))
+        proxies = self.proxies or {}
+
+        response = requests.post(url, headers=headers, proxies=proxies,
+                                 data=json.dumps(payload))
 
         if response.ok:
             return response.json()
