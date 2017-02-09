@@ -24,7 +24,8 @@ class EnsemblAnnotator(AnnotatorWithCache):
     BATCH_SIZE = 25
     # In theory Ensembl POST requests can handle up to 1,000 variants,
     # but I get timeouts when I try to get the full info for as low as 100
-    # variants at a time.
+    # variants at a time. I think this might be so because we are asking
+    # for the full data: genotypes, pop genotypes, etc.
     SLEEP_TIME = 0
 
     api_version = 'GRCh37'
