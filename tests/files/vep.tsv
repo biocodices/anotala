@@ -1,0 +1,88 @@
+## ENSEMBL VARIANT EFFECT PREDICTOR v87
+## Output produced at 2017-02-24 11:16:53
+## Using cache in /home/juan/paip_resources/vep_data/homo_sapiens_merged/87_GRCh37
+## Using API version 87, DB version ?
+## assembly version GRCh37.p13
+## sift version sift5.2.2
+## regbuild version 1.0
+## ClinVar version 201610
+## gencode version GENCODE 19
+## genebuild version 2011-04
+## refseq version 01_2015
+## polyphen version 2.2.2
+## 1000genomes version phase3
+## HGMD-PUBLIC version 20162
+## dbSNP version 147
+## ExAC version 0.3
+## COSMIC version 78
+## ESP version 20141103
+## Extra column keys:
+## IMPACT : Subjective impact classification of consequence type
+## DISTANCE : Shortest distance from variant to transcript
+## STRAND : Strand of the feature (1/-1)
+## FLAGS : Transcript quality flags
+## VARIANT_CLASS : SO variant class
+## SYMBOL : Gene symbol (e.g. HGNC)
+## SYMBOL_SOURCE : Source of gene symbol
+## HGNC_ID : Stable identifer of HGNC gene symbol
+## BIOTYPE : Biotype of transcript or regulatory feature
+## CANONICAL : Indicates if transcript is canonical for this gene
+## TSL : Transcript support level
+## APPRIS : Annotates alternatively spliced transcripts as primary or alternate based on a range of computational methods
+## CCDS : Indicates if transcript is a CCDS transcript
+## ENSP : Protein identifer
+## SWISSPROT : Best match UniProtKB/Swiss-Prot accession
+## TREMBL : Best match UniProtKB/TrEMBL accession
+## UNIPARC : Best match UniParc accession
+## REFSEQ_MATCH : RefSeq transcript match status
+## GENE_PHENO : Indicates if gene is associated with a phenotype, disease or trait
+## SIFT : SIFT prediction and/or score
+## PolyPhen : PolyPhen prediction and/or score
+## EXON : Exon number(s) / total
+## INTRON : Intron number(s) / total
+## DOMAINS : The source and identifer of any overlapping protein domains
+## HGVSc : HGVS coding sequence name
+## HGVSp : HGVS protein sequence name
+## HGVS_OFFSET : Indicates by how many bases the HGVS notations for this variant have been shifted
+## GMAF : Minor allele and frequency of existing variant in 1000 Genomes combined population
+## AFR_MAF : Frequency of existing variant in 1000 Genomes combined African population
+## AMR_MAF : Frequency of existing variant in 1000 Genomes combined American population
+## EAS_MAF : Frequency of existing variant in 1000 Genomes combined East Asian population
+## EUR_MAF : Frequency of existing variant in 1000 Genomes combined European population
+## SAS_MAF : Frequency of existing variant in 1000 Genomes combined South Asian population
+## AA_MAF : Frequency of existing variant in NHLBI-ESP African American population
+## EA_MAF : Frequency of existing variant in NHLBI-ESP European American population
+## ExAC_MAF : Frequency of existing variant in ExAC combined population
+## ExAC_Adj_MAF : Adjusted frequency of existing variant in ExAC combined population
+## ExAC_AFR_MAF : Frequency of existing variant in ExAC African/American population
+## ExAC_AMR_MAF : Frequency of existing variant in ExAC American population
+## ExAC_EAS_MAF : Frequency of existing variant in ExAC East Asian population
+## ExAC_FIN_MAF : Frequency of existing variant in ExAC Finnish population
+## ExAC_NFE_MAF : Frequency of existing variant in ExAC Non-Finnish European population
+## ExAC_OTH_MAF : Frequency of existing variant in ExAC combined other combined populations
+## ExAC_SAS_MAF : Frequency of existing variant in ExAC South Asian population
+## CLIN_SIG : ClinVar clinical significance of the dbSNP variant
+## SOMATIC : Somatic status of existing variant
+## PHENO : Indicates if existing variant(s) is associated with a phenotype, disease or trait; multiple values correspond to multiple variants
+## PUBMED : Pubmed ID(s) of publications that cite existing variant
+## MOTIF_NAME : The source and identifier of a transcription factor binding profile (TFBP) aligned at this position
+## MOTIF_POS : The relative position of the variation in the aligned TFBP
+## HIGH_INF_POS : A flag indicating if the variant falls in a high information position of the TFBP
+## MOTIF_SCORE_CHANGE : The difference in motif score of the reference and variant sequences for the TFBP
+#Uploaded_variation	Location	Allele	Gene	Feature	Feature_type	Consequence	cDNA_position	CDS_position	Protein_position	Amino_acids	Codons	Existing_variation	IMPACT	DISTANCE	STRAND	FLAGS	VARIANT_CLASS	SYMBOL	SYMBOL_SOURCE	HGNC_ID	BIOTYPE	CANONICAL	TSL	APPRIS	CCDS	ENSP	SWISSPROT	TREMBL	UNIPARC	REFSEQ_MATCH	GENE_PHENO	SIFT	PolyPhen	EXON	INTRON	DOMAINS	HGVSc	HGVSp	HGVS_OFFSET	GMAF	AFR_MAF	AMR_MAF	EAS_MAF	EUR_MAF	SAS_MAF	AA_MAF	EA_MAF	ExAC_MAF	ExAC_Adj_MAF	ExAC_AFR_MAF	ExAC_AMR_MAF	ExAC_EAS_MAF	ExAC_FIN_MAF	ExAC_NFE_MAF	ExAC_OTH_MAF	ExAC_SAS_MAF	CLIN_SIG	SOMATIC	PHENO	PUBMED	MOTIF_NAME	MOTIF_POS	HIGH_INF_POS	MOTIF_SCORE_CHANGE
+rs226249	1:8021778	C	ENSG00000116288	ENST00000338639	Transcript	5_prime_UTR_variant	56	-	-	-	-	rs226249	MODIFIER	-	1	-	SNV	PARK7	HGNC	16369	protein_coding	-	-	-	CCDS93.1	ENSP00000340278	Q99497	-	UPI0000072F6F	-	1	-	-	1/7	-	-	ENST00000338639.5:c.-99T>C	-	-	T:0.3626	C:0.8797	C:0.634	C:0.6577	C:0.5934	C:0.3364	-	-	-	-	-	-	-	-	-	-	-	-	-	-	21559414,18403612,20227322	-	-	-	-
+rs226249	1:8021778	C	ENSG00000116288	ENST00000377488	Transcript	upstream_gene_variant	-	-	-	-	-	rs226249	MODIFIER	251	1	-	SNV	PARK7	HGNC	16369	protein_coding	-	-	-	CCDS93.1	ENSP00000366708	Q99497	-	UPI0000072F6F	-	1	-	-	-	-	-	-	-	-	T:0.3626	C:0.8797	C:0.634	C:0.6577	C:0.5934	C:0.3364	-	-	-	-	-	-	-	-	-	-	-	-	-	-	21559414,18403612,20227322	-	-	-	-
+rs226249	1:8021778	C	ENSG00000116288	ENST00000377491	Transcript	upstream_gene_variant	-	-	-	-	-	rs226249	MODIFIER	176	1	-	SNV	PARK7	HGNC	16369	protein_coding	-	-	-	CCDS93.1	ENSP00000366711	Q99497	-	UPI0000072F6F	-	1	-	-	-	-	-	-	-	-	T:0.3626	C:0.8797	C:0.634	C:0.6577	C:0.5934	C:0.3364	-	-	-	-	-	-	-	-	-	-	-	-	-	-	21559414,18403612,20227322	-	-	-	-
+rs226249	1:8021778	C	ENSG00000116288	ENST00000377493	Transcript	5_prime_UTR_variant	18	-	-	-	-	rs226249	MODIFIER	-	1	-	SNV	PARK7	HGNC	16369	protein_coding	-	-	-	-	ENSP00000466242	-	K7ELW0	UPI000284124C	-	1	-	-	1/6	-	-	ENST00000377493.5:c.-41T>C	-	-	T:0.3626	C:0.8797	C:0.634	C:0.6577	C:0.5934	C:0.3364	-	-	-	-	-	-	-	-	-	-	-	-	-	-	21559414,18403612,20227322	-	-	-	-
+rs226249	1:8021778	C	ENSG00000116288	ENST00000460192	Transcript	non_coding_transcript_exon_variant,non_coding_transcript_variant	56	-	-	-	-	rs226249	MODIFIER	-	1	-	SNV	PARK7	HGNC	16369	retained_intron	-	-	-	-	-	-	-	-	-	1	-	-	1/6	-	-	ENST00000460192.1:n.56T>C	-	-	T:0.3626	C:0.8797	C:0.634	C:0.6577	C:0.5934	C:0.3364	-	-	-	-	-	-	-	-	-	-	-	-	-	-	21559414,18403612,20227322	-	-	-	-
+rs226249	1:8021778	C	ENSG00000116288	ENST00000465354	Transcript	upstream_gene_variant	-	-	-	-	-	rs226249	MODIFIER	30	1	-	SNV	PARK7	HGNC	16369	retained_intron	-	-	-	-	-	-	-	-	-	1	-	-	-	-	-	-	-	-	T:0.3626	C:0.8797	C:0.634	C:0.6577	C:0.5934	C:0.3364	-	-	-	-	-	-	-	-	-	-	-	-	-	-	21559414,18403612,20227322	-	-	-	-
+rs226249	1:8021778	C	ENSG00000116288	ENST00000469225	Transcript	upstream_gene_variant	-	-	-	-	-	rs226249	MODIFIER	3633	1	cds_start_NF	SNV	PARK7	HGNC	16369	protein_coding	-	-	-	-	ENSP00000466756	-	K7EN27	UPI000284124D	-	1	-	-	-	-	-	-	-	-	T:0.3626	C:0.8797	C:0.634	C:0.6577	C:0.5934	C:0.3364	-	-	-	-	-	-	-	-	-	-	-	-	-	-	21559414,18403612,20227322	-	-	-	-
+rs226249	1:8021778	C	ENSG00000116288	ENST00000493373	Transcript	intron_variant	-	-	-	-	-	rs226249	MODIFIER	-	1	cds_end_NF	SNV	PARK7	HGNC	16369	protein_coding	-	-	-	-	ENSP00000465404	Q99497	-	UPI0000072F6F	-	1	-	-	-	1/6	-	ENST00000493373.1:c.-23-1045T>C	-	-	T:0.3626	C:0.8797	C:0.634	C:0.6577	C:0.5934	C:0.3364	-	-	-	-	-	-	-	-	-	-	-	-	-	-	21559414,18403612,20227322	-	-	-	-
+rs226249	1:8021778	C	ENSG00000116288	ENST00000493678	Transcript	5_prime_UTR_variant	27	-	-	-	-	rs226249	MODIFIER	-	1	-	SNV	PARK7	HGNC	16369	protein_coding	YES	-	-	CCDS93.1	ENSP00000418770	Q99497	-	UPI0000072F6F	-	1	-	-	1/7	-	-	ENST00000493678.1:c.-41T>C	-	-	T:0.3626	C:0.8797	C:0.634	C:0.6577	C:0.5934	C:0.3364	-	-	-	-	-	-	-	-	-	-	-	-	-	-	21559414,18403612,20227322	-	-	-	-
+rs226249	1:8021778	C	ENSG00000116288	ENST00000497113	Transcript	upstream_gene_variant	-	-	-	-	-	rs226249	MODIFIER	1049	1	-	SNV	PARK7	HGNC	16369	processed_transcript	-	-	-	-	-	-	-	-	-	1	-	-	-	-	-	-	-	-	T:0.3626	C:0.8797	C:0.634	C:0.6577	C:0.5934	C:0.3364	-	-	-	-	-	-	-	-	-	-	-	-	-	-	21559414,18403612,20227322	-	-	-	-
+rs226249	1:8021778	C	11315	NM_001123377.1	Transcript	5_prime_UTR_variant	65	-	-	-	-	rs226249	MODIFIER	-	1	-	SNV	PARK7	-	16369	protein_coding	-	-	-	-	NP_001116849.1	-	-	-	-	-	-	-	1/7	-	-	NM_001123377.1:c.-41T>C	-	-	T:0.3626	C:0.8797	C:0.634	C:0.6577	C:0.5934	C:0.3364	-	-	-	-	-	-	-	-	-	-	-	-	-	-	21559414,18403612,20227322	-	-	-	-
+rs226249	1:8021778	C	11315	NM_007262.4	Transcript	5_prime_UTR_variant	65	-	-	-	-	rs226249	MODIFIER	-	1	-	SNV	PARK7	-	16369	protein_coding	-	-	-	-	NP_009193.2	-	-	-	-	-	-	-	1/7	-	-	NM_007262.4:c.-99T>C	-	-	T:0.3626	C:0.8797	C:0.634	C:0.6577	C:0.5934	C:0.3364	-	-	-	-	-	-	-	-	-	-	-	-	-	-	21559414,18403612,20227322	-	-	-	-
+rs226249	1:8021778	C	11315	XM_005263424.1	Transcript	upstream_gene_variant	-	-	-	-	-	rs226249	MODIFIER	204	1	-	SNV	PARK7	-	16369	protein_coding	YES	-	-	-	XP_005263481.1	-	-	-	-	-	-	-	-	-	-	-	-	-	T:0.3626	C:0.8797	C:0.634	C:0.6577	C:0.5934	C:0.3364	-	-	-	-	-	-	-	-	-	-	-	-	-	-	21559414,18403612,20227322	-	-	-	-
+rs226249	1:8021778	C	11315	XM_005263425.1	Transcript	5_prime_UTR_variant	56	-	-	-	-	rs226249	MODIFIER	-	1	-	SNV	PARK7	-	16369	protein_coding	-	-	-	-	XP_005263482.1	-	-	-	-	-	-	-	1/6	-	-	XM_005263425.1:c.-41T>C	-	-	T:0.3626	C:0.8797	C:0.634	C:0.6577	C:0.5934	C:0.3364	-	-	-	-	-	-	-	-	-	-	-	-	-	-	21559414,18403612,20227322	-	-	-	-
+rs226249	1:8021778	C	11315	XM_005263426.1	Transcript	5_prime_UTR_variant	51	-	-	-	-	rs226249	MODIFIER	-	1	-	SNV	PARK7	-	16369	protein_coding	-	-	-	-	XP_005263483.1	-	-	-	-	-	-	-	1/6	-	-	XM_005263426.1:c.-99T>C	-	-	T:0.3626	C:0.8797	C:0.634	C:0.6577	C:0.5934	C:0.3364	-	-	-	-	-	-	-	-	-	-	-	-	-	-	21559414,18403612,20227322	-	-	-	-
+rs226249	1:8021778	C	-	ENSR00000001216	RegulatoryFeature	regulatory_region_variant	-	-	-	-	-	rs226249	MODIFIER	-	-	-	SNV	-	-	-	promoter	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	-	T:0.3626	C:0.8797	C:0.634	C:0.6577	C:0.5934	C:0.3364	-	-	-	-	-	-	-	-	-	-	-	-	-	-	21559414,18403612,20227322	-	-	-	-
