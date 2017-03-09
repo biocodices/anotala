@@ -12,7 +12,7 @@ from anotamela.cache import AVAILABLE_CACHES
 AVAILABLE_CACHES['mock_cache'] = AVAILABLE_CACHES['dict']
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture
 def proxies():
     return {'http': 'socks5://localhost:9050'}
 

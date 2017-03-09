@@ -46,14 +46,15 @@ class ParallelAnnotator(AnnotatorWithCache):
     BATCH_SIZE = 10
     SLEEP_TIME = 2.5
     RANDOMIZE_SLEEP_TIME = False
+    USER_AGENT_GENERATOR = UserAgent()
+
+    @property
+    def random_user_agent(self):
+        return self.USER_AGENT_GENERATOR.random
 
     def _query(self, id_):
         url = self._url(id_)
-
-        if not hasattr(self, 'user_agent_generator'):
-            self.user_agent_generator = UserAgent()
-
-        headers = {'User-Agent': self.user_agent_generator.random}
+        headers = {'User-Agent': self.random_user_agent}
         response = requests.get(url, headers=headers, proxies=self.proxies)
         if not response.ok:
             logger.warning('{} response: {}'.format(response.status_code, url))

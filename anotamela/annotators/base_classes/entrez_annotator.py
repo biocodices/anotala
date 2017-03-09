@@ -51,6 +51,7 @@ class EntrezAnnotator(AnnotatorWithCache):
             set_email_for_entrez()
 
         if self.proxies:
+            original_http_proxy_value = os.environ.get('http_proxy')
             # Biopython's Entrez service uses proxies when they're set as
             # an env variable 'http_proxy'. See:
             # http://biopython.org/DIST/docs/tutorial/Tutorial.html#htoc126
@@ -69,6 +70,9 @@ class EntrezAnnotator(AnnotatorWithCache):
             handle.close()
             batch_annotations = self._annotations_by_id(ids_group, response)
             yield dict(batch_annotations)
+
+        if self.proxies and original_http_proxy_value:
+            os.environ['http_proxy'] = original_http_proxy_value
 
     @property
     def _query_method(self):
