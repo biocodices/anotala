@@ -50,12 +50,21 @@ class EntrezAnnotator(AnnotatorWithCache):
         if not Entrez.email:
             set_email_for_entrez()
 
-        if self.proxies:
-            original_http_proxy_value = os.environ.get('http_proxy')
-            # Biopython's Entrez service uses proxies when they're set as
-            # an env variable 'http_proxy'. See:
-            # http://biopython.org/DIST/docs/tutorial/Tutorial.html#htoc126
-            os.environ['http_proxy'] = self.proxies['http']
+        #
+        # NOTE: The proxies for Biopython's Entrez are commented out because
+        # when set (socks5://localhost:9050) they break the UniprotAnnotator,
+        # which uses Bio.ExPASy.get_sprot_raw().
+        #
+        # I tried to fix this by unsetting the ENV variable after the
+        # annotation (code commented below), but the Uniprot annotation still
+        # breaks.
+        #
+        #  if self.proxies:
+            #  original_http_proxy_value = os.environ.get('http_proxy')
+            #  # Biopython's Entrez service uses proxies when they're set as
+            #  # an env variable 'http_proxy'. See:
+            #  # http://biopython.org/DIST/docs/tutorial/Tutorial.html#htoc126
+            #  os.environ['http_proxy'] = self.proxies['http']
 
         total = len(ids)
         logger.info('Fetch {} entries from Entrez "{}" in batches of {}'
@@ -71,8 +80,16 @@ class EntrezAnnotator(AnnotatorWithCache):
             batch_annotations = self._annotations_by_id(ids_group, response)
             yield dict(batch_annotations)
 
-        if self.proxies and original_http_proxy_value:
-            os.environ['http_proxy'] = original_http_proxy_value
+        #
+        # See the comment above ^
+        #
+        #  # Restoring os.environ['http_proxy'] is important because
+        #  # it can break other Entrez interfaces, like ExPASy.get_sprot_raw():
+        #  if self.proxies:
+            #  if original_http_proxy_value:
+                #  os.environ['http_proxy'] = original_http_proxy_value
+            #  else:
+                #  del(os.environ['http_proxy'])
 
     @property
     def _query_method(self):
