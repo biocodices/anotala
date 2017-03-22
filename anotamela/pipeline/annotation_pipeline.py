@@ -123,10 +123,7 @@ class AnnotationPipeline:
 
         rs_annotations = self.run_from_rsids(rs_variants['id'])
         self.rs_variants = pd.merge(rs_variants, rs_annotations,
-                                    left_on='id', right_on='rsid', how='left')
-
-        # Leave 'id' as the only identifier:
-        self.rs_variants.drop('rsid', axis=1, inplace=True)
+                                    left_on='id', right_on='id', how='left')
 
         self.other_variants = other_variants
 
@@ -203,6 +200,8 @@ class AnnotationPipeline:
                            inplace=True)
 
         self.rs_variants = rs_variants
+        self.rs_variants.rename(columns={'rsid': 'id'}, inplace=True)
+
         self.gene_annotations = gene_annotations
 
         logger.info('Done! Took {} to complete the annotation'

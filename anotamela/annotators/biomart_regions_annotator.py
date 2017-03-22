@@ -7,6 +7,14 @@ class BiomartRegionsAnnotator(ParallelAnnotator):
     """
     This class annotates a given list of regions with the SNPs located in those
     regions. GRCh37 coordinates are expected.
+
+    Regions should be identified with the format chrom:start:end:strand.
+    Strans can be 1 (forward) or -1 (reverse).
+
+    Usage:
+        > annotator = BiomartRegionsAnnotator()
+        > annotator.annotate_one('1:1000000:1000100:1')
+
     """
     SOURCE_NAME = 'biomart_regions'
     BATCH_SIZE = 5

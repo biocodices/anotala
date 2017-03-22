@@ -43,7 +43,7 @@ def test_run_from_rsids(proxies):
     assert len(pipe.gene_annotations) == 1
 
     annotations_to_expect = [
-        'rsid',
+        'id',
         'dbsnp_entrez',
         'dbsnp_myvariant',
         'frequencies',
@@ -59,7 +59,7 @@ def test_run_from_rsids(proxies):
         'ensembl',
     ]
     for field in annotations_to_expect:
-        assert field in pipe.rs_variants
+        assert field in pipe.rs_variants.columns
 
     for field in ['entrez_gene_id', 'mygene', 'gene_entrez']:
         assert field in pipe.gene_annotations
