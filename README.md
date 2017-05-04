@@ -1,4 +1,45 @@
 ## Usage
+
+My most common pattern involves using the whole annotation pipeline as boxed
+by the package. I usually do this in Jupyter, and making use of other
+package called [`project`](http://github.com/biocodices/project):
+
+```python
+WORKDIR = 'some_descriptive_name_for_the_project'
+
+from project import Project
+from anotamela import AnnotationPipeline
+
+pj = Project(WORKDIR)
+
+# Typical place of a local Tor running:
+proxies = {'http': 'socks5://localhost:9050'}
+
+# The result of your variant calling:
+genotypes = pj.results_file('genotypes.vcf.gz')
+
+# I use MySQL as a cache for the web annotations.
+# This will look for host/user/pass/db in a ~/.mysql_credentials.yml file.
+annotation_pipe = AnnotationPipeline(cache='mysql', proxies=proxies)
+
+# The annotations itself will take some time:
+annotation_pipe.run_from_vcf(genotypes)
+
+# => variants are stored in annotation_pipe.rs_variants
+# => genes are stored in annotation_pipe.gene_annotations
+
+# Dump the results
+ann_variants_1kg_json = \
+    pj.dump_df_as_json(annotation_pipe.rs_variants, 'annotated_rs_variants')
+ann_genes_1kg_json = \
+    pj.dump_df_as_json(annotation_pipe.gene_annotations, 'annotated_genes')
+```
+
+This produces two pandas DataFrames that I dump as JSON files to be used
+downstream in a reports generation pipeline.
+
+However, the annotators can be used separately, like this:
+
 ```python
 from anotamela import DbsnpMyvariantAnnotator, OmimVariantAnnotator
 
