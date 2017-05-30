@@ -2,6 +2,7 @@ from anotamela.annotators.base_classes import MyVariantAnnotator
 from anotamela.helpers import (
     listify,
     infer_annotated_allele,
+    parse_prot_change,
 )
 
 
@@ -27,6 +28,9 @@ class SnpeffAnnotator(MyVariantAnnotator):
 
             if 'effect' in annotation:
                 del(annotation['effect'])
+
+            if 'hgvs_p' in annotation:
+                annotation['hgvs_p'] = parse_prot_change(annotation['hgvs_p'])
 
         return annotations
 

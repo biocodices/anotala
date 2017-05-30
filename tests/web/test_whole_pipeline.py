@@ -17,8 +17,11 @@ def cache():
 
 #
 #
-# This is kind of a smoke test that should be rewritten because it's way
-# too brittle, and when it fails, you have no idea what went wrong.
+# This is kind of a smoke test that should probably be rewritten.
+#
+# However, a test like this should be kept, since it tests the annotators
+# and their parsing assumptions against real updated data, so it will
+# reveal if any data from the external sources have changed their structure.
 #
 #
 @pytest.mark.parametrize('vcf_filename,test_web', TEST_PARAMS)
