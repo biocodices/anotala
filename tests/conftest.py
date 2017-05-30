@@ -14,7 +14,7 @@ AVAILABLE_CACHES['mock_cache'] = AVAILABLE_CACHES['dict']
 
 @pytest.fixture(scope='module')
 def proxies():
-    return {'http': 'socks5://localhost:9050'}
+    return {'http': 'socks5://caladan.lan:9050'}
 
 
 @pytest.helpers.register

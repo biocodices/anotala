@@ -15,8 +15,8 @@ from anotamela.helpers import (
     ('p.Ala123Gly', 'p.Ala123Gly'),
     ('p.Ala123=', 'p.Ala123Ala'),
     ('Ala123=', 'p.Ala123Ala'),
-    ('p.Ala123*', 'p.Ala123*'),
-    ('p.Ala123Ter', 'p.Ala123*'),
+    ('p.Ala123*', 'p.Ala123Ter'),
+    ('p.Ala123Ter', 'p.Ala123Ter'),
     ('p.Leu12_Leu14del', 'p.Leu12_Leu14del'),  # deletion is left untouched
     ('p.Ala160_Gln161insAla', 'p.Ala160_Gln161insAla'),  # insertion, same
     ('p.Pro56_Gly57insIleAlaPro', 'p.Pro56_Gly57insIleAlaPro'),

@@ -8,7 +8,7 @@ from Bio import Entrez
 SNP_RE = re.compile(r'(?P<old_allele>[ATCG])>(?P<new_allele>[ATCG])')
 SYN_SNP_RE = re.compile(r'(?P<new_allele>[ATCG])=')
 INDEL_RE = re.compile(r'.*(?P<new_allele>del.*|ins.*|dup.*)')
-PROT_RE = re.compile(r'(?P<aa1>[A-Za-z]{3})(?P<pos>\d+)(?P<aa2>[A-Za-z]{3}|=)')
+PROT_RE = re.compile(r'(?P<aa1>[A-Za-z]{3})(?P<pos>\d+)(?P<aa2>[A-Za-z]{3}|=|\*)')
 
 
 def grouped(iterable, group_size, as_list=False):
@@ -60,9 +60,10 @@ def parse_prot_change(prot_change):
 
     if info['aa2'] == '=':
         info['aa2'] = info['aa1']
-    elif info['aa2'] == 'Ter':
-        # This unifies ClinVar's and OMIM's "Ter" with SnpEff's "*":
-        info['aa2'] = '*'
+    elif info['aa2'] == '*':
+        info['aa2'] = 'Ter'
+        # This unifies SnpEff's "*" with Clinvar, OMIM, and VEP use of "Ter"
+        # for the stop codon.
 
     return 'p.{aa1}{pos}{aa2}'.format(**info)
 

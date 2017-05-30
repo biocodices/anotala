@@ -11,11 +11,19 @@ TEST_PARAMS = [
 
 @pytest.mark.parametrize('test_data,namespace,as_json', TEST_PARAMS)
 def test_cache(namespace, test_data, as_json):
-    cache = pytest.helpers.get_cache('postgres')
-    _test_cache_operations(cache, test_data, namespace, as_json)
+    try:
+        cache = pytest.helpers.get_cache('postgres')
+    except OSError:  # config file not found
+        pass
+    else:
+        _test_cache_operations(cache, test_data, namespace, as_json)
 
-    cache = pytest.helpers.get_cache('mysql')
-    _test_cache_operations(cache, test_data, namespace, as_json)
+    try:
+        cache = pytest.helpers.get_cache('mysql')
+    except OSError:  # config file not found
+        pass
+    else:
+        _test_cache_operations(cache, test_data, namespace, as_json)
 
 
 def _test_cache_operations(cache_instance, test_data, namespace, as_json):
