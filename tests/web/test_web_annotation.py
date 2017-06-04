@@ -1,7 +1,9 @@
 import pytest
 import pandas as pd
+import vcr
 
 from anotamela.annotators import *
+from anotamela.annotators.base_classes import EntrezAnnotator
 
 
 test_params = [
@@ -117,7 +119,18 @@ def test_annotator(proxies, annotator_class, params):
 
     # Test annotation from web
 
-    info_dict = annotator.annotate(ids_to_annotate, use_cache=False)
+    if issubclass(annotator_class, EntrezAnnotator):
+        # Entrez annotators break in a very low level stream handling
+        # with VCR cassettes (!)
+        info_dict = annotator.annotate(ids_to_annotate, use_cache=False)
+    else:
+        cassette = ('tests/web/cassettes/{}_{}.yaml'
+                    .format(annotator_class.__name__,
+                            '-'.join(ids_to_annotate)))
+
+        with vcr.use_cassette(cassette):
+            info_dict = annotator.annotate(ids_to_annotate, use_cache=False)
+
 
     for id_ in ids_to_annotate:
         for key in params['keys_to_check'].split():

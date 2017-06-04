@@ -1,3 +1,5 @@
+import vcr
+
 from anotamela.annotators import BiomartRegionsAnnotator
 
 
@@ -12,6 +14,11 @@ def test_biomart_regions_from_web(proxies):
            'rsid': 'rs143310355',
            'source': 'dbSNP'}
 
-    result = annotator.annotate_one(region)
+    cassette = ('tests/web/cassettes/{}_{}.yaml'
+                .format(annotator.__class__.__name__, region.replace(':', '-')))
+
+    with vcr.use_cassette(cassette):
+        result = annotator.annotate_one(region)
+
     assert result == [snp]
 

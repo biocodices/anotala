@@ -1,0 +1,42 @@
+interactions:
+- request:
+    body: q=rs268%2Crs123&scopes=dbsnp.rsid&fields=dbsnp
+    headers:
+      Accept: ['*/*']
+      Accept-Encoding: ['gzip, deflate']
+      Connection: [keep-alive]
+      Content-Length: ['46']
+      content-type: [application/x-www-form-urlencoded]
+      user-agent: [myvariant.py/0.3.1 python-requests/2.13.0]
+    method: POST
+    uri: http://myvariant.info/v1/query
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAAA62TS2/aQBDH7/kU1p4r5PUT5xCJJi2tSsCKo16iCBlYjCVjyK4dCVX57p3xeh8O
+        DcqhB5B3Zuc/j53f05Xj/IGf45CXlvETuXYIF140Jl+kdVlu0Lbe8fF1MaLJmPqhl0xupvqCWB84
+        gzs0HtE4DuNxH7lZifoIdikPCfKqYhVbHnhZlDWKFozvq7JmvZS+IsD51KXHwlR8V6TUwOCJjuoc
+        W85ewOyOkiQY69g3WcsFGdUHXoECtIzrhjTxjFD/9awEoZsGyzDxOKPDHm1qeKC3rnKB7ZBs/lsX
+        TLrRLFdtWeFw/UiLbqu8GHZPJlmqA0FwOl/Yxx939unXNN3lgtF/2HzbNssGYfePgxTz7N6+nL47
+        3drOh2/f7WPm35GzSRUMntjsATSBFrlXgesNKhOn/epQ4cBm6UxJ6VckxT7fgtMdyefRc9sVNBmm
+        YDWOVu2rugi5RZNzfDnl6ss1OTjDFNZ+ARCyWBsMUHrNq3KTNwwTNbxlKgk4+FK0q+Z0xL5JI/SI
+        0KXMSEeX/A3+u/TnIFI9HWJAjAFEL0iiKAii2xvFAVkOQQx8KguS2waFKJDOQWxrcWTrcltCL7oL
+        idpwG5VEx4ph0V4JGIyGyEs82s+3b7GjTFfyTka1Ii8ZmdiNEyPTf52RaKINibFp5/+TGGpx6Hka
+        mvx4vITpz/mjHfpZai+CmM0WChczmUvkeZHrU7sMg94i+5rOfCVnyND04YPoPfmIPbWi6iJMRbGn
+        XP1Tmgw9e2afLPYMC6D0afZedYsfs3f1/Bc/cZa6BwcAAA==
+    headers:
+      Access-Control-Allow-Credentials: ['false']
+      Access-Control-Allow-Headers: ['Content-Type, Depth, User-Agent, X-File-Size,
+          X-Requested-With, If-Modified-Since, X-File-Name, Cache-Control']
+      Access-Control-Allow-Methods: ['GET,POST,OPTIONS']
+      Access-Control-Allow-Origin: ['*']
+      Access-Control-Max-Age: ['60']
+      Cache-Control: ['max-age=604800, public']
+      Connection: [keep-alive]
+      Content-Encoding: [gzip]
+      Content-Length: ['604']
+      Content-Type: [application/json; charset=UTF-8]
+      Date: ['Sat, 03 Jun 2017 23:32:04 GMT']
+      Server: [TornadoServer/4.2.1]
+    status: {code: 200, message: OK}
+version: 1

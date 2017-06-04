@@ -1,0 +1,66 @@
+interactions:
+- request:
+    body: q=rs268&scopes=dbnsfp.rsid&fields=dbnsfp
+    headers:
+      Accept: ['*/*']
+      Accept-Encoding: ['gzip, deflate']
+      Connection: [keep-alive]
+      Content-Length: ['40']
+      content-type: [application/x-www-form-urlencoded]
+      user-agent: [myvariant.py/0.3.1 python-requests/2.13.0]
+    method: POST
+    uri: http://myvariant.info/v1/query
+  response:
+    body:
+      string: !!binary |
+        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
+    headers:
+      Access-Control-Allow-Credentials: ['false']
+      Access-Control-Allow-Headers: ['Content-Type, Depth, User-Agent, X-File-Size,
+          X-Requested-With, If-Modified-Since, X-File-Name, Cache-Control']
+      Access-Control-Allow-Methods: ['GET,POST,OPTIONS']
+      Access-Control-Allow-Origin: ['*']
+      Access-Control-Max-Age: ['60']
+      Cache-Control: ['max-age=604800, public']
+      Connection: [keep-alive]
+      Content-Encoding: [gzip]
+      Content-Length: ['1978']
+      Content-Type: [application/json; charset=UTF-8]
+      Date: ['Sat, 03 Jun 2017 23:32:26 GMT']
+      Server: [TornadoServer/4.2.1]
+    status: {code: 200, message: OK}
+version: 1
