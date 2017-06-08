@@ -17,23 +17,30 @@ class EntrezAnnotator(AnnotatorWithCache):
     Base class for annotators that use one of Entrez services. Classes that
     inherit from this one should have:
 
-        - class variable SOURCE_NAME
+        - class variable SOURCE_NAME, the name that will be used to create
+          the database table.
 
-        - class variable ENTREZ_PARAMS =
-            { 'db': ..., 'retmode': 'json' , 'service': (epost|esummary) }
-            'service' lets you choose between epost and esummary services.
+        - class variable ENTREZ_SERVICE: (epost|esummary|efetch),
+          lets you choose between epost, efetch and esummary services.
 
-        - a method _annotations_by_id(raw_response) that takes the raw
-          response with info for many ids and yields tuples of (id, data) for
-          each of the queried IDs, thus splitting the response per ID.
+        - class variable ENTREZ_PARAMS like:
+          {'db': 'clinvar', 'rettype': 'clinvarset'}
+          These params will be passed as kwargs to the SERVICE you choose.
 
-        - optionally, a _parse_id(id_) method that will transform the IDs in
-          any way prior to the query. This is useful, for instance, to remove
-          'rs' from rs IDs.
+        - a static or class method _annotations_by_id(ids, raw_response) that
+          takes the raw response with info for many ids and yields tuples of
+          (id, data) for each of the queried IDs, thus splitting the many-IDs
+          response *per ID*.
+
+        - optionally, a static or class method _parse_id(id_) method that
+          will transform the IDs in any way prior to the query. This is useful,
+          for instance, to remove 'rs' from rs IDs.
 
         - optionally, a USE_ENTREZ_READER class variable to indicate that the
           response from Entrez should be handled by Entrez.read(). This works
           for some but not all DBs.
+
+        - as any AnnotatorWithCache, a _parse_annotation static or classmethod
     """
     def _batch_query(self, ids):
         """
@@ -95,9 +102,10 @@ class EntrezAnnotator(AnnotatorWithCache):
     def _query_method(self):
         query_methods = {
             'epost': self._epost_query,
-            'esummary': self._esummary_query
+            'esummary': self._esummary_query,
+            'efetch': self._efetch_query,
         }
-        return query_methods[self.ENTREZ_PARAMS['service']]
+        return query_methods[self.ENTREZ_SERVICE]
 
     @property
     def batch_size(self):
@@ -107,8 +115,16 @@ class EntrezAnnotator(AnnotatorWithCache):
         batch_sizes = {
             'epost': 1000,
             'esummary': 200,
+            'efetch': 50,
         }
-        return batch_sizes[self.ENTREZ_PARAMS['service']]
+        return batch_sizes[self.ENTREZ_SERVICE]
+
+    def _efetch_query(self, ids):
+        for ids_group in grouped(ids, self.batch_size):
+            handle = Entrez.efetch(id=','.join(ids_group),
+                                   **self.ENTREZ_PARAMS)
+            yield ids_group, handle
+
 
     def _esummary_query(self, ids):
         for ids_group in grouped(ids, self.batch_size):

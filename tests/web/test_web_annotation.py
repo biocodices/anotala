@@ -1,6 +1,5 @@
 import pytest
 import pandas as pd
-import vcr
 
 from anotamela.annotators import *
 from anotamela.annotators.base_classes import EntrezAnnotator
@@ -46,6 +45,10 @@ test_params = [
                               'origin preferred_name prot_change ref '
                               'review_status rsid transcript type url '
                               'variant_id genomic_allele coding_allele')
+        }),
+        (ClinvarRCVAnnotator, {
+            'ids_to_annotate': 'RCV000210468 RCV000148846',
+            'keys_to_check': 'accession entry_type'
         }),
         (HgvsAnnotator, {
             'ids_to_annotate': 'rs268 rs199473059',
@@ -118,19 +121,7 @@ def test_annotator(proxies, annotator_class, params):
     annotator = annotator_class(cache='mock_cache', proxies=proxies)
 
     # Test annotation from web
-
-    if issubclass(annotator_class, EntrezAnnotator):
-        # Entrez annotators break in a very low level stream handling
-        # with VCR cassettes (!)
-        info_dict = annotator.annotate(ids_to_annotate, use_cache=False)
-    else:
-        cassette = ('tests/web/cassettes/{}_{}.yaml'
-                    .format(annotator_class.__name__,
-                            '-'.join(ids_to_annotate)))
-
-        with vcr.use_cassette(cassette):
-            info_dict = annotator.annotate(ids_to_annotate, use_cache=False)
-
+    info_dict = annotator.annotate(ids_to_annotate, use_cache=False)
 
     for id_ in ids_to_annotate:
         for key in params['keys_to_check'].split():

@@ -11,6 +11,7 @@ from .extract_entrez_genes import extract_entrez_genes
 from .extract_swissprot_ids import extract_swissprot_ids
 from .annotate_swissprot_ids import annotate_swissprot_ids
 from .group_swissprot_variants_by_rsid import group_swissprot_variants_by_rsid
+from .annotate_clinvar_accessions import annotate_clinvar_accessions
 
 from .annotation_pipeline import AnnotationPipeline
 
