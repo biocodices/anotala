@@ -1,5 +1,7 @@
 import pytest
 
+from anotamela.cache import SqlCache
+
 
 TEST_PARAMS = [
     # (test_data, namespace, as_json)
@@ -10,7 +12,7 @@ TEST_PARAMS = [
 
 
 @pytest.mark.parametrize('test_data,namespace,as_json', TEST_PARAMS)
-def test_cache(namespace, test_data, as_json):
+def test_cache(test_data, namespace, as_json):
     try:
         cache = pytest.helpers.get_cache('postgres')
     except OSError:  # config file not found
@@ -34,4 +36,20 @@ def _test_cache_operations(cache_instance, test_data, namespace, as_json):
 
     # Cleanup
     cache_instance._client_del(test_data.keys(), namespace)
+
+
+def test_read_credentials():
+    credentials_file = pytest.helpers.file('sql_credentials.yml')
+    result = SqlCache._read_credentials(credentials_file)
+
+    # Check a default was overriden
+    assert result['host'] == 'some_host'
+
+    # Check non-defaults were loaded
+    assert result['user'] == 'juan'
+    assert result['pass'] == 'tortilla'
+
+    # Check sensible defaults were loaded
+    assert result['port'] == 3306
+    assert result['driver'] == 'mysql+pymysql'
 

@@ -166,12 +166,21 @@ class SqlCache(Cache):
             driver: mysql
 
         """
+
+        config = {
+            'host': 'localhost',
+            'port': 3306,
+            'driver': 'mysql+pymysql',
+        }
         try:
             with open(expanduser(filepath)) as f:
-                return yaml.load(f.read())
+                user_config = yaml.load(f.read())
         except IOError as error:
             msg = "Couldn't read a YAML with credentials in '{}'"
-            msg += '. It should include: host, user, pass, port, db, driver.'
+            msg += '. It should include: host, user, pass, port, db.'
             msg = msg.format(filepath)
             raise IOError(msg).with_traceback(error.__traceback__)
+
+        config.update(user_config)
+        return config
 
