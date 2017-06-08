@@ -170,7 +170,7 @@ class SqlCache(Cache):
             with open(expanduser(filepath)) as f:
                 return yaml.load(f.read())
         except IOError as error:
-            msg = "Couldn't read a YAML with PostgreSQL credentials in '{}'"
+            msg = "Couldn't read a YAML with credentials in '{}'"
             msg += '. It should include: host, user, pass, port, db, driver.'
             msg = msg.format(filepath)
             raise IOError(msg).with_traceback(error.__traceback__)
