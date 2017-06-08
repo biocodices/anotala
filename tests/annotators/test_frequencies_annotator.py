@@ -1,8 +1,8 @@
 from anotamela import FrequenciesAnnotator
 
 
-freq, count = 0.123401, 100  # Fake frequency and allele count data
-rounded_freq = 0.1234  # Rounded!
+freq, count = 0.1234010101, 100  # Fake frequency and allele count data
+rounded_freq = 0.123401  # Rounded!
 
 
 def test_frequencies_annotator_parse_hit():

@@ -57,7 +57,7 @@ class FrequenciesAnnotator(MyVariantAnnotator):
     @staticmethod
     def _parse_frequency(freq):
         """Round the allele frequency."""
-        return round(freq, 4)
+        return round(freq, 6)
 
     @staticmethod
     def _parse_population(population):
