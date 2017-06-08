@@ -12,7 +12,8 @@ class GeneEntrezAnnotator(EntrezAnnotator):
     """
     SOURCE_NAME = 'gene_entrez'
     ANNOTATIONS_ARE_JSON = True
-    ENTREZ_PARAMS = {'db': 'gene', 'retmode': 'xml', 'service': 'esummary'}
+    ENTREZ_SERVICE = 'esummary'
+    ENTREZ_PARAMS = {'db': 'gene', 'retmode': 'xml'}
     USE_ENTREZ_READER = True
 
     @staticmethod

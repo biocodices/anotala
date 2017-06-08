@@ -13,6 +13,7 @@ from .extract_ensembl_consequence import extract_ensembl_consequence
 from .extract_gwas_traits import extract_gwas_traits
 from .annotate_swissprot_ids import annotate_swissprot_ids
 from .group_swissprot_variants_by_rsid import group_swissprot_variants_by_rsid
+from .annotate_clinvar_accessions import annotate_clinvar_accessions
 
 from .annotation_pipeline import AnnotationPipeline
 

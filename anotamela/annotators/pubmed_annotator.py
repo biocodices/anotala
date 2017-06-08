@@ -17,7 +17,8 @@ class PubmedAnnotator(EntrezAnnotator):
     """
     SOURCE_NAME = 'pubmed'
     ANNOTATIONS_ARE_JSON = True
-    ENTREZ_PARAMS = {'db': 'pubmed', 'retmode': 'xml', 'service': 'epost'}
+    ENTREZ_PARAMS = {'db': 'pubmed', 'retmode': 'xml'}
+    ENTREZ_SERVICE = 'epost'
     USE_ENTREZ_READER = False
 
     @classmethod

@@ -14,7 +14,8 @@ class DbsnpEntrezAnnotator(EntrezAnnotator):
     """
     SOURCE_NAME = 'dbsnp_entrez'
     LINKOUT_NAMES = {'1': 'snp', '5': 'pubmed'}
-    ENTREZ_PARAMS = {'db': 'snp', 'retmode': 'xml', 'service': 'epost'}
+    ENTREZ_SERVICE = 'epost'
+    ENTREZ_PARAMS = {'db': 'snp', 'retmode': 'xml'}
 
     @staticmethod
     def _annotations_by_id(_, xml_with_many_variants):
