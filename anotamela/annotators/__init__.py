@@ -9,6 +9,7 @@ from .frequencies_annotator import FrequenciesAnnotator
 from .gwas_catalog_annotator import GwasCatalogAnnotator
 from .ensembl_annotator import EnsemblAnnotator
 from .clinvar_rcv_annotator import ClinvarRCVAnnotator
+from .clinvar_variation_annotator import ClinvarVariationAnnotator
 
 from .omim_gene_annotator import OmimGeneAnnotator
 from .omim_variant_annotator import OmimVariantAnnotator
