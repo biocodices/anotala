@@ -1,4 +1,5 @@
 from copy import deepcopy
+from operator import itemgetter
 
 import pandas as pd
 
@@ -31,7 +32,7 @@ def annotate_clinvar_accessions(clinvar_entries):
             annotation = accessions_annotations.get(accession, {})
             new_entry.update(annotation)
 
-        accession_data = accessions_annotations[]
+        #  accession_data = accessions_annotations[]
         new_entries.update()
         # new_series[ix] =
 
