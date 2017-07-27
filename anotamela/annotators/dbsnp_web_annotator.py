@@ -32,7 +32,13 @@ class DbsnpWebAnnotator(ParallelAnnotator):
             if not entries:
                 continue
 
-            entries = [e for e in entries if e['groupTerm'] == 'Primary_Assembly']
+            entries = [e for e in entries
+                       if e['groupTerm'] == 'Primary_Assembly' and
+                       e['contigLabel'] != 'PAR']
+            # The 'PAR' contigLabel indicates a pseudo-autosomal region.
+            # I've seen it for SNP rs6603251, located in the X chromosome
+            # and in the "Y (PAR)". I decide to keep the X position.
+
             entry = entries.pop()
             assert not entries
 

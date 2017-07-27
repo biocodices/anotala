@@ -93,15 +93,13 @@ def test_gwas_catalog_annotator_parse_annotation():
 
 @pytest.mark.parametrize('rsid_allele,expected_tuple', [
     ('rs123-A', 'A'),
+    ('rs123NR', None),
     ('rs123-?', None),
+    ('HLA-DRB1*03:01-?', None),
+    ('nonmatching-rsid-?', None),
 ])
 def test_infer_allele(rsid_allele, expected_tuple):
     assert GwasCatalogAnnotator._infer_allele(rsid_allele) == expected_tuple
-
-
-def test_infer_allele_raise():
-    with pytest.raises(ValueError):
-        GwasCatalogAnnotator._infer_allele('nonmatching-rsid')
 
 
 @pytest.mark.parametrize('association_entry,expected_pubmed_entries', [
@@ -212,4 +210,6 @@ def test_parse_ci_range():
 
     assert f('[NR]') is None
     assert f('[1.10-1.25]') == {'lower_limit': 1.1, 'upper_limit': 1.25}
+    assert f('1.10-1.25') == {'lower_limit': 1.1, 'upper_limit': 1.25}
+    assert f('1.10 - 1.25') == {'lower_limit': 1.1, 'upper_limit': 1.25}
 

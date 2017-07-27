@@ -63,8 +63,6 @@ class GwasCatalogAnnotator(ParallelAnnotator):
             'odds_ratio_per_copy': 'orPerCopyNum',
         }
 
-    STRONGEST_ALLELE_REGEX = re.compile(r'(?P<rsid>rs\d+) ?-(?P<allele>.+)')
-    CI_RANGE_REGEX = re.compile(r'\[(?P<lower_limit>.+)-(?P<upper_limit>.+)\]')
     NA_VALUES = ['NA', 'NR']
 
     @staticmethod
@@ -118,6 +116,9 @@ class GwasCatalogAnnotator(ParallelAnnotator):
             'entrez_mapped_gene_symbols',
         ]
         for field in multiannotation_fields:
+            if field not in info.keys():
+                continue
+
             info[field] = cls._parse_colon_separated_values(info[field])
             info[field] = dict(zip(info['rsids'], info[field]))
 
@@ -174,12 +175,19 @@ class GwasCatalogAnnotator(ParallelAnnotator):
         Given a 'strongest_allele' datum from GWAS Catalog like 'rs123-A',
         return a tuple with the rs IDs and the allele: ('rs123', 'A').
         """
-        match = cls.STRONGEST_ALLELE_REGEX.search(rsid_allele)
+        # Some IDs are given like rs1234NR, so we make that uniform with
+        # the usual format, rs1234-NR:
+        rsid_allele = rsid_allele.replace('NR', '-NR')
+        pattern = r'(?P<rsid>rs\d+) ?-(?P<allele>.+)'
+        match = re.compile(pattern).search(rsid_allele)
+
         if not match:
-            raise ValueError("Couldn't parse the rsid_allele '{}'"
-                             .format(rsid_allele))
+            print("Couldn't parse the rsid_allele '{}'".format(rsid_allele))
+            return None
+
         allele = match.group('allele')
-        return None if allele == '?' else allele
+
+        return None if allele in ['?', 'NR'] else allele
 
     @staticmethod
     def _parse_pubmed_entries(association):
@@ -339,13 +347,27 @@ class GwasCatalogAnnotator(ParallelAnnotator):
     def _parse_ci_range(cls, ci_range):
         """
         Given a confidence interval range as a string like '[1.01-1.25]',
-        parse it to get the numbers in a tuple like (1.01, 1.25).
+        parse it to get the numbers in a dict like:
+        {'lower_limit': 1.01, 'upper_limit': 1.25}.
 
         Return None for '[NR]' values.
         """
         if ci_range == '[NR]':
             return None
 
-        return {k: float(v) for k, v in
-                cls.CI_RANGE_REGEX.search(ci_range).groupdict().items()}
+        # Formats for this range are inconsistent. So far I've seen:
+        # "[1.01-1.25]"
+        # "1.01-1.25"
+        # "1.01 - 1.25"
+        # So I just try to capture two floats, and I'm not specific about the
+        # separation between them or surroundings.
+        float_pattern = '\d+\.\d+'
+        pattern = r'(?P<lower_limit>{0}).+(?P<upper_limit>{0})'.format(float_pattern)
+        values = re.compile(pattern).search(ci_range)
+
+        if not values:
+            msg = "Clouldn't find confidence interval values in \"{}\""
+            raise ValueError(msg.format(ci_range))
+
+        return {k: float(v) for k, v in values.groupdict().items()}
 

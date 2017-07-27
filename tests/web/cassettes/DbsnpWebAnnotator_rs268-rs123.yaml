@@ -5,28 +5,29 @@ interactions:
       Accept: ['*/*']
       Accept-Encoding: ['gzip, deflate']
       Connection: [keep-alive]
-      User-Agent: ['Mozilla/5.0 (Windows NT 6.2; Win64; x64) AppleWebKit/537.36 (KHTML,
-          like Gecko) Chrome/32.0.1667.0 Safari/537.36']
+      User-Agent: ['Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36
+          (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36']
     method: GET
-    uri: https://www.ncbi.nlm.nih.gov/projects/SNP/snp_gene.cgi?rs=rs268
+    uri: https://www.ncbi.nlm.nih.gov/projects/SNP/snp_gene.cgi?rs=rs123
   response:
     body:
       string: !!binary |
-        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
+        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
     headers:
       Access-Control-Allow-Credentials: ['true']
       Access-Control-Allow-Headers: ['Origin,X-Accept-Charset,X-Accept,Content-Type,X-Requested-With,NCBI-SID,NCBI-PHID']
@@ -36,7 +37,7 @@ interactions:
       Content-Encoding: [gzip]
       Content-Security-Policy: [upgrade-insecure-requests]
       Content-Type: [text/javascript]
-      Date: ['Sat, 03 Jun 2017 23:32:55 GMT']
+      Date: ['Fri, 14 Jul 2017 18:27:49 GMT']
       Keep-Alive: ['timeout=1, max=10']
       Referrer-Policy: [origin-when-cross-origin]
       Server: [Apache]
