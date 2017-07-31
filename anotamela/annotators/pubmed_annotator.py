@@ -91,10 +91,17 @@ class PubmedAnnotator(EntrezAnnotator):
     def _generate_citation(record, as_dict=False):
         article = record['MedlineCitation']['Article']
 
-        citation_data = {
-            'title': article['ArticleTitle'],
-            'journal': article['Journal']['ISOAbbreviation'].replace('.', ''),
-        }
+        citation_data = {}
+
+        try:
+            citation_data['title'] = article['ArticleTitle']
+        except KeyError:
+            pass
+
+        try:
+            citation_data['journal'] = article['Journal']['ISOAbbreviation'].replace('.', '')
+        except KeyError:
+            citation_data['journal'] = '(Journal N/A)'
 
         try:
             volume = article['Journal']['JournalIssue']['Volume']
