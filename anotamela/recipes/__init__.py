@@ -1,1 +1,2 @@
 from .annotate_ensembl_consequence import annotate_ensembl_consequence
+from .annotate_gwas_traits import annotate_gwas_traits

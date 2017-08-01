@@ -4,17 +4,18 @@ from anotamela import EnsemblAnnotator
 from anotamela.pipeline import extract_ensembl_consequence
 
 
-def annotate_ensembl_consequence(rsids, cache='mysql'):
+def annotate_ensembl_consequence(rsids, **annotator_options):
     """
     Given one or more rs IDs, annotate their ensembl 'most_severe_consequence'.
     Returns a dictionary of rsID => consequence.
 
-    Accepts as *cache* either a cache name or a Cache object to initialize the
-    EnsemblAnnotator with it.
+    Accepts a *cache* that can be either a cache name ('myqsl') or a Cache
+    instance, to initialize the annotator with it.
     """
-    ensembl = EnsemblAnnotator(cache=cache)
+    ensembl = EnsemblAnnotator(**annotator_options)
     annotations = ensembl.annotate(always_iterable(rsids))
 
-    return {id_: extract_ensembl_consequence(annotation)
-            for id_, annotation in annotations.items()}
+    if annotations:
+        return {id_: extract_ensembl_consequence(annotation)
+                for id_, annotation in annotations.items()}
 
