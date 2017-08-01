@@ -9,6 +9,7 @@ from .annotate_pmids import annotate_pmids
 from .update_pubmed_entries import update_pubmed_entries
 from .extract_entrez_genes import extract_entrez_genes
 from .extract_swissprot_ids import extract_swissprot_ids
+from .extract_ensembl_consequence import extract_ensembl_consequence
 from .annotate_swissprot_ids import annotate_swissprot_ids
 from .group_swissprot_variants_by_rsid import group_swissprot_variants_by_rsid
 
