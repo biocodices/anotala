@@ -273,3 +273,14 @@ def test_extract_allele_frequencies():
 
     assert result == {'A': {'Type-1': 0.01, 'Type-2': 0.02}}
 
+
+def test_generate_clinical_summary():
+    assertions = [
+        {'clinical_significance': 'ClinSig-1'},
+        {'clinical_significance': 'ClinSig-1'},
+        {'clinical_significance': 'ClinSig-2'},
+    ]
+
+    result = ClinvarVariationAnnotator._generate_clinical_summary(assertions)
+    assert result == {'ClinSig-1': 2, 'ClinSig-2': 1}
+

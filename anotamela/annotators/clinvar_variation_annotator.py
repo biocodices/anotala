@@ -1,4 +1,4 @@
-from collections import defaultdict
+from collections import defaultdict, Counter
 
 from more_itertools import one
 from bs4 import BeautifulSoup
@@ -239,3 +239,9 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
             freq_per_allele[allele][source] = value
 
         return freq_per_allele
+
+    @staticmethod
+    def _generate_clinical_summary(clinical_assertions):
+        return Counter(assertion['clinical_significance']
+                       for assertion in clinical_assertions)
+
