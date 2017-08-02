@@ -116,3 +116,78 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
 
         return gene_dicts
 
+    @classmethod
+    def _extract_alleles(cls, variation_soup):
+        """Extract the Variation alleles from a ClinVar variation."""
+        alleles = []
+        for allele in variation_soup.select('Allele'):
+            info = {}
+            info.update(cls._extract_allele_basic_info(allele))
+            info.update(cls._extract_sequence_info_from_allele(allele))
+            info.update(cls._extract_allele_hgvs(allele))
+
+            alleles.append(info)
+
+        return alleles
+
+
+    @staticmethod
+    def _extract_allele_basic_info(allele):
+        """Given an <Allele> BS node, extract its basic info into a dict."""
+        info = {}
+        info['allele_id'] = allele['AlleleID']
+        info['name'] = allele.select_one('Name').text
+        info['variant_type'] = allele.select_one('VariantType').text
+        return info
+
+
+    @staticmethod
+    def _extract_sequence_info_from_allele(allele):
+        """Given an <Allele> BS node, extract SequenceLocation info into a dict."""
+        g37 = allele.select_one('SequenceLocation[Assembly="GRCh37"]')
+        g38 = allele.select_one('SequenceLocation[Assembly="GRCh38"]')
+
+        info = {}
+
+        info['start_g37'] = int(g37['start'])
+        info['stop_g37'] = int(g37['stop'])
+        info['accession_g37'] = g37['Accession']
+        info['length_g37'] = int(g37['variantLength'])
+        info['ref_g37'] = g37['referenceAllele']
+        info['alt_g37'] = g37['alternateAllele']
+        info['chrom_g37'] = g37['Chr']
+
+        info['start_g38'] = int(g38['start'])
+        info['stop_g38'] = int(g38['stop'])
+        info['accession_g38'] = g38['Accession']
+        info['length_g38'] = int(g38['variantLength'])
+        info['ref_g38'] = g38['referenceAllele']
+        info['alt_g38'] = g38['alternateAllele']
+        info['chrom_g38'] = g38['Chr']
+
+        return info
+
+
+    @staticmethod
+    def _extract_allele_hgvs(allele):
+        """Given an <Allele> BS node, extract genomic, coding, and protein
+        HGVS changes."""
+        info = {}
+        hgvs = one(allele.select('HGVSlist'))
+
+        g37 = hgvs.select_one('HGVS[Assembly=GRCh37]')
+        g38 = hgvs.select_one('HGVS[Assembly=GRCh38]')
+        # Can't use CSS selectors when the attribute has whitespace in it.
+        c = hgvs.find('HGVS', attrs={'Type': 'HGVS, coding, RefSeq'})
+        p = hgvs.find('HGVS', attrs={'Type': 'HGVS, protein, RefSeq'})
+
+        info['genomic_change_g37'] = g37['Change']
+        info['genomic_change_g37_accession'] = g37['AccessionVersion']
+        info['genomic_change_g38'] = g38['Change']
+        info['genomic_change_g38_accession'] = g38['AccessionVersion']
+        info['coding_change'] = c['Change']
+        info['coding_change_accession'] = c['AccessionVersion']
+        info['protein_change'] = p['Change']
+        info['protein_change_accession'] = p['AccessionVersion']
+
+        return info
