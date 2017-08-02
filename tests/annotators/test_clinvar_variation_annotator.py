@@ -284,3 +284,13 @@ def test_generate_clinical_summary():
     result = ClinvarVariationAnnotator._generate_clinical_summary(assertions)
     assert result == {'ClinSig-1': 2, 'ClinSig-2': 1}
 
+
+def test_associated_phenotypes():
+    clinical_assertions = [
+        {'phenotypes': [{'name': 'Pheno-1'}, {'name': 'Pheno-2'}]},
+        {'phenotypes': [{'name': 'Pheno-2'}, {'name': 'Pheno-3'}]},
+    ]
+
+    result = ClinvarVariationAnnotator._associated_phenotypes(clinical_assertions)
+    assert result == ['Pheno-1', 'Pheno-2', 'Pheno-3']
+

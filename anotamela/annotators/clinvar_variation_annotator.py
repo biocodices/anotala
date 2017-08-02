@@ -44,8 +44,12 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
             info['variation_type'] = cls._extract_variation_type(variation_report)
 
         info['genes'] = cls._extract_genes(variation_report)
-        info['clinical_assertions'] = \
-            cls._extract_clinical_assertions(variation_report)
+        clinical_assertions = cls._extract_clinical_assertions(variation_report)
+        info['clinical_assertions'] = clinical_assertions
+        info['clinical_summary'] = \
+            dict(cls._generate_clinical_summary(clinical_assertions))
+        info['associated_phenotypes'] = \
+            cls._associated_phenotypes(clinical_assertions)
 
         info['alleles'] = cls._extract_alleles(variation_report)
 
@@ -244,4 +248,11 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
     def _generate_clinical_summary(clinical_assertions):
         return Counter(assertion['clinical_significance']
                        for assertion in clinical_assertions)
+
+    @staticmethod
+    def _associated_phenotypes(clinical_assertions):
+        phenotype_names = [phenotype['name']
+                           for clinical_assertion in clinical_assertions
+                           for phenotype in clinical_assertion['phenotypes']]
+        return sorted(set(phenotype_names))
 
