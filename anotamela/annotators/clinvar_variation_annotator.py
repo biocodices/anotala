@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from more_itertools import one
 from bs4 import BeautifulSoup
 
@@ -44,6 +46,8 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
         info['genes'] = cls._extract_genes(variation_report)
         info['clinical_assertions'] = \
             cls._extract_clinical_assertions(variation_report)
+
+        info['alleles'] = cls._extract_alleles(variation_report)
 
         return info
 
@@ -122,9 +126,13 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
         alleles = []
         for allele in variation_soup.select('Allele'):
             info = {}
+
             info.update(cls._extract_allele_basic_info(allele))
             info.update(cls._extract_sequence_info_from_allele(allele))
             info.update(cls._extract_allele_hgvs(allele))
+            info.update(cls._extract_xrefs(allele))
+            info['consequences'] = cls._extract_molecular_consequences(allele)
+            info['frequencies'] = cls._extract_allele_frequencies(allele)
 
             alleles.append(info)
 
@@ -139,7 +147,6 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
         info['name'] = allele.select_one('Name').text
         info['variant_type'] = allele.select_one('VariantType').text
         return info
-
 
     @staticmethod
     def _extract_sequence_info_from_allele(allele):
@@ -167,7 +174,6 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
 
         return info
 
-
     @staticmethod
     def _extract_allele_hgvs(allele):
         """Given an <Allele> BS node, extract genomic, coding, and protein
@@ -191,3 +197,45 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
         info['protein_change_accession'] = p['AccessionVersion']
 
         return info
+
+    @staticmethod
+    def _extract_xrefs(allele):
+        """Given an <Allele> BS node, extract the external DB references."""
+        info = {}
+
+        dbsnp = allele.find('XRef', attrs={'DB': 'dbSNP', 'Type': 'rs'})
+        info['dbsnp_id'] = '{}{}'.format(dbsnp['Type'], dbsnp['ID'])
+
+        omim = allele.find('XRef', attrs={'DB': 'OMIM'})
+        info['omim_id'] = omim['ID']
+
+        uniprot = allele.find('XRef', attrs={'DB': 'UniProtKB'})
+        info['uniprot_id'] = uniprot['ID']
+
+        return info
+
+    @staticmethod
+    def _extract_molecular_consequences(allele):
+        """Given an <Allele> BS node, extract the molecular consequences."""
+        consequences = []
+        for consequence in allele.select('MolecularConsequence'):
+            info = {
+                'hgvs': consequence['HGVS'],
+                'function': consequence['Function'],
+            }
+            consequences.append(info)
+
+        return consequences
+
+    @staticmethod
+    def _extract_allele_frequencies(allele):
+        freq_per_allele = defaultdict(dict)
+
+        for frequency in allele.select('AlleleFrequency'):
+            allele = frequency['MinorAllele']
+            source = frequency['Type']
+            value = float(frequency['Value'])
+
+            freq_per_allele[allele][source] = value
+
+        return freq_per_allele

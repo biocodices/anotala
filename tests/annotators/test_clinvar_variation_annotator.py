@@ -225,3 +225,51 @@ def test_extract_allele_hgvs():
     assert result['protein_change'] == 'protein-change'
     assert result['protein_change_accession'] == 'Accession-1'
 
+
+def test_extract_xrefs():
+    soup = make_soup("""
+        <Allele>
+            <XRefList>
+                <XRef DB="UniProtKB" ID="Uniprot-1" />
+                <XRef DB="OMIM" ID="Omim-1" />
+                <XRef DB="dbSNP" ID="123" Type="rs" />
+            </XRefList>
+        </Allele>
+    """)
+
+    result = ClinvarVariationAnnotator._extract_xrefs(soup)
+
+    assert result['uniprot_id'] == 'Uniprot-1'
+    assert result['omim_id'] == 'Omim-1'
+    assert result['dbsnp_id'] == 'rs123'
+
+
+def test_extract_molecular_consequences():
+    soup = make_soup("""
+        <Allele>
+            <MolecularConsequenceList>
+                <MolecularConsequence HGVS="change-1"
+                                      Function="type-1" />
+            </MolecularConsequenceList>
+        </Allele>
+    """)
+
+    results = ClinvarVariationAnnotator._extract_molecular_consequences(soup)
+
+    result = results[0]
+    assert result['hgvs'] == 'change-1'
+    assert result['function'] == 'type-1'
+
+
+def test_extract_allele_frequencies():
+    soup = make_soup("""
+        <Allele>
+            <AlleleFrequency Value="0.01" Type="Type-1" MinorAllele="A" />
+            <AlleleFrequency Value="0.02" Type="Type-2" MinorAllele="A" />
+        </Allele>
+    """)
+
+    result = ClinvarVariationAnnotator._extract_allele_frequencies(soup)
+
+    assert result == {'A': {'Type-1': 0.01, 'Type-2': 0.02}}
+
