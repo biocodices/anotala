@@ -24,7 +24,7 @@ from anotamela.pipeline import (
     extract_swissprot_ids,
     annotate_swissprot_ids,
     group_swissprot_variants_by_rsid,
-    annotate_clinvar_accessions,
+    # annotate_clinvar_accessions,
 )
 
 
@@ -200,9 +200,9 @@ class AnnotationPipeline:
         rs_variants.rename(columns={'clinvar_rs': 'clinvar_entries'},
                            inplace=True)
 
-        logger.info('Annotate RCV accessions with ClinVar Entrez')
-        rs_variants['clinvar_entries'] = \
-            annotate_clinvar_accessions(rs_variants['clinvar_entries'])
+        #  logger.info('Annotate RCV accessions with ClinVar Entrez')
+        #  rs_variants['clinvar_entries'] = \
+            #  annotate_clinvar_accessions(rs_variants['clinvar_entries'])
 
         self.rs_variants = rs_variants
         self.rs_variants.rename(columns={'rsid': 'id'}, inplace=True)

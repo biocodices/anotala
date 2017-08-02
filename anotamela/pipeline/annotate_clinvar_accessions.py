@@ -18,23 +18,27 @@ def annotate_clinvar_accessions(clinvar_entries):
     Returns a copy of the series, with the extra RCV accession info added to
     each entry.
     """
-    new_series = pd.Series([])
 
-    accessions = clinvar_entries.map(itemgetter('accession'))
-    accessions_annotations = ClinvarRCVAnnotator.annotate(accessions)
+    # WIP CODE!
 
-    for ix, entries in clinvar_entries.items():
-        new_entries = deepcopy(entries)
 
-        # Add the new RCV annotations to the entries
-        for new_entry in new_entries:
-            accession = new_entry.get('accession')
-            annotation = accessions_annotations.get(accession, {})
-            new_entry.update(annotation)
+    #  new_series = pd.Series([])
 
-        #  accession_data = accessions_annotations[]
-        new_entries.update()
-        # new_series[ix] =
+    #  accessions = clinvar_entries.map(itemgetter('accession'))
+    #  accessions_annotations = ClinvarRCVAnnotator.annotate(accessions)
 
-        # SEGUIR ACÁ!!!
+    #  for ix, entries in clinvar_entries.items():
+        #  new_entries = deepcopy(entries)
+
+        #  # Add the new RCV annotations to the entries
+        #  for new_entry in new_entries:
+            #  accession = new_entry.get('accession')
+            #  annotation = accessions_annotations.get(accession, {})
+            #  new_entry.update(annotation)
+
+        #  #  accession_data = accessions_annotations[]
+        #  new_entries.update()
+        #  # new_series[ix] =
+
+        #  # SEGUIR ACÁ!!!
 

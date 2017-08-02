@@ -34,3 +34,23 @@ def test_annotate(annotator):
          'omim_id': '144250'}
     ]
 
+    assert result['clinical_summary'] == {'Pathogenic': 1}
+
+    alleles = result['alleles']
+    assert len(alleles) == 1
+    allele = alleles[0]
+
+    assert allele['ref_g37'] == 'A'
+    assert allele['alt_g37'] == 'G'
+    assert allele['chrom_g37'] == '8'
+    assert allele['genomic_change_g37'] == 'g.19813529A>G'
+    assert allele['coding_change'] == 'c.953A>G'
+    assert allele['protein_change'] == 'p.Asn318Ser'
+    assert allele['length_g37'] == 1
+    assert allele['frequencies']['G']['ExAC'] == 0.01336
+    assert allele['variant_type'] == 'single nucleotide variant'
+    assert allele['consequences'][0]['function'] == 'missense variant'
+
+    assert result['associated_phenotypes'] == \
+        ['Hyperlipidemia, familial combined']
+

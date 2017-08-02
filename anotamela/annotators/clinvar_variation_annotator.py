@@ -242,7 +242,7 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
 
             freq_per_allele[allele][source] = value
 
-        return freq_per_allele
+        return dict(freq_per_allele)
 
     @staticmethod
     def _generate_clinical_summary(clinical_assertions):
