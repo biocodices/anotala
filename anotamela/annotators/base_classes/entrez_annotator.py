@@ -88,7 +88,7 @@ class EntrezAnnotator(AnnotatorWithCache):
             yield dict(batch_annotations)
 
         #
-        # See the comment above ^
+        # See the comment above ^. This code doesn't fix the problem.
         #
         #  # Restoring os.environ['http_proxy'] is important because
         #  # it can break other Entrez interfaces, like ExPASy.get_sprot_raw():
