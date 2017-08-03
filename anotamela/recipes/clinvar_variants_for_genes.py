@@ -14,12 +14,20 @@ def clinvar_variants_for_genes(gene_list, cache):
     variants from a search in Clinvar with those gene symbols.
 
     Requires a *cache* argument for the ClinvarVariationAnnotator annotator.
+    Options are: 'myqsl', 'postgres', 'dict', 'redis'.
 
     Returns a tuple of (variant_ids, annotations).
     """
-    variant_ids = clinvar_variant_ids_for_genes(gene_list)
-    clinvar_variation = ClinvarVariationAnnotator(cache=cache)
-    annotations = clinvar_variation.annotate(variant_ids)
+    annotator = ClinvarVariationAnnotator(cache=cache)
+
+    variant_ids = []
+    annotations = {}
+
+    for gene_variant_ids in clinvar_variant_ids_for_genes(gene_list):
+        annotations_for_this_gene = annotator.annotate(gene_variant_ids)
+
+        variant_ids.append(gene_variant_ids)
+        annotations.update(annotations_for_this_gene)
 
     return (variant_ids, annotations)
 
@@ -27,13 +35,19 @@ def clinvar_variant_ids_for_genes(gene_list):
     """Given a list of gene symbols, return a list of ClinVar variant IDs."""
     set_email_for_entrez()
 
-    logger.info('Query ClinVar with genes: {}'.format(', '.join(gene_list)))
+    logger.info('Query ClinVar with {} genes: {}'.format(len(gene_list),
+                                                         ', '.join(gene_list)))
 
-    query = ' OR '.join('{}[Gene Name]'.format(gene) for gene in gene_list)
-    handle = Entrez.esearch(db='clinvar', term=query, retmax=10000) # Everything
-    search_result = Entrez.read(handle)
-    variant_ids = search_result['IdList']
+    for gene in gene_list:
+        query = '{}[Gene Name]'.format(gene)
+        logger.info('ClinVar Query = "{}"'.format(query))
+        handle = Entrez.esearch(db='clinvar', term=query, retmax=10000)
+        # 10,000, big enough number to get "every" variant for a gene
+        search_result = Entrez.read(handle)
+        variant_ids = search_result['IdList']
 
-    logger.info('Got {} ClinVar variant IDs'.format(len(variant_ids)))
-    return variant_ids
+        logger.info('Got {} ClinVar variant IDs for gene {}'
+                    .format(len(variant_ids), gene))
+
+        yield variant_ids
 
