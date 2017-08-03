@@ -14,7 +14,17 @@ def clinvar_variants_for_genes(gene_list, cache):
     variants from a search in Clinvar with those gene symbols.
 
     Requires a *cache* argument for the ClinvarVariationAnnotator annotator.
+
+    Returns a tuple of (variant_ids, annotations).
     """
+    variant_ids = clinvar_variant_ids_for_genes(gene_list)
+    clinvar_variation = ClinvarVariationAnnotator(cache=cache)
+    annotations = clinvar_variation.annotate(variant_ids)
+
+    return (variant_ids, annotations)
+
+def clinvar_variant_ids_for_genes(gene_list):
+    """Given a list of gene symbols, return a list of ClinVar variant IDs."""
     set_email_for_entrez()
 
     logger.info('Query ClinVar with genes: {}'.format(', '.join(gene_list)))
@@ -25,9 +35,5 @@ def clinvar_variants_for_genes(gene_list, cache):
     variant_ids = search_result['IdList']
 
     logger.info('Got {} ClinVar variant IDs'.format(len(variant_ids)))
-
-    clinvar_variation = ClinvarVariationAnnotator(cache=cache)
-    annotations = clinvar_variation.annotate(variant_ids)
-
-    return annotations
+    return variant_ids
 

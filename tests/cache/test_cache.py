@@ -39,7 +39,15 @@ def test_get(namespace, test_data, as_json):
     # Test the get method, which should automatically json-load if needed:
     test_keys = list(test_data.keys())
     cached_data = mock_cache.get(test_keys, namespace, as_json=as_json)
-    assert all([cached_data[k] == test_data[k] for k in test_keys])
+
+    for k in test_keys:
+        assert cached_data[k] == test_data[k]
+
+
+def test_only_printable():
+    mock_cache = create_cache('mock_cache')
+    assert mock_cache._only_printable('foo  bar') == 'foo  bar'
+    assert mock_cache._only_printable('foobar') == 'foobar'
 
 
 @pytest.mark.parametrize('test_data,namespace,as_json', TEST_PARAMS)
@@ -53,5 +61,8 @@ def test_set(namespace, test_data, as_json):
     cached_data = mock_cache.storage[namespace]
     if as_json:
         cached_data = {k: json.loads(v) for k, v in cached_data.items()}
-    assert all([cached_data[k] == test_data[k] for k in test_data])
+
+    for k in test_data:
+        assert cached_data[k] == test_data[k]
+
 

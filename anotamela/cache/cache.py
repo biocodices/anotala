@@ -1,4 +1,5 @@
 import json
+import string
 import logging
 
 
@@ -54,10 +55,22 @@ class Cache:
 
         If as_json = True, the values will be json-dumped.
         """
-        data_to_cache = {id_: ann for id_, ann in info_dict.items() if ann}
+        data_for_cache = {}
 
-        if data_to_cache:
-            self._client_set(data_to_cache, namespace, as_json)
+        for id_, annotation in info_dict.items():
+            if annotation:
+
+                if not as_json:
+                    annotation = self._only_printable(annotation)
+
+            data_for_cache[id_] = annotation
+
+        if data_for_cache:
+            self._client_set(data_for_cache, namespace, as_json)
+
+    @staticmethod
+    def _only_printable(s):
+        return ''.join(char for char in s if char in string.printable)
 
     @staticmethod
     def _jsondump_dict_values(dictionary):

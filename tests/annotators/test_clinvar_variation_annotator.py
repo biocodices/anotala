@@ -1,36 +1,13 @@
-import pytest
 from bs4 import BeautifulSoup
 
 from anotamela.annotators import ClinvarVariationAnnotator
 
 
-@pytest.fixture
-def variations_xml():
-    # See https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=clinvar&id=1550&rettype=variation
-    # For an example of this kind of XML structure.
-    return """
-<ClinvarResult-Set>
-    <VariationReport VariationID="Var-1"
-                     VariationName="Var-1-Name"
-                     VariationType="Var-1-Type">
-
-        <Allele AlleleID="Allele-1">
-            <Name>Allele-Name-1</Name>
-            <VariantType></VariantType>
-        </Allele>
-
-    </VariationReport>
-</ClinvarResult-Set>
-"""
-
-@pytest.fixture
-def variation_soup(variations_xml):
-    soup = BeautifulSoup(variations_xml, 'lxml-xml')
-    return soup.select_one('VariationReport')
+# See https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=clinvar&id=1550&rettype=variation
+# For an example of the kind of XML structure we are dealing with.
 
 def make_soup(xml):
     return BeautifulSoup(xml, 'lxml-xml').findChildren()[0]
-
 
 def test_annotations_by_id():
     variations_xml = """
@@ -51,21 +28,25 @@ def test_annotations_by_id():
 
 
 def test_extract_variation_id():
-    soup = make_soup('<VariationReport VariationID="Var-1"></VariationReport')
+    soup = make_soup('<VariationReport VariationID="Var-1"></VariationReport>')
     result = ClinvarVariationAnnotator._extract_variation_id(soup)
     assert result == 'Var-1'
 
 
 def test_extract_variation_name():
-    soup = make_soup('<VariationReport VariationName="Var-1-Name"></VariationReport')
+    soup = make_soup('<VariationReport VariationName="Var-1-Name"></VariationReport>')
     result = ClinvarVariationAnnotator._extract_variation_name(soup)
     assert result == 'Var-1-Name'
 
 
 def test_extract_variation_type():
-    soup = make_soup('<VariationReport VariationType="Var-1-Type"></VariationReport')
+    soup = make_soup('<VariationReport VariationType="Var-1-Type"></VariationReport>')
     result = ClinvarVariationAnnotator._extract_variation_type(soup)
     assert result == 'Var-1-Type'
+
+    soup = make_soup('<VariationReport></VariationReport>')
+    # Just test it does not break when VariantType is missing
+    assert ClinvarVariationAnnotator._extract_variation_type(soup) is None
 
 
 def test_extract_genes():
@@ -135,6 +116,12 @@ def test_extract_clinical_assertions():
     }
 
 
+    soup = make_soup('<VariationReport><GermlineList><Germline></Germline>'
+                     '</GermlineList></VariationReport>')
+    # Make sure it does not break on missing data
+    ClinvarVariationAnnotator._extract_clinical_assertions(soup)
+
+
 def test_extract_allele_basic_info():
     soup = make_soup("""
         <Allele AlleleID="Allele-1">
@@ -190,6 +177,16 @@ def test_extract_sequence_info_from_allele():
     assert result['alt_g38'] == 'G'
     assert result['accession_g38'] == 'NC_2'
 
+    soup = make_soup("""
+        <Allele>
+            <SequenceLocation Assembly="GRCh37"
+                              innerStart="1000"
+                              innerStop="1000" />
+        </Allele>
+    """)
+    result = ClinvarVariationAnnotator._extract_sequence_info_from_allele(soup)
+    assert result['start_g37'] == 1000
+    assert result['stop_g37'] == 1000
 
 def test_extract_allele_hgvs():
     soup = make_soup("""
@@ -197,10 +194,10 @@ def test_extract_allele_hgvs():
             <HGVSlist>
                 <HGVS Assembly="GRCh37"
                       Change="genomic-change-37"
-                      AccessionVersion="Accession-1"></HGVS>
+                      AccessionVersion="Accession-1">Name-37</HGVS>
                 <HGVS Assembly="GRCh38"
                       Change="genomic-change-38"
-                      AccessionVersion="Accession-1"></HGVS>
+                      AccessionVersion="Accession-1">Name-38</HGVS>
                 <HGVS Type="HGVS, coding, RefSeq"
                       Change="coding-change"
                       AccessionVersion="Accession-1"></HGVS>
@@ -215,15 +212,21 @@ def test_extract_allele_hgvs():
 
     assert result['genomic_change_g37'] == 'genomic-change-37'
     assert result['genomic_change_g37_accession'] == 'Accession-1'
+    assert result['genomic_change_g37_name'] == 'Name-37'
 
     assert result['genomic_change_g38'] == 'genomic-change-38'
     assert result['genomic_change_g38_accession'] == 'Accession-1'
+    assert result['genomic_change_g38_name'] == 'Name-38'
 
     assert result['coding_change'] == 'coding-change'
     assert result['coding_change_accession'] == 'Accession-1'
 
     assert result['protein_change'] == 'protein-change'
     assert result['protein_change_accession'] == 'Accession-1'
+
+    soup = make_soup("<Allele></Allele>")
+    # Test it does not break when data is missing
+    ClinvarVariationAnnotator._extract_allele_hgvs(soup)
 
 
 def test_extract_xrefs():
@@ -242,6 +245,15 @@ def test_extract_xrefs():
     assert result['uniprot_id'] == 'Uniprot-1'
     assert result['omim_id'] == 'Omim-1'
     assert result['dbsnp_id'] == 'rs123'
+
+    soup = make_soup("""
+        <Allele>
+            <XRefList>
+            </XRefList>
+        </Allele>
+    """)
+    # Check it does not break when info is missing
+    ClinvarVariationAnnotator._extract_xrefs(soup)
 
 
 def test_extract_molecular_consequences():

@@ -68,7 +68,7 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
     @staticmethod
     def _extract_variation_type(variation_soup):
         """Extract the Variation type from a ClinVar variation HTML soup."""
-        return variation_soup['VariationType']
+        return variation_soup.get('VariationType')
 
     @staticmethod
     def _extract_clinical_assertions(variation_soup):
@@ -87,10 +87,13 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
             info['phenotypes'] = []
             for pheno in germline.select('PhenotypeList > Phenotype'):
                 xrefs = pheno.select_one('XRefList')
-                info['phenotypes'].append({
-                    'name': pheno['Name'],
-                    'omim_id': xrefs.select_one('XRef[DB=OMIM]')['ID'],
-                })
+                pheno_info = {'name': pheno['Name']}
+                omim = xrefs.select_one('XRef[DB=OMIM]')
+                if omim:
+                    pheno_info['omim_id'] = omim['ID']
+
+                info['phenotypes'].append(pheno_info)
+
 
             clinical_assertions.append(info)
 
@@ -160,21 +163,41 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
 
         info = {}
 
-        info['start_g37'] = int(g37['start'])
-        info['stop_g37'] = int(g37['stop'])
-        info['accession_g37'] = g37['Accession']
-        info['length_g37'] = int(g37['variantLength'])
-        info['ref_g37'] = g37['referenceAllele']
-        info['alt_g37'] = g37['alternateAllele']
-        info['chrom_g37'] = g37['Chr']
+        if g37:
+            # Copy Numbers have an "innerStart" instead of "start"
+            start = g37.get('start') or g37.get('innerStart')
+            info['start_g37'] = int(start)
 
-        info['start_g38'] = int(g38['start'])
-        info['stop_g38'] = int(g38['stop'])
-        info['accession_g38'] = g38['Accession']
-        info['length_g38'] = int(g38['variantLength'])
-        info['ref_g38'] = g38['referenceAllele']
-        info['alt_g38'] = g38['alternateAllele']
-        info['chrom_g38'] = g38['Chr']
+            # Copy Numbers have an "innerStop" instead of "stop"
+            stop = g37.get('stop') or g37.get('innerStop')
+            info['stop_g37'] = int(stop)
+
+            info['accession_g37'] = g37.get('Accession')
+
+            length = g37.get('variantLength')
+            if length:
+                info['length_g37'] = int(length)
+
+            info['ref_g37'] = g37.get('referenceAllele')
+            info['alt_g37'] = g37.get('alternateAllele')
+            info['chrom_g37'] = g37.get('Chr')
+
+        if g38:
+            start = g38.get('start') or g38.get('innerStart')
+            info['start_g38'] = int(start)
+
+            stop = g38.get('stop') or g38.get('innerStop')
+            info['stop_g38'] = int(stop)
+
+            info['accession_g38'] = g38.get('Accession')
+
+            length = g38.get('variantLength')
+            if length:
+                info['length_g38'] = int(length)
+
+            info['ref_g38'] = g38.get('referenceAllele')
+            info['alt_g38'] = g38.get('alternateAllele')
+            info['chrom_g38'] = g38.get('Chr')
 
         return info
 
@@ -183,22 +206,34 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
         """Given an <Allele> BS node, extract genomic, coding, and protein
         HGVS changes."""
         info = {}
-        hgvs = one(allele.select('HGVSlist'))
+        hgvs = allele.select('HGVSlist')
+
+        if hgvs:
+            hgvs = one(hgvs)
+        else:
+            return info
 
         g37 = hgvs.select_one('HGVS[Assembly=GRCh37]')
-        g38 = hgvs.select_one('HGVS[Assembly=GRCh38]')
-        # Can't use CSS selectors when the attribute has whitespace in it.
-        c = hgvs.find('HGVS', attrs={'Type': 'HGVS, coding, RefSeq'})
-        p = hgvs.find('HGVS', attrs={'Type': 'HGVS, protein, RefSeq'})
+        if g37:
+            info['genomic_change_g37'] = g37.get('Change')
+            info['genomic_change_g37_accession'] = g37.get('AccessionVersion')
+            info['genomic_change_g37_name'] = g37.text
 
-        info['genomic_change_g37'] = g37['Change']
-        info['genomic_change_g37_accession'] = g37['AccessionVersion']
-        info['genomic_change_g38'] = g38['Change']
-        info['genomic_change_g38_accession'] = g38['AccessionVersion']
-        info['coding_change'] = c['Change']
-        info['coding_change_accession'] = c['AccessionVersion']
-        info['protein_change'] = p['Change']
-        info['protein_change_accession'] = p['AccessionVersion']
+        g38 = hgvs.select_one('HGVS[Assembly=GRCh38]')
+        if g38:
+            info['genomic_change_g38'] = g38.get('Change')
+            info['genomic_change_g38_accession'] = g38.get('AccessionVersion')
+            info['genomic_change_g38_name'] = g38.text
+
+        c = hgvs.find('HGVS', attrs={'Type': 'HGVS, coding, RefSeq'})
+        if c:
+            info['coding_change'] = c.get('Change')
+            info['coding_change_accession'] = c.get('AccessionVersion')
+
+        p = hgvs.find('HGVS', attrs={'Type': 'HGVS, protein, RefSeq'})
+        if p:
+            info['protein_change'] = p.get('Change')
+            info['protein_change_accession'] = p.get('AccessionVersion')
 
         return info
 
@@ -208,13 +243,16 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
         info = {}
 
         dbsnp = allele.find('XRef', attrs={'DB': 'dbSNP', 'Type': 'rs'})
-        info['dbsnp_id'] = '{}{}'.format(dbsnp['Type'], dbsnp['ID'])
+        if dbsnp:
+            info['dbsnp_id'] = '{}{}'.format(dbsnp['Type'], dbsnp['ID'])
 
         omim = allele.find('XRef', attrs={'DB': 'OMIM'})
-        info['omim_id'] = omim['ID']
+        if omim:
+            info['omim_id'] = omim['ID']
 
         uniprot = allele.find('XRef', attrs={'DB': 'UniProtKB'})
-        info['uniprot_id'] = uniprot['ID']
+        if uniprot:
+            info['uniprot_id'] = uniprot['ID']
 
         return info
 
