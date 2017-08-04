@@ -26,7 +26,7 @@ def clinvar_variants_for_genes(gene_list, cache):
     for gene_variant_ids in clinvar_variant_ids_for_genes(gene_list):
         annotations_for_this_gene = annotator.annotate(gene_variant_ids)
 
-        variant_ids.append(gene_variant_ids)
+        variant_ids += gene_variant_ids
         annotations.update(annotations_for_this_gene)
 
     return (variant_ids, annotations)
