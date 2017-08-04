@@ -10,6 +10,55 @@ from anotamela.annotators import ClinvarVariationAnnotator
 logger = getLogger(__name__)
 
 
+COLUMN_ORDER = [
+    'name',
+    'chrom_g37',
+    'start_g37',
+    'stop_g37',
+    'ref_g37',
+    'alt_g37',
+    'variation_type',
+    'gene_symbol',
+    'dbsnp_id',
+    'associated_phenotypes',
+    'clinical_significance',
+    'genomic_change_g37',
+    'coding_changes',
+    'protein_changes',
+    'consequences_functions',
+    'frequencies',
+    'omim_id',
+    'uniprot_id',
+    'variation_id',
+
+    'genes',
+    'clinical_summary',
+    'clinical_assertions',
+    'accession_g37',
+    'length_g37',
+    'allele_id',
+    'alleles',
+    'consequences',
+    'genomic_change_g37_accession',
+    'genomic_change_g37_name',
+    'variant_type',
+    'variation_name',
+    'submitters',
+
+    # GRCh38 fields
+    'genomic_change_g38',
+    'chrom_g38',
+    'start_g38',
+    'stop_g38',
+    'ref_g38',
+    'alt_g38',
+    'accession_g38',
+    'length_g38',
+    'genomic_change_g38_accession',
+    'genomic_change_g38_name',
+]
+
+
 def clinvar_variants_for_genes(gene_list, cache, as_dataframe=False):
     """Given a list of gene symbols (e.g. AIP, BRCA2), return a list of
     variants from a search in Clinvar with those gene symbols.
@@ -34,7 +83,12 @@ def clinvar_variants_for_genes(gene_list, cache, as_dataframe=False):
         variants.update(variants_for_this_gene)
 
     if as_dataframe:
-        return pd.DataFrame(list(variants_for_this_gene.values()))
+        df = pd.DataFrame(list(variants.values()))
+        from pprint import pprint
+        pprint(df.columns)
+        print('-'*15)
+        columns = [col for col in COLUMN_ORDER if col in df.columns]
+        return df[columns]
     else:
         return (variant_ids, variants)
 
