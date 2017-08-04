@@ -245,7 +245,12 @@ def test_extract_allele_hgvs():
                       Change="genomic-change-38"
                       AccessionVersion="Accession-1">Name-38</HGVS>
                 <HGVS Type="HGVS, coding, RefSeq"
-                      Change="coding-change"
+                      Version="1"
+                      Change="coding-change-1"
+                      AccessionVersion="Accession-1"></HGVS>
+                <HGVS Type="HGVS, coding, RefSeq"
+                      Version="2"
+                      Change="coding-change-2"
                       AccessionVersion="Accession-1"></HGVS>
                 <HGVS Type="HGVS, protein, RefSeq"
                       Change="protein-change"
@@ -264,7 +269,7 @@ def test_extract_allele_hgvs():
     assert result['genomic_change_g38_accession'] == 'Accession-1'
     assert result['genomic_change_g38_name'] == 'Name-38'
 
-    assert result['coding_change'] == 'coding-change'
+    assert result['coding_change'] == 'coding-change-1'
     assert result['coding_change_accession'] == 'Accession-1'
 
     assert result['protein_change'] == 'protein-change'
@@ -300,31 +305,6 @@ def test_extract_xrefs():
     """)
     # Check it does not break when info is missing
     ClinvarVariationAnnotator._extract_xrefs(soup)
-
-
-def test_extract_single_dbsnp_id():
-    soup = make_soup("""
-        <VariationReport>
-            <Allele>
-                <XRefList>
-                    <XRef Type="rs" ID="123" DB="dbSNP"/>
-                </XRefList>
-            </Allele>
-        </VariationReport>
-    """)
-
-    result = ClinvarVariationAnnotator._extract_single_dbsnp_id(soup)
-    assert result == 'rs123'
-
-    soup = make_soup("""
-        <VariationReport>
-            <Allele></Allele>
-            <Allele></Allele>
-        </VariationReport>
-    """)
-
-    result = ClinvarVariationAnnotator._extract_single_dbsnp_id(soup)
-    assert result is None
 
 
 def test_extract_molecular_consequences():

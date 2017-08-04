@@ -47,6 +47,8 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
         info['gene_symbol'] = cls._extract_single_gene_name(variation_report)
         clinical_assertions = cls._extract_clinical_assertions(variation_report)
         info['clinical_assertions'] = clinical_assertions
+        info['submitters'] = sorted({assertion['submitter_name']
+                                     for assertion in clinical_assertions})
         info['clinical_summary'] = \
             dict(cls._generate_clinical_summary(clinical_assertions))
         info['clinical_significance'] = \
@@ -55,6 +57,9 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
             cls._associated_phenotypes(clinical_assertions)
 
         info['alleles'] = cls._extract_alleles(variation_report)
+        if len(info['alleles']) == 1:
+            allele_info = info['alleles'][0]
+            info.update(allele_info)
 
         return info
 
@@ -113,7 +118,6 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
         if clin_sig:
             return clin_sig.text
 
-
     @staticmethod
     def _extract_genes(variation_soup):
         """
@@ -164,6 +168,10 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
             info.update(cls._extract_xrefs(allele))
             info['consequences'] = cls._extract_molecular_consequences(allele)
             info['frequencies'] = cls._extract_allele_frequencies(allele)
+
+            info['consequences_functions'] = \
+                sorted({consequence['function']
+                        for consequence in info['consequences']})
 
             alleles.append(info)
 
@@ -249,7 +257,8 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
             info['genomic_change_g38_accession'] = g38.get('AccessionVersion')
             info['genomic_change_g38_name'] = g38.text
 
-        c = hgvs.find('HGVS', attrs={'Type': 'HGVS, coding, RefSeq'})
+        c = hgvs.find('HGVS', attrs={'Type': 'HGVS, coding, RefSeq',
+                                     'Version': '1'})
         if c:
             info['coding_change'] = c.get('Change')
             info['coding_change_accession'] = c.get('AccessionVersion')
@@ -279,25 +288,6 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
             info['uniprot_id'] = uniprot['ID']
 
         return info
-
-    @staticmethod
-    def _extract_single_dbsnp_id(variation_soup):
-        """Given a ClinVar variation, get a single dbSNP ID if the variation
-        consists of a single allele."""
-        alleles = variation_soup.select('Allele')
-        if not len(alleles) == 1:
-            return
-
-        allele = alleles[0]
-        xrefs = allele.select_one('XRefList')
-        if not xrefs:
-            return
-
-        dbsnp = xrefs.find('XRef', attrs={'DB': 'dbSNP'})
-        if not dbsnp:
-            return
-
-        return '{}{}'.format(dbsnp['Type'], dbsnp['ID'])
 
 
     @staticmethod
