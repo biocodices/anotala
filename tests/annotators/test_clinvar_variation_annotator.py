@@ -302,6 +302,31 @@ def test_extract_xrefs():
     ClinvarVariationAnnotator._extract_xrefs(soup)
 
 
+def test_extract_single_dbsnp_id():
+    soup = make_soup("""
+        <VariationReport>
+            <Allele>
+                <XRefList>
+                    <XRef Type="rs" ID="123" DB="dbSNP"/>
+                </XRefList>
+            </Allele>
+        </VariationReport>
+    """)
+
+    result = ClinvarVariationAnnotator._extract_single_dbsnp_id(soup)
+    assert result == 'rs123'
+
+    soup = make_soup("""
+        <VariationReport>
+            <Allele></Allele>
+            <Allele></Allele>
+        </VariationReport>
+    """)
+
+    result = ClinvarVariationAnnotator._extract_single_dbsnp_id(soup)
+    assert result is None
+
+
 def test_extract_molecular_consequences():
     soup = make_soup("""
         <Allele>

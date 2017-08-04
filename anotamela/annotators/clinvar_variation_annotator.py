@@ -281,6 +281,26 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
         return info
 
     @staticmethod
+    def _extract_single_dbsnp_id(variation_soup):
+        """Given a ClinVar variation, get a single dbSNP ID if the variation
+        consists of a single allele."""
+        alleles = variation_soup.select('Allele')
+        if not len(alleles) == 1:
+            return
+
+        allele = alleles[0]
+        xrefs = allele.select_one('XRefList')
+        if not xrefs:
+            return
+
+        dbsnp = xrefs.find('XRef', attrs={'DB': 'dbSNP'})
+        if not dbsnp:
+            return
+
+        return '{}{}'.format(dbsnp['Type'], dbsnp['ID'])
+
+
+    @staticmethod
     def _extract_molecular_consequences(allele):
         """Given an <Allele> BS node, extract the molecular consequences."""
         consequences = []
