@@ -16,6 +16,7 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
         'db': 'clinvar',
         'rettype': 'variation',
     }
+    BATCH_SIZE = 200
 
     @staticmethod
     def _annotations_by_id(ids, xml):
@@ -198,11 +199,13 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
         if g37:
             # Copy Numbers have an "innerStart" instead of "start"
             start = g37.get('start') or g37.get('innerStart')
-            info['start_g37'] = int(start)
+            if start:
+                info['start_g37'] = int(start)
 
             # Copy Numbers have an "innerStop" instead of "stop"
             stop = g37.get('stop') or g37.get('innerStop')
-            info['stop_g37'] = int(stop)
+            if stop:
+                info['stop_g37'] = int(stop)
 
             info['accession_g37'] = g37.get('Accession')
 
@@ -257,16 +260,13 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
             info['genomic_change_g38_accession'] = g38.get('AccessionVersion')
             info['genomic_change_g38_name'] = g38.text
 
-        c = hgvs.find('HGVS', attrs={'Type': 'HGVS, coding, RefSeq',
-                                     'Version': '1'})
-        if c:
-            info['coding_change'] = c.get('Change')
-            info['coding_change_accession'] = c.get('AccessionVersion')
+        cds_changes = hgvs.find_all('HGVS', attrs={'Type': 'HGVS, coding, RefSeq'})
+        if cds_changes:
+            info['coding_changes'] = [c.text for c in cds_changes]
 
-        p = hgvs.find('HGVS', attrs={'Type': 'HGVS, protein, RefSeq'})
-        if p:
-            info['protein_change'] = p.get('Change')
-            info['protein_change_accession'] = p.get('AccessionVersion')
+        p_changes = hgvs.find_all('HGVS', attrs={'Type': 'HGVS, protein, RefSeq'})
+        if p_changes:
+            info['protein_changes'] = [p.text for p in p_changes]
 
         return info
 

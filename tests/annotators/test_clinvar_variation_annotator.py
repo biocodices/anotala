@@ -244,17 +244,9 @@ def test_extract_allele_hgvs():
                 <HGVS Assembly="GRCh38"
                       Change="genomic-change-38"
                       AccessionVersion="Accession-1">Name-38</HGVS>
-                <HGVS Type="HGVS, coding, RefSeq"
-                      Version="1"
-                      Change="coding-change-1"
-                      AccessionVersion="Accession-1"></HGVS>
-                <HGVS Type="HGVS, coding, RefSeq"
-                      Version="2"
-                      Change="coding-change-2"
-                      AccessionVersion="Accession-1"></HGVS>
-                <HGVS Type="HGVS, protein, RefSeq"
-                      Change="protein-change"
-                      AccessionVersion="Accession-1"></HGVS>
+                <HGVS Type="HGVS, coding, RefSeq">accession:coding-change-1</HGVS>
+                <HGVS Type="HGVS, coding, RefSeq">accession:coding-change-2</HGVS>
+                <HGVS Type="HGVS, protein, RefSeq">accession:protein-change-1</HGVS>
             </HGVSlist>
         </Allele>
     """)
@@ -269,11 +261,10 @@ def test_extract_allele_hgvs():
     assert result['genomic_change_g38_accession'] == 'Accession-1'
     assert result['genomic_change_g38_name'] == 'Name-38'
 
-    assert result['coding_change'] == 'coding-change-1'
-    assert result['coding_change_accession'] == 'Accession-1'
+    assert result['coding_changes'] == ['accession:coding-change-1',
+                                        'accession:coding-change-2']
 
-    assert result['protein_change'] == 'protein-change'
-    assert result['protein_change_accession'] == 'Accession-1'
+    assert result['protein_changes'] == ['accession:protein-change-1']
 
     soup = make_soup("<Allele></Allele>")
     # Test it does not break when data is missing

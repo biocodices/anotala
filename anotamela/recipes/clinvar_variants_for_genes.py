@@ -21,15 +21,15 @@ def clinvar_variants_for_genes(gene_list, cache):
     annotator = ClinvarVariationAnnotator(cache=cache)
 
     variant_ids = []
-    annotations = {}
+    variants = {}
 
     for gene_variant_ids in clinvar_variant_ids_for_genes(gene_list):
-        annotations_for_this_gene = annotator.annotate(gene_variant_ids)
+        variants_for_this_gene = annotator.annotate(gene_variant_ids)
 
         variant_ids += gene_variant_ids
-        annotations.update(annotations_for_this_gene)
+        variants.update(variants_for_this_gene)
 
-    return (variant_ids, annotations)
+    return (variant_ids, variants)
 
 def clinvar_variant_ids_for_genes(gene_list):
     """Given a list of gene symbols, return a list of ClinVar variant IDs."""
@@ -42,7 +42,7 @@ def clinvar_variant_ids_for_genes(gene_list):
         query = '{}[Gene Name]'.format(gene)
         logger.info('ClinVar Query = "{}"'.format(query))
         handle = Entrez.esearch(db='clinvar', term=query, retmax=10000)
-        # 10,000, big enough number to get "every" variant for a gene
+        # 10,000, big enough number to get every variant for a gene
         search_result = Entrez.read(handle)
         variant_ids = search_result['IdList']
 
