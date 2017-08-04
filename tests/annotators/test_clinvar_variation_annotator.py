@@ -77,13 +77,40 @@ def test_extract_genes():
     ]
 
 
+def test_extract_single_gene_name():
+    soup = make_soup("""
+        <VariationReport>
+            <GeneList GeneCount="1">
+                <Gene Symbol="Gene-Symbol-1"></Gene>
+            <GeneList/>
+        </VariationReport>
+    """)
+
+    result = ClinvarVariationAnnotator._extract_single_gene_name(soup)
+    assert result == 'Gene-Symbol-1'
+
+    soup = make_soup("""
+        <VariationReport>
+            <GeneList GeneCount="2">
+                <Gene Symbol="Gene-Symbol-1"></Gene>
+                <Gene Symbol="Gene-Symbol-2"></Gene>
+            <GeneList/>
+        </VariationReport>
+    """)
+
+    result = ClinvarVariationAnnotator._extract_single_gene_name(soup)
+    assert result is None
+
+
 def test_extract_clinical_significance():
     soup = make_soup("""
         <VariationReport>
             <ObservationList>
-                <ClinicalSignificance DateLastEvaluated="2001-09-11">
-                    <Description>Pathogenic</Description>
-                </ClinicalSignificance>
+                <Observation>
+                    <ClinicalSignificance DateLastEvaluated="2001-09-11">
+                        <Description>Pathogenic</Description>
+                    </ClinicalSignificance>
+                </Observation>
             </ObservationList>
         </VariationReport>
     """)

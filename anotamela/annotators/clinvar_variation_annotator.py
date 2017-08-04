@@ -44,6 +44,7 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
             info['variation_type'] = cls._extract_variation_type(variation_report)
 
         info['genes'] = cls._extract_genes(variation_report)
+        info['gene_symbol'] = cls._extract_single_gene_name(variation_report)
         clinical_assertions = cls._extract_clinical_assertions(variation_report)
         info['clinical_assertions'] = clinical_assertions
         info['clinical_summary'] = \
@@ -106,8 +107,9 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
         """Extract the single "Clinical significance" that describes a
         CliVar variation. It might be labeled as "Conflicting" if different
         clinical assertions do not agree."""
-        selector = 'ObservationList > ClinicalSignificance > Description'
-        clin_sig = variation_soup.select_one(selector)
+        clin_sig = variation_soup.select_one(
+            'ObservationList > Observation > ClinicalSignificance > Description'
+        )
         if clin_sig:
             return clin_sig.text
 
@@ -139,6 +141,15 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
             gene_dicts.append(gene_info)
 
         return gene_dicts
+
+    @staticmethod
+    def _extract_single_gene_name(variation_soup):
+        """Extract the gene symbol (i.e. name, like BRAC1) from a ClinVar
+        variation, if there's only one gene. Return None if there are multiple
+        genes."""
+        gene_list = variation_soup.select_one('GeneList')
+        if gene_list['GeneCount'] == "1":
+            return gene_list.select_one('Gene')['Symbol']
 
     @classmethod
     def _extract_alleles(cls, variation_soup):
