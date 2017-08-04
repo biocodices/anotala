@@ -48,6 +48,8 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
         info['clinical_assertions'] = clinical_assertions
         info['clinical_summary'] = \
             dict(cls._generate_clinical_summary(clinical_assertions))
+        info['clinical_significance'] = \
+            cls._extract_clinical_significance(variation_report)
         info['associated_phenotypes'] = \
             cls._associated_phenotypes(clinical_assertions)
 
@@ -98,6 +100,17 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
             clinical_assertions.append(info)
 
         return clinical_assertions
+
+    @staticmethod
+    def _extract_clinical_significance(variation_soup):
+        """Extract the single "Clinical significance" that describes a
+        CliVar variation. It might be labeled as "Conflicting" if different
+        clinical assertions do not agree."""
+        selector = 'ObservationList > ClinicalSignificance > Description'
+        clin_sig = variation_soup.select_one(selector)
+        if clin_sig:
+            return clin_sig.text
+
 
     @staticmethod
     def _extract_genes(variation_soup):

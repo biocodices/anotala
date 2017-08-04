@@ -77,6 +77,25 @@ def test_extract_genes():
     ]
 
 
+def test_extract_clinical_significance():
+    soup = make_soup("""
+        <VariationReport>
+            <ObservationList>
+                <ClinicalSignificance DateLastEvaluated="2001-09-11">
+                    <Description>Pathogenic</Description>
+                </ClinicalSignificance>
+            </ObservationList>
+        </VariationReport>
+    """)
+
+    result = ClinvarVariationAnnotator._extract_clinical_significance(soup)
+    assert result == 'Pathogenic'
+
+    soup = make_soup("""<VariationReport></VariationReport>""")
+    result = ClinvarVariationAnnotator._extract_clinical_significance(soup)
+    assert result is None
+
+
 def test_extract_clinical_assertions():
     soup = make_soup("""
         <VariationReport>
