@@ -1,6 +1,7 @@
 from logging import getLogger
 
 from Bio import Entrez
+import pandas as pd
 
 from anotamela.helpers import set_email_for_entrez
 from anotamela.annotators import ClinvarVariationAnnotator
@@ -9,7 +10,7 @@ from anotamela.annotators import ClinvarVariationAnnotator
 logger = getLogger(__name__)
 
 
-def clinvar_variants_for_genes(gene_list, cache):
+def clinvar_variants_for_genes(gene_list, cache, as_dataframe=False):
     """Given a list of gene symbols (e.g. AIP, BRCA2), return a list of
     variants from a search in Clinvar with those gene symbols.
 
@@ -17,6 +18,9 @@ def clinvar_variants_for_genes(gene_list, cache):
     Options are: 'myqsl', 'postgres', 'dict', 'redis'.
 
     Returns a tuple of (variant_ids, annotations).
+
+    If *as_dataframe* is set to True, it returns a pandas DataFrame with
+    the annotations.
     """
     annotator = ClinvarVariationAnnotator(cache=cache)
 
@@ -29,7 +33,10 @@ def clinvar_variants_for_genes(gene_list, cache):
         variant_ids += gene_variant_ids
         variants.update(variants_for_this_gene)
 
-    return (variant_ids, variants)
+    if as_dataframe:
+        return pd.DataFrame(list(variants_for_this_gene.values()))
+    else:
+        return (variant_ids, variants)
 
 def clinvar_variant_ids_for_genes(gene_list):
     """Given a list of gene symbols, return a list of ClinVar variant IDs."""

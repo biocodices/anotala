@@ -1,4 +1,21 @@
-## Usage
+## Usages
+
+### Clinvar variants for a list of genes
+
+```python
+from anotamela.recipes import clinvar_variants_for_genes
+
+genes = ['BRCA2', 'CDH1', 'CDK4']
+variant_ids, annotations = clinvar_variants_for_genes(genes, cache='mysql')
+
+# You will get a list of ClinVar variant ids for those genes
+# And a dictionary of annotations for each of those variants
+
+# Optionally, you can get a DataFrame instead
+df = clinvar_variants_for_genes(genes, cache='mysql', as_dataframe=True)
+```
+
+### Annotation pipeline
 
 My most common pattern involves using the whole annotation pipeline as boxed
 by the package. I usually do this in Jupyter, and making use of other
