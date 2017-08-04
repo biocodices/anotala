@@ -84,9 +84,6 @@ def clinvar_variants_for_genes(gene_list, cache, as_dataframe=False):
 
     if as_dataframe:
         df = pd.DataFrame(list(variants.values()))
-        from pprint import pprint
-        pprint(df.columns)
-        print('-'*15)
         columns = [col for col in COLUMN_ORDER if col in df.columns]
         return df[columns]
     else:
