@@ -71,18 +71,18 @@ class FrequenciesAnnotator(MyVariantAnnotator):
         population = population.replace('_af', '')
         abbreviations = {
             'af': 'General',
-            'ea': 'European American',
-            'aa': 'African American',
-            'adj': 'General (Adj.)',
-            'amr': 'American (native)',
-            'asn': 'Asian',
-            'eur': 'European',
-            'afr': 'African',
-            'eas': 'East Asian',
-            'sas': 'South Asian',
-            'fin': 'Finnish',
-            'nfe': 'Non-Finnish European',
-            'oth': 'Other',
+            'ea': 'European American (EA)',
+            'aa': 'African American (AA)',
+            'adj': 'General (ADJ)',
+            'amr': 'American (AMR)',
+            'asn': 'Asian (ASN)',
+            'eur': 'European (EUR)',
+            'afr': 'African (AFR)',
+            'eas': 'East Asian (EAS)',
+            'sas': 'South Asian (SAS)',
+            'fin': 'Finnish (FIN)',
+            'nfe': 'Non-Finnish European (NFE)',
+            'oth': 'Other (OTH)',
         }
         return abbreviations.get(population, population.upper())
 
