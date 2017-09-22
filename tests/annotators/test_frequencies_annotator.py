@@ -74,40 +74,40 @@ def test_frequencies_annotator_parse_hit():
 
     cadd_populations = [
         'General',
-        'African',
-        'American (native)',
-        'European',
+        'African (AFR)',
+        'American (AMR)',
+        'European (EUR)',
     ]
     for population in cadd_populations:
         assert G['CADD_1000g'][population] == rounded_freq
 
     esp_populations = [
-        'African American',
-        'European American',
+        'African American (AA)',
+        'European American (EA)',
     ]
     for population in esp_populations:
         assert G['dbNSFP_ESP6500'][population] == rounded_freq
 
     kg3_populations = [
         'General',
-        'African',
-        'American (native)',
-        'East Asian',
-        'European',
-        'South Asian',
+        'African (AFR)',
+        'American (AMR)',
+        'East Asian (EAS)',
+        'European (EUR)',
+        'South Asian (SAS)',
     ]
     for population in kg3_populations:
         assert G['dbNSFP_1000gp3'][population] == rounded_freq
 
     exac_populations = [
-        'General (Adj.)',
+        'General (ADJ)',
         'General',
-        'African',
-        'American (native)',
-        'East Asian',
-        'Finnish',
-        'Non-Finnish European',
-        'South Asian',
+        'African (AFR)',
+        'American (AMR)',
+        'East Asian (EAS)',
+        'Finnish (FIN)',
+        'Non-Finnish European (NFE)',
+        'South Asian (SAS)',
     ]
     for population in exac_populations:
         assert G['dbNSFP_ExAC'][population] == rounded_freq
@@ -123,7 +123,7 @@ def test_parse_hit_with_few_data():
 
     r = FrequenciesAnnotator._parse_hit(hit)
 
-    assert r == {'G': {'CADD_1000g': {'African': rounded_freq}}}
+    assert r == {'G': {'CADD_1000g': {'African (AFR)': rounded_freq}}}
 
 
 def test_parse_annotations_hook():

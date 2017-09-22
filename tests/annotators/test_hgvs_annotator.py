@@ -20,6 +20,40 @@ def test_parse_hit():
     assert 'clinvar_hgvs_g' in func(hit)
     assert 'clinvar_hgvs_c' in func(hit)
 
+    hit['emv'] = {'egl_protein': 'boo', 'egl_variant': 'doo'}
+    assert 'egl_hgvs_p' in func(hit)
+    assert 'egl_hgvs_c' in func(hit)
+
+    hit['evs'] = {'hgvs': {'coding': 'goo', 'protein': 'loo'}}
+    assert 'evs_hgvs_c' in func(hit)
+    assert 'evs_hgvs_p' in func(hit)
+
+
+def test_parse_hgvs_from_emv():
+    func = HgvsAnnotator._parse_hgvs_from_emv
+
+    hit = {}
+    assert func(hit) == {}
+
+    hit['emv'] = {'egl_protein': 'foo'}
+    assert func(hit)['egl_hgvs_p'] == 'foo'
+
+    hit['emv']['egl_variant'] = 'bar'
+    assert func(hit)['egl_hgvs_c'] == 'bar'
+
+
+def test_parse_hgvs_from_evs():
+    func = HgvsAnnotator._parse_hgvs_from_evs
+
+    hit = {}
+    assert func(hit) == {}
+
+    hit['evs'] = {'hgvs': {'coding': 'foo'}}
+    assert func(hit)['evs_hgvs_c'] == 'foo'
+
+    hit['evs']['hgvs']['protein'] = 'bar'
+    assert func(hit)['evs_hgvs_p'] == 'bar'
+
 
 def test_parse_hgvs_from_clinvar():
     func = HgvsAnnotator._parse_hgvs_from_clinvar
@@ -32,6 +66,9 @@ def test_parse_hgvs_from_clinvar():
 
     hit['clinvar']['hgvs']['coding'] = 'bar'
     assert func(hit)['clinvar_hgvs_c'] == 'bar'
+
+    hit['clinvar']['hgvs']['protein'] = 'baz'
+    assert func(hit)['clinvar_hgvs_p'] == 'baz'
 
 
 def test_parse_hgvs_from_snpeff():

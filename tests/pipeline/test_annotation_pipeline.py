@@ -90,7 +90,7 @@ def test_run_from_rsids(proxies):
 
     freqs = variant['frequencies']
     assert freqs['T']['dbSNP']['General'] == 0.1763
-    assert freqs['G']['dbNSFP_ExAC']['Finnish'] == 0.7079
+    assert freqs['G']['dbNSFP_ExAC']['Finnish (FIN)'] == 0.7079
 
     dbnsfp = variant['dbnsfp'][0]
     assert dbnsfp['cds_strand'] == '+'

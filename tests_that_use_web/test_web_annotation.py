@@ -58,10 +58,11 @@ test_params = [
         (FrequenciesAnnotator, {
             'ids_to_annotate': 'rs268',
             'keys_to_check': (
-                'A.dbSNP.General G.CADD_1000g.African G.dbNSFP_1000gp3.European '
-                'G.dbNSFP_ESP6500 G.dbNSFP_ExAC.Finnish G.dbNSFP_twinsUK.General '
+                'A.dbSNP.General|G.CADD_1000g.African (AFR)|G.dbNSFP_1000gp3.European (EUR)|'
+                'G.dbNSFP_ESP6500|G.dbNSFP_ExAC.Finnish (FIN)|G.dbNSFP_twinsUK.General|'
                 'G.dbSNP.General'
-            )
+            ),
+            'split_char': '|'
         }),
         (OmimGeneAnnotator, {
             'ids_to_annotate': '605557',
@@ -123,15 +124,17 @@ def test_annotator(proxies, annotator_class, params):
     # Test annotation from web
     info_dict = annotator.annotate(ids_to_annotate, use_cache=False)
 
+    split_char = params.get('split_char') or ' '
+
     for id_ in ids_to_annotate:
-        for key in params['keys_to_check'].split():
+        for key in params['keys_to_check'].split(split_char):
             check_dict_key(info_dict[id_], key)
 
     # Test the info was correctly cached after the first query
 
     cached_data = annotator.annotate(ids_to_annotate, use_web=False)
     for id_ in ids_to_annotate:
-        for key in params['keys_to_check'].split():
+        for key in params['keys_to_check'].split(split_char):
             check_dict_key(cached_data[id_], key)
 
     # Test the annotators accept a single ID instead of a list of IDs
