@@ -1,5 +1,24 @@
 ## Usages
 
+### Clinvar variants for a list of phenotypes, filtering by clinical significances
+
+```python
+from anotamela.recipes import search_clinvar_variants_for_phenotypes
+
+phenos = ['Diabetes melllitus', 'Alzheimer']
+
+variants = search_clinvar_variants_for_phenotypes(
+    pheno_terms=phenos, clinsigs=['pathogenic'], cache='mysql',
+)
+```
+
+You can do this from the command line also (WIP):
+
+```bash
+python anotamela/cli.py search-clinvar --phenos "Diabetes mellitus,Alzheimer"
+--clinsigs pathogenic --cache mysql -o json
+```
+
 ### Clinvar variants for a list of genes
 
 ```python

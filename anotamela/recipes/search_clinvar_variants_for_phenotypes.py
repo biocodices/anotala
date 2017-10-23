@@ -53,7 +53,7 @@ def _search_clinvar(pheno_terms, clinsigs, dry_run=False):
     set_email_for_entrez()
 
     logger.info('Hit Entrez with query: "{}"'.format(query))
-    handle = Entrez.esearch(db='clinvar', term=query, retmax=10000)
+    handle = Entrez.esearch(db='clinvar', term=query, retmax=50000)
     response = Entrez.read(handle)
     ids = response['IdList']
     logger.info('Got {}/{} results'.format(len(ids), response['Count']))

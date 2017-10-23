@@ -9,4 +9,3 @@ def test_search_clinvar_variants_for_phenotypes():
     )
 
     assert len(annotations) > 0
-
