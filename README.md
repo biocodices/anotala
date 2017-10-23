@@ -39,6 +39,19 @@ variant_ids, annotations = clinvar_variants_for_genes(genes, cache='mysql')
 df = clinvar_variants_for_genes(genes, cache='mysql', as_dataframe=True)
 ```
 
+### GWAS Catalog list of traits for a given list of RS IDs
+
+```python
+from anotamela.recipes import annotate_gwas_traits
+
+proxies = {'http': 'socks5://localhost:9050'} # TOR instance!
+
+rsids = ['rs123', 'rs234']
+
+annotate_gwas_traits(rsids, cache='dict', proxies=proxies)
+# => {'rs123': ['Eye color traits'], 'rs268': ['Metabolic syndrome']}
+```
+
 ### Annotation pipeline
 
 My most common pattern involves using the whole annotation pipeline as boxed
@@ -122,12 +135,28 @@ annotate with OMIM.
 
 ## Cache
 
-`anotamela` can use two types of cache: `RedisCache` and `PostgresCache`.
+`anotamela` can use different types of cache: `RedisCache`, `MysqlCache`,
+`PostgresCache`, `DictCache`.
+
+### MySQL
+
+Make sure you have mysql installed, create a database (e.g. `anotamela_cache`)
+and a user with privileges on that database. Then create a YAML file (by default
+it will be looked for in `~/.mysql_credentials.yml`) with the credentials:
+
+```yaml
+host: <where the server is, "localhost" if it's local>
+user: <your mysql user, e.g. "juan">
+pass: <your mysql pass, e.g. "mypass">
+port: <usually 3306 for mysql>
+db: <the name of an *existing* db, e.g. "anotamela_cache">
+driver: <for instance, "mysql+pymysql", if you have this one installed>
+```
 
 ### Postgres
 
 If you are to use Postgres, make sure you have it installed and create a 
-database (e.g. `variants` would be an appropriate name) and a user with
+database (e.g. `anotamela_cache` would be an appropriate name) and a user with
 privileges on it for `anotamela` to use. Then create a file (by default it will
 be looked for in `~/.postgres_credentials.yml`) with your credentials:
 
@@ -161,6 +190,16 @@ initializating each annotator:
 annotator = DbsnpWebAnnotator(cache='redis', host='localhost', port=5678)
 ```
 
+### Dict
+
+The `DictCache` (named `dict`) is meant for testing or for a quick use
+when you don't have any database software installed, like MySQL, Redis, etc.
+With this option, annotators will use a Python dictionary as their "cache",
+which means there is no persistance of any kind: all fetched data is lost
+whenever the Python session is ended and is not even shared between annotators.
+
+Not the best option, but it comes handy once in a while, in some settings.
+
 ### Sharing Cache between annotators
 
 Several annotators can share the same Cache instance:
@@ -190,4 +229,8 @@ Tests take some time to run, since I didn't mock the web annotation. I
 explicitely want to test the actual connection to each of the services and make
 sure that the assumptions done in the code that parses the responses are still
 sound.
+
+Tests are split in two directories according to wether they use the web
+(i.e. they are slow to run) or not, so you can run the non-web tests quickly:
+`pytest tests`, and later just the web tests: `pytest tests_that_use_web`.
 
