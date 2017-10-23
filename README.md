@@ -10,6 +10,11 @@ phenos = ['Diabetes melllitus', 'Alzheimer']
 variants = search_clinvar_variants_for_phenotypes(
     pheno_terms=phenos, clinsigs=['pathogenic'], cache='mysql',
 )
+
+# You will get a list of ClinVar variants, each a dictionary full of info
+# including dbSNP IDs, genes, associated phenotypes, HGVS names, etc.
+# Basically, everything you see on the ClinVar web when you visit the
+# details page for a variation.
 ```
 
 You can do this from the command line also (WIP):
