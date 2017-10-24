@@ -45,7 +45,8 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
             info['variation_type'] = cls._extract_variation_type(variation_report)
 
         info['genes'] = cls._extract_genes(variation_report)
-        info['gene_symbol'] = cls._extract_single_gene_name(variation_report)
+        if info['genes']:
+            info['gene_symbol'] = cls._extract_single_gene_name(variation_report)
         clinical_assertions = cls._extract_clinical_assertions(variation_report)
         info['clinical_assertions'] = clinical_assertions
         info['submitters'] = sorted({assertion['submitter_name']
@@ -153,7 +154,7 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
         variation, if there's only one gene. Return None if there are multiple
         genes."""
         gene_list = variation_soup.select_one('GeneList')
-        if gene_list['GeneCount'] == "1":
+        if gene_list and gene_list['GeneCount'] == "1":
             return gene_list.select_one('Gene')['Symbol']
 
     @classmethod

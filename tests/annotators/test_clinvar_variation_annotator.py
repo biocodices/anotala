@@ -101,6 +101,10 @@ def test_extract_single_gene_name():
     result = ClinvarVariationAnnotator._extract_single_gene_name(soup)
     assert result is None
 
+    soup = make_soup("""<VariationReport></VariationReport>""")
+    result = ClinvarVariationAnnotator._extract_single_gene_name(soup)
+    assert result is None
+
 
 def test_extract_clinical_significance():
     soup = make_soup("""
