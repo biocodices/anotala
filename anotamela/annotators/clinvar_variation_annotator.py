@@ -4,6 +4,7 @@ from more_itertools import one
 from bs4 import BeautifulSoup
 
 from anotamela.annotators.base_classes import EntrezAnnotator
+from anotamela.helpers import is_incidental_pheno
 
 
 class ClinvarVariationAnnotator(EntrezAnnotator):
@@ -18,8 +19,8 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
     }
     BATCH_SIZE = 200
 
-    @staticmethod
-    def _annotations_by_id(ids, xml):
+    @classmethod
+    def _annotations_by_id(cls, ids, xml):
         """
         Given an XML response with many <VariationReport> elements,
         yield tuples of (Variation ID, XML for that variation).
@@ -27,7 +28,7 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
         soup = BeautifulSoup(xml, 'lxml-xml')
 
         for variation_report in soup.select('VariationReport'):
-            variation_id = variation_report['VariationID']
+            variation_id = cls._extract_variation_id(variation_report)
             yield (variation_id, str(variation_report))
 
     @classmethod
@@ -53,8 +54,11 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
                                      for assertion in clinical_assertions})
         info['clinical_summary'] = \
             dict(cls._generate_clinical_summary(clinical_assertions))
+
+        info['observation'] = cls._extract_observation(variation_report)
         info['clinical_significance'] = \
-            cls._extract_clinical_significance(variation_report)
+            info['observation']['clinical_significance']
+
         info['associated_phenotypes'] = \
             cls._associated_phenotypes(clinical_assertions)
 
@@ -80,45 +84,95 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
         """Extract the Variation type from a ClinVar variation HTML soup."""
         return variation_soup.get('VariationType')
 
-    @staticmethod
-    def _extract_clinical_assertions(variation_soup):
-        """Extract the clinical assertions from a ClinVar variation."""
+    @classmethod
+    def _extract_clinical_assertions(cls, variation_soup):
+        """
+        Extract the clinical assertions from a ClinVar variation, both from
+        GermlineList and from SomaticList.
+        """
         clinical_assertions = []
-        selector = 'ClinicalAssertionList > GermlineList > Germline'
 
-        for germline in variation_soup.select(selector):
+        selectors = {
+            'germline': 'ClinicalAssertionList > GermlineList > Germline',
+            'somatic': 'ClinicalAssertionList > SomaticList > Somatic',
+        }
+
+        def parse_assertion(assertion):
             info = {}
-            info['submitter_name'] = germline['SubmitterName']
-            info['date_last_submitted'] = germline['DateLastSubmitted']
-            clinsig = one(germline.select('ClinicalSignificance'))
+            info['submitter_name'] = assertion['SubmitterName']
+            info['date_last_submitted'] = assertion['DateLastSubmitted']
+            clinsig = one(assertion.select('ClinicalSignificance'))
             info['clinical_significance'] = clinsig.select_one('Description').text
             info['method'] = clinsig.select_one('Method').text
 
-            info['phenotypes'] = []
-            for pheno in germline.select('PhenotypeList > Phenotype'):
-                xrefs = pheno.select_one('XRefList')
-                pheno_info = {'name': pheno['Name']}
-                omim = xrefs.select_one('XRef[DB=OMIM]')
-                if omim:
-                    pheno_info['omim_id'] = omim['ID']
+            phenotype_lists = assertion.select('PhenotypeList')
+            if phenotype_lists:
+                # We assume there is one PhenotypeList per clinical assertion:
+                phenotype_list = one(phenotype_lists)
+                info['phenotypes'] = cls._parse_phenotype_list(phenotype_list)
 
-                info['phenotypes'].append(pheno_info)
+            return info
 
-
-            clinical_assertions.append(info)
+        for assertion_type, selector in selectors.items():
+            assertions = variation_soup.select(selector)
+            for assertion in assertions:
+                info = parse_assertion(assertion)
+                info['type'] = assertion_type
+                clinical_assertions.append(info)
 
         return clinical_assertions
 
+
     @staticmethod
-    def _extract_clinical_significance(variation_soup):
-        """Extract the single "Clinical significance" that describes a
-        CliVar variation. It might be labeled as "Conflicting" if different
-        clinical assertions do not agree."""
-        clin_sig = variation_soup.select_one(
-            'ObservationList > Observation > ClinicalSignificance > Description'
-        )
-        if clin_sig:
-            return clin_sig.text
+    def _parse_phenotype_list(phenotype_list):
+        """
+        Expects a BeautifulSoup <PhenotypeList> element. It parses the
+        <Phenotype>s inside and returns them as a list of dictionaries,
+        like: [{'name': 'Pheno-1'}, {'name': 'Pheno-2', 'omim_id': 'MIM-1'}].
+        """
+        phenos = []
+
+        for pheno_element in phenotype_list.select('Phenotype'):
+            pheno_info = {'name': pheno_element['Name']}
+            omim = pheno_element.select_one('XRefList > XRef[DB=OMIM]')
+            if omim:
+                pheno_info['omim_id'] = omim['ID']
+                pheno_info['incidental'] = is_incidental_pheno(omim['ID'])
+            phenos.append(pheno_info)
+
+        return phenos
+
+    @classmethod
+    def _extract_observation(cls, variation_soup):
+        """
+        Parses the <ObservationList> to get the single <Observation> that
+        belongs to the current Variation ID. Returns the observation as a
+        dictionary.
+        """
+        variation_id = cls._extract_variation_id(variation_soup)
+        selector = ('ObservationList > Observation[VariationID={}]'
+                    .format(variation_id))
+        observation_el = one(variation_soup.select(selector))
+
+        observation = {
+            'variation_id': variation_id,
+            'type': observation_el['ObservationType'],
+        }
+
+        review_status = one(observation_el.select('ReviewStatus'))
+        observation['review_status'] = review_status.text
+
+        clinsig = one(observation_el.select('ClinicalSignificance'))
+        observation['clinical_significance'] = \
+            clinsig.select_one('Description').text
+
+        observation['date_last_evaluated'] = clinsig.get('DateLastEvaluated')
+
+        phenotype_list = one(observation_el.select('PhenotypeList'))
+        observation['phenotypes'] = cls._parse_phenotype_list(phenotype_list)
+
+        return observation
+
 
     @staticmethod
     def _extract_genes(variation_soup):

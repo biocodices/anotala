@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 
+import anotamela
 from anotamela.annotators import ClinvarVariationAnnotator
 
 
@@ -106,25 +107,55 @@ def test_extract_single_gene_name():
     assert result is None
 
 
-def test_extract_clinical_significance():
+def test_parse_phenotype_list(monkeypatch):
+    phenotype_list = make_soup("""
+        <PhenotypeList>
+            <Phenotype Name="Pheno-1"></Phenotype>
+            <Phenotype Name="Pheno-2">
+                <XRefList>
+                    <XRef ID="MIM-2" DB="OMIM" />
+                </XRefList>
+            </Phenotype>
+        </PhenotypeList>
+    """)
+
+    result = ClinvarVariationAnnotator._parse_phenotype_list(phenotype_list)
+    assert len(result) == 2
+    assert result[0] == {'name': 'Pheno-1'}
+    assert result[1] == {'name': 'Pheno-2', 'omim_id': 'MIM-2',
+                         'incidental': False}
+
+
+def test_extract_obervation():
     soup = make_soup("""
-        <VariationReport>
+        <VariationReport VariationID="1">
             <ObservationList>
-                <Observation>
-                    <ClinicalSignificance DateLastEvaluated="2001-09-11">
+                <Observation VariationID="1" ObservationType="primary">
+                    <ClinicalSignificance DateLastEvaluated="2001-01-01">
                         <Description>Pathogenic</Description>
+                    </ClinicalSignificance>
+                    <ReviewStatus>criteria provided</ReviewStatus>
+                    <PhenotypeList>
+                        <Phenotype Name="Pheno-1"></Phenotype>
+                    </PhenotypeList>
+                </Observation>
+                <Observation VariationID="2">
+                    <ClinicalSignificance>
+                        <Description>Benign</Description>
                     </ClinicalSignificance>
                 </Observation>
             </ObservationList>
         </VariationReport>
     """)
-
-    result = ClinvarVariationAnnotator._extract_clinical_significance(soup)
-    assert result == 'Pathogenic'
-
-    soup = make_soup("""<VariationReport></VariationReport>""")
-    result = ClinvarVariationAnnotator._extract_clinical_significance(soup)
-    assert result is None
+    result = ClinvarVariationAnnotator._extract_observation(soup)
+    assert result == {
+        'variation_id': '1',
+        'clinical_significance': 'Pathogenic',
+        'date_last_evaluated': '2001-01-01',
+        'type': 'primary',
+        'review_status': 'criteria provided',
+        'phenotypes': [{'name': 'Pheno-1'}],
+    }
 
 
 def test_extract_clinical_assertions():
@@ -133,7 +164,7 @@ def test_extract_clinical_assertions():
             <ClinicalAssertionList>
                 <GermlineList>
                     <Germline SubmitterName="Submitter-1"
-                            DateLastSubmitted="2000-01-02">
+                              DateLastSubmitted="2000-01-01">
 
                         <PhenotypeList>
                             <Phenotype Name="Pheno-1">
@@ -150,19 +181,52 @@ def test_extract_clinical_assertions():
 
                     </Germline>
                 </GermlineList>
+                <SomaticList>
+                    <Somatic SubmitterName="Submitter-2"
+                             DateLastSubmitted="2000-01-02">
+
+                        <PhenotypeList>
+                            <Phenotype Name="Pheno-2">
+                                <XRefList>
+                                    <XRef Type="MIM" ID="MIM-2" DB="OMIM"/>
+                                </XRefList>
+                            </Phenotype>
+                        </PhenotypeList>
+
+                        <ClinicalSignificance>
+                            <Description>ClinSig-2</Description>
+                            <Method>Method-2</Method>
+                        </ClinicalSignificance>
+
+                    </Somatic>
+                </SomaticList>
             </ClinicalAssertionList>
         </VariationReport>
     """)
-    results = ClinvarVariationAnnotator._extract_clinical_assertions(soup)
-    assert len(results) == 1
-    result = results[0]
 
-    assert result == {
+    results = ClinvarVariationAnnotator._extract_clinical_assertions(soup)
+    assert len(results) == 2
+
+    germline = results[0]
+    assert germline == {
         'clinical_significance': 'ClinSig-1',
-        'date_last_submitted': '2000-01-02',
+        'date_last_submitted': '2000-01-01',
         'method': 'Method-1',
-        'phenotypes': [{'name': 'Pheno-1', 'omim_id': 'MIM-1'}],
+        'phenotypes': [{'name': 'Pheno-1', 'omim_id': 'MIM-1',
+                        'incidental': False}],
         'submitter_name': 'Submitter-1',
+        'type': 'germline',
+    }
+
+    somatic = results[1]
+    assert somatic == {
+        'clinical_significance': 'ClinSig-2',
+        'date_last_submitted': '2000-01-02',
+        'method': 'Method-2',
+        'phenotypes': [{'name': 'Pheno-2', 'omim_id': 'MIM-2',
+                        'incidental': False}],
+        'submitter_name': 'Submitter-2',
+        'type': 'somatic',
     }
 
 

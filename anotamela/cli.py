@@ -18,7 +18,7 @@ class BaseController(CementBaseController):
                        '"Diabetes mellitus,Parkinson"')}),
 
             (['--clinsigs'],
-              {'action': 'store', 'required': True,
+              {'action': 'store',
                'default': 'pathogenic,likely pathogenic',
                'help': ('Comma separated clinical significances. Default: '\
                         '"pathogenic,likely pathogenic"')}),
