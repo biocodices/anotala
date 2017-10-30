@@ -1,5 +1,15 @@
 ## Usages
 
+
+### PubMed PMIDs quick annotation from the command line
+
+Given a list of PMIDs in a file (for instance, `/tmp/pubmeds.list`),
+get profuse annotations in JSON format for each of them:
+
+```bash
+python anotamela/cli.py pubmed annotate-pmids --pmids-file /tmp/pubmeds.list --cache mysql -o json
+```
+
 ### Clinvar variants for a list of phenotypes, filtering by clinical significances
 
 ```python
@@ -20,7 +30,7 @@ variants = search_clinvar_variants_for_phenotypes(
 You can do this from the command line also (WIP):
 
 ```bash
-python anotamela/cli.py search-clinvar --phenos "Diabetes mellitus,Alzheimer"
+python anotamela/cli.py clinvar search --phenos "Diabetes mellitus,Alzheimer"
 --clinsigs pathogenic --cache mysql -o json
 ```
 
