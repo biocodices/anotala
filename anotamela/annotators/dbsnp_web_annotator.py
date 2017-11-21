@@ -47,6 +47,15 @@ class DbsnpWebAnnotator(ParallelAnnotator):
             # Convert values '0' and '1' into False and True:
             annotation[key] = bool(int(entry['snp2chrOrien']))
 
+            keys = {
+                'chr': 'chrom',
+                'chrPosFrom': 'start',
+                'chrPosTo': 'stop',
+            }
+            for key, name in keys.items():
+                new_key = '{}_{}'.format(assembly_name, name)
+                annotation[new_key] = entry.get(key)
+
         return annotation
 
     def genes(self, rs, use_web=False):
