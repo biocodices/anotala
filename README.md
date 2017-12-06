@@ -1,5 +1,33 @@
 ## Usages
 
+### GRCh38 and GRCh37 positions for a list of rs IDs
+
+```python
+from anotamela import DbsnpWebAnnotator
+
+# You can increase these values if you're using Tor:
+DbsnpWebAnnotator.BATCH_SIZE = 30
+DbsnpWebAnnotator.SLEEP_TIME = 2
+
+proxies = {'http': 'socks5://some-server:9050'}
+
+dbsnp_web = DbsnpWebAnnotator('mysql', proxies=proxies)
+annotations = dbsnp_web.annotate(rsids)
+
+annotations_web
+# => {
+#   'GRCh37.p13_chrom': '7',
+#   'GRCh37.p13_reverse': True,
+#   'GRCh37.p13_start': '87230193',
+#   'GRCh37.p13_stop': '87230193',
+#   'GRCh38.p7_chrom': '7',
+#   'GRCh38.p7_reverse': True,
+#   'GRCh38.p7_start': '87600877',
+#   'GRCh38.p7_stop': '87600877',
+#   ...
+# }
+```
+
 
 ### PubMed PMIDs quick annotation from the command line
 
