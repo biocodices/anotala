@@ -31,6 +31,10 @@ def test_parse_annotation():
                     'chr': '1',
                     'chrPosFrom': '110',
                     'chrPosTo': '210',
+                    'geneModel': [
+                        {'geneSymbol': 'GENE-1'},
+                        {'geneSymbol': 'GENE-1'},
+                    ]
                  },
 
                 {'groupTerm': 'PATCHES', 'contigLabel': '',
@@ -51,4 +55,5 @@ def test_parse_annotation():
     assert parsed['GRCh38.p7_start'] == '110'
     assert parsed['GRCh38.p7_stop'] == '210'
     assert parsed['GRCh38.p7_reverse'] is False
+    assert parsed['GRCh38.p7_gene_symbols'] == ['GENE-1']
 

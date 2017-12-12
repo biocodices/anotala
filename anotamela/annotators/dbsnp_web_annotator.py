@@ -43,10 +43,10 @@ class DbsnpWebAnnotator(ParallelAnnotator):
             assert not entries
 
             key = '{}_reverse'.format(assembly_name)
-
             # Convert values '0' and '1' into False and True:
             annotation[key] = bool(int(entry['snp2chrOrien']))
 
+            # Position
             keys = {
                 'chr': 'chrom',
                 'chrPosFrom': 'start',
@@ -55,6 +55,14 @@ class DbsnpWebAnnotator(ParallelAnnotator):
             for key, name in keys.items():
                 new_key = '{}_{}'.format(assembly_name, name)
                 annotation[new_key] = entry.get(key)
+
+            # Gene(s)
+            gene_models = entry.get('geneModel') or []
+            gene_symbols = {gene_model.get('geneSymbol')
+                            for gene_model in gene_models}
+            gene_symbols = [symbol for symbol in gene_symbols if symbol]
+            key = '{}_gene_symbols'.format(assembly_name)
+            annotation[key] = gene_symbols
 
         return annotation
 
