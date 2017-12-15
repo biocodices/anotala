@@ -28,16 +28,16 @@ class DbsnpWebAnnotator(ParallelAnnotator):
         assemblies = ['GRCh37.p13', 'GRCh38.p7']
 
         for assembly_name in assemblies:
-            entries = annotation['assembly'].get(assembly_name)
-            if not entries:
-                continue
-
+            entries = annotation['assembly'].get(assembly_name) or []
             entries = [e for e in entries
                        if e['groupTerm'] == 'Primary_Assembly' and
                        e['contigLabel'] != 'PAR']
             # The 'PAR' contigLabel indicates a pseudo-autosomal region.
             # I've seen it for SNP rs6603251, located in the X chromosome
             # and in the "Y (PAR)". I decide to keep the X position.
+
+            if not entries:
+                continue
 
             entry = entries.pop()
             assert not entries
@@ -54,7 +54,10 @@ class DbsnpWebAnnotator(ParallelAnnotator):
             }
             for key, name in keys.items():
                 new_key = '{}_{}'.format(assembly_name, name)
-                annotation[new_key] = entry.get(key)
+                value = entry.get(key)
+                if value and 'start' in new_key or 'stop' in new_key:
+                    value = int(value)
+                annotation[new_key] = value
 
             # Gene(s)
             gene_models = entry.get('geneModel') or []

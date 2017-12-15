@@ -48,12 +48,20 @@ def test_parse_annotation():
     # Explicitely test booleans, not truthiness:
     assert parsed['GRCh37.p13_reverse'] is True
     assert parsed['GRCh37.p13_chrom'] == '1'
-    assert parsed['GRCh37.p13_start'] == '100'
-    assert parsed['GRCh37.p13_stop'] == '200'
+    assert parsed['GRCh37.p13_start'] == 100
+    assert parsed['GRCh37.p13_stop'] == 200
 
     assert parsed['GRCh38.p7_chrom'] == '1'
-    assert parsed['GRCh38.p7_start'] == '110'
-    assert parsed['GRCh38.p7_stop'] == '210'
+    assert parsed['GRCh38.p7_start'] == 110
+    assert parsed['GRCh38.p7_stop'] == 210
     assert parsed['GRCh38.p7_reverse'] is False
     assert parsed['GRCh38.p7_gene_symbols'] == ['GENE-1']
 
+    annotation = {
+        'assembly': {
+            'GRCh37.p13': [{'groupTerm': 'ALT_LOCI'}],
+        }
+    }
+
+    # Shouldn't break:
+    DbsnpWebAnnotator._parse_annotation(annotation)
