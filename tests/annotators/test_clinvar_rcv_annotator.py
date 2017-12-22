@@ -70,6 +70,7 @@ def test_parse_annotation(clinvar_set_xml):
         'entry_type',
         'title',
         'attributes',
+        'dbsnp_id'
     ]
     for key in keys:
         assert key in result

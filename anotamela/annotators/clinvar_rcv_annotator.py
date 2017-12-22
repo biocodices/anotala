@@ -47,6 +47,7 @@ class ClinvarRCVAnnotator(EntrezAnnotator):
         info['entry_type'] = cls._extract_entry_type(soup)
         info['title'] = cls._extract_title(soup)
         info['attributes'] = cls._extract_attributes(soup)
+        info['dbsnp_id'] = cls._extract_dbsnp_id(soup)
 
         return info
 
