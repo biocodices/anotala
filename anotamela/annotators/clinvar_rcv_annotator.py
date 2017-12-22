@@ -45,8 +45,28 @@ class ClinvarRCVAnnotator(EntrezAnnotator):
 
         info['accession'] = cls._extract_accession(soup)
         info['entry_type'] = cls._extract_entry_type(soup)
+        info['title'] = cls._extract_title(soup)
+        info['attributes'] = cls._extract_attributes(soup)
 
         return info
+
+    @staticmethod
+    def _extract_title(soup):
+        return soup.find('Title').text.strip()
+
+    @staticmethod
+    def _extract_attributes(soup):
+        attributes = []
+        for attribute in soup.select('MeasureSet AttributeSet Attribute'):
+            info = {key.lower(): val for key, val in attribute.attrs.items()}
+            info['full_name'] = attribute.text.strip()
+            attributes.append(info)
+        return attributes
+
+    @staticmethod
+    def _extract_dbsnp_id(soup):
+        xref = soup.find('XRef', attrs={'DB': 'dbSNP', 'Type': 'rs'})
+        return 'rs' + xref['ID']
 
     @staticmethod
     def _extract_accession(soup):

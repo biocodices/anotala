@@ -31,7 +31,8 @@ def test_annotate(annotator):
     assert clin['submitter_name'] == 'OMIM'
     assert clin['phenotypes'] == [
         {'name': 'Hyperlipidemia, familial combined',
-         'omim_id': '144250'}
+         'omim_id': '144250',
+         'incidental': False}
     ]
 
     assert result['clinical_summary'] == {'Pathogenic': 1}
