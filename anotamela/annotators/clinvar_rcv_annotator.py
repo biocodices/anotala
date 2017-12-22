@@ -47,7 +47,11 @@ class ClinvarRCVAnnotator(EntrezAnnotator):
         info['entry_type'] = cls._extract_entry_type(soup)
         info['title'] = cls._extract_title(soup)
         info['attributes'] = cls._extract_attributes(soup)
-        info['dbsnp_id'] = cls._extract_dbsnp_id(soup)
+
+        dbsnp_id = cls._extract_dbsnp_id(soup)
+
+        if dbsnp_id:
+            info['dbsnp_id'] = dbsnp_id
 
         return info
 
@@ -67,7 +71,8 @@ class ClinvarRCVAnnotator(EntrezAnnotator):
     @staticmethod
     def _extract_dbsnp_id(soup):
         xref = soup.find('XRef', attrs={'DB': 'dbSNP', 'Type': 'rs'})
-        return 'rs' + xref['ID']
+        if xref:
+            return 'rs' + xref['ID']
 
     @staticmethod
     def _extract_accession(soup):
