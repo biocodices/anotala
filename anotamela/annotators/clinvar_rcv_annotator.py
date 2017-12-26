@@ -62,10 +62,15 @@ class ClinvarRCVAnnotator(EntrezAnnotator):
     @staticmethod
     def _extract_attributes(soup):
         attributes = []
-        for attribute in soup.select('MeasureSet AttributeSet Attribute'):
-            info = {key.lower(): val for key, val in attribute.attrs.items()}
-            info['full_name'] = attribute.text.strip()
-            attributes.append(info)
+        for measure_set in soup.select('MeasureSet'):
+            for measure in measure_set.select('Measure'):
+                for attribute in measure.select('AttributeSet Attribute'):
+                    info = {key.lower(): val
+                            for key, val in attribute.attrs.items()}
+                    info['full_name'] = attribute.text.strip()
+                    info['measureset_type'] = measure_set.get('Type')
+                    info['measure_type'] = measure.get('Type')
+                    attributes.append(info)
         return attributes
 
     @staticmethod

@@ -16,8 +16,8 @@ def clinvar_set_xml():
         <MeasureSet Type="Haplotype" ID="224889">
         </MeasureSet>
     </ReferenceClinVarAssertion>
-    <MeasureSet ID="123" Type="Type-1">
-        <Measure ID="234" Type="Type-2">
+    <MeasureSet ID="123" Type="MeasureSet-Type">
+        <Measure ID="234" Type="Measure-Type">
             <XRef DB="dbSNP" ID="123" Type="rs" />
             <AttributeSet>
                 <Attribute Accession="Acc-1" Change="Change-1" Type="Type-1">
@@ -88,13 +88,17 @@ def test_extract_attributes(clinvar_set_soup):
             'accession': 'Acc-1',
             'change': 'Change-1',
             'type': 'Type-1',
-            'full_name': 'Full-Name-1'
+            'full_name': 'Full-Name-1',
+            'measureset_type': 'MeasureSet-Type',
+            'measure_type': 'Measure-Type',
         },
         {
             'accession': 'Acc-2',
             'change': 'Change-2',
             'type': 'Type-2',
-            'full_name': 'Full-Name-2'
+            'full_name': 'Full-Name-2',
+            'measureset_type': 'MeasureSet-Type',
+            'measure_type': 'Measure-Type',
         }
     ]
 
