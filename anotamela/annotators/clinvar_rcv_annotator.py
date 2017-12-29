@@ -71,7 +71,7 @@ class ClinvarRCVAnnotator(EntrezAnnotator):
                     info['full_name'] = attribute.text.strip()
                     info['measureset_type'] = measure_set.get('Type')
                     info['measure_type'] = measure.get('Type')
-                    info['many_measuresets_in_this_entry'] = len(measure_sets) > 1
+                    info['measuresets_in_this_entry'] = len(measure_sets)
                     attributes.append(info)
         return attributes
 

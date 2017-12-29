@@ -104,7 +104,7 @@ def test_extract_attributes(clinvar_set_soup):
             'full_name': 'Full-Name-1',
             'measureset_type': 'MeasureSet-Type',
             'measure_type': 'Measure-Type',
-            'many_measuresets_in_this_entry': True,
+            'measuresets_in_this_entry': 2,
         },
         {
             'accession': 'Acc-2',
@@ -113,7 +113,7 @@ def test_extract_attributes(clinvar_set_soup):
             'full_name': 'Full-Name-2',
             'measureset_type': 'MeasureSet-Type',
             'measure_type': 'Measure-Type',
-            'many_measuresets_in_this_entry': True,
+            'measuresets_in_this_entry': 2,
         },
         {
             'accession': 'Acc-3',
@@ -122,7 +122,7 @@ def test_extract_attributes(clinvar_set_soup):
             'full_name': 'Full-Name-3',
             'measureset_type': 'MeasureSet-Type',
             'measure_type': 'Measure-Type',
-            'many_measuresets_in_this_entry': True,
+            'measuresets_in_this_entry': 2,
         }
     ]
 
