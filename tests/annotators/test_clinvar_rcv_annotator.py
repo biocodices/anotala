@@ -11,11 +11,13 @@ def clinvar_set_xml():
     <Title>
         Title-1
     </Title>
+
     <ReferenceClinVarAssertion>
         <ClinVarAccession Acc="RCV-1" Type="RCV"/>
         <MeasureSet Type="Haplotype" ID="224889">
         </MeasureSet>
     </ReferenceClinVarAssertion>
+
     <MeasureSet ID="123" Type="MeasureSet-Type">
         <Measure ID="234" Type="Measure-Type">
             <XRef DB="dbSNP" ID="123" Type="rs" />
@@ -31,6 +33,17 @@ def clinvar_set_xml():
             </AttributeSet>
         </Measure>
     </MeasureSet>
+
+    <MeasureSet ID="234" Type="MeasureSet-Type">
+        <Measure ID="345" Type="Measure-Type">
+            <AttributeSet>
+                <Attribute Accession="Acc-3" Change="Change-3" Type="Type-3">
+                    Full-Name-3
+                </Attribute>
+            </AttributeSet>
+        </Measure>
+    </MeasureSet>
+
 </ClinVarSet>
 """
 
@@ -91,6 +104,7 @@ def test_extract_attributes(clinvar_set_soup):
             'full_name': 'Full-Name-1',
             'measureset_type': 'MeasureSet-Type',
             'measure_type': 'Measure-Type',
+            'many_measuresets_in_this_entry': True,
         },
         {
             'accession': 'Acc-2',
@@ -99,6 +113,16 @@ def test_extract_attributes(clinvar_set_soup):
             'full_name': 'Full-Name-2',
             'measureset_type': 'MeasureSet-Type',
             'measure_type': 'Measure-Type',
+            'many_measuresets_in_this_entry': True,
+        },
+        {
+            'accession': 'Acc-3',
+            'change': 'Change-3',
+            'type': 'Type-3',
+            'full_name': 'Full-Name-3',
+            'measureset_type': 'MeasureSet-Type',
+            'measure_type': 'Measure-Type',
+            'many_measuresets_in_this_entry': True,
         }
     ]
 
