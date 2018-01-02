@@ -73,8 +73,14 @@ class AnnotatorWithCache():
         data).
 
         Annotators can implement extra parsing of the data with
-        _parse_annotation(). This parsing is enabled by default, but you can
-        disable it with parse=False and get the raw responses.
+        _parse_annotation(annotation). This parsing is enabled by default,
+        but you can disable it with parse=False and get the raw responses.
+        This parsing is done for each annotation independently.
+
+        Annotators can also implement extra parsing of the final annotations
+        dictionary by defining _post_parse_annotations(annotations).
+        This method is expected to receive the whole annotations dictionary.
+        If parse=False, it won't be called.
         """
         ids = self._set_of_string_ids(ids)
         total_count = len(ids)
@@ -123,6 +129,11 @@ class AnnotatorWithCache():
             # the variant, so it generates an empty/None parsed annotation.
             # We remove those here:
             annotations = {k: v for k, v in annotations.items() if v}
+
+        if parse and hasattr(self, '_post_parse_annotations'):
+            logger.info('{} post-parsingt {} annotations'.format(self.name,
+                                                                 len(annotations)))
+            annotations = self._post_parse_annotations(annotations)
 
         return annotations
 

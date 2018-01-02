@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from bs4 import BeautifulSoup
 
 from anotamela.annotators.base_classes import EntrezAnnotator
@@ -82,3 +84,15 @@ class DbsnpEntrezAnnotator(EntrezAnnotator):
 
         return ann
 
+    @staticmethod
+    def _post_parse_annotations(annotations):
+        # Sometimes Entrez will return the annotation for an updated rs ID
+        # and the queried rs ID will be put as a "synonym". We want the queried
+        # rs ID to be available as key in the dictionary as well!
+
+        for id_ in list(annotations.keys()):
+            synonym_ids = annotations[id_].get('synonyms', [])
+            for synonym_id in synonym_ids:
+                annotations[synonym_id] = deepcopy(annotations[id_])
+
+        return annotations
