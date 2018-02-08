@@ -6,6 +6,7 @@ import pytest
 from sqlalchemy.exc import OperationalError
 
 from anotamela.cache import create_cache
+from anotamela.cache import DictCache
 from anotamela.cache import AVAILABLE_CACHES
 
 
@@ -15,6 +16,12 @@ AVAILABLE_CACHES['mock_cache'] = AVAILABLE_CACHES['dict']
 @pytest.fixture(scope='module')
 def proxies():
     return {'http': 'socks5://caladan.lan:9050'}
+
+
+_common_dict_cache = DictCache()
+@pytest.fixture
+def dict_cache():
+    return _common_dict_cache
 
 
 @pytest.helpers.register

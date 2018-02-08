@@ -4,7 +4,6 @@ import pandas as pd
 from anotamela.annotators import *
 from anotamela.annotators.base_classes import EntrezAnnotator
 
-
 test_params = [
         (DbsnpWebAnnotator, {
             'ids_to_annotate': 'rs268 rs123',
@@ -127,6 +126,8 @@ def test_annotator(proxies, annotator_class, params):
     split_char = params.get('split_char') or ' '
 
     for id_ in ids_to_annotate:
+        assert id_ in info_dict
+
         for key in params['keys_to_check'].split(split_char):
             check_dict_key(info_dict[id_], key)
 
@@ -134,6 +135,8 @@ def test_annotator(proxies, annotator_class, params):
 
     cached_data = annotator.annotate(ids_to_annotate, use_web=False)
     for id_ in ids_to_annotate:
+        assert id_ in cached_data
+
         for key in params['keys_to_check'].split(split_char):
             check_dict_key(cached_data[id_], key)
 

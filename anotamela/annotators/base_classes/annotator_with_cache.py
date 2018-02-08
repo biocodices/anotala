@@ -131,9 +131,10 @@ class AnnotatorWithCache():
             annotations = {k: v for k, v in annotations.items() if v}
 
         if parse and hasattr(self, '_post_parse_annotations'):
-            logger.info('{} post-parsingt {} annotations'.format(self.name,
+            logger.info('{} post-parsing {} annotations'.format(self.name,
                                                                  len(annotations)))
             annotations = self._post_parse_annotations(annotations)
+            logger.info('Result: {} annotations'.format(len(annotations)))
 
         return annotations
 

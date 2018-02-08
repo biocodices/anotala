@@ -25,6 +25,8 @@ class DbsnpWebAnnotator(ParallelAnnotator):
 
     @staticmethod
     def _parse_annotation(annotation):
+
+        # Extract this to a _parse_assemblies method
         assemblies = ['GRCh37.p13', 'GRCh38.p7']
 
         for assembly_name in assemblies:

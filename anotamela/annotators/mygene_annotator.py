@@ -27,8 +27,8 @@ class MygeneAnnotator(AnnotatorWithCache):
 
         for batch_of_ids in grouped(ids, self.BATCH_SIZE):
             batch_annotations = {}
-            for hit in self.mg.querymany(batch_of_ids, fields='all',
-                                         verbose=self.VERBOSE):
+            for hit in self.mg.querymany(batch_of_ids, scopes='entrezgene',
+                                         fields='all', verbose=self.VERBOSE):
                 if 'notfound' not in hit and hit['taxid'] == self.TAXID:
                     batch_annotations[hit['query']] = hit
             yield batch_annotations
