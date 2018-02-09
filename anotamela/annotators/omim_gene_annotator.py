@@ -46,6 +46,7 @@ class OmimGeneAnnotator(ParallelAnnotator):
     # couple of hours straight. So, be wise and don't use this without Tor
     # proxies!
     RANDOMIZE_SLEEP_TIME = True
+    MANDATORY_PROXIES = True
 
     OMIM_URL = 'http://www.omim.org/entry/{}'
     PUBMED_URL = 'https://www.ncbi.nlm.nih.gov/pubmed/{}'

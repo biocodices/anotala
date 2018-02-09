@@ -21,6 +21,7 @@ class OmimVariantAnnotator(AnnotatorWithCache):
     """
     SOURCE_NAME = 'omim_variants'
     ANNOTATIONS_ARE_JSON = True
+    MANDATORY_PROXIES = True
 
     # These attributes will be used for the OmimGeneAnnotator:
     BATCH_SIZE = 1

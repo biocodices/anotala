@@ -9,6 +9,7 @@ from anotamela.helpers import camel_to_snake
 class GwasCatalogAnnotator(ParallelAnnotator):
     SOURCE_NAME = 'gwas_catalog'
     ANNOTATIONS_ARE_JSON = True
+    MANDATORY_PROXIES = True
 
     KEYS_TO_EXTRACT = [
             'id',

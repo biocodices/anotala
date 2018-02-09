@@ -47,6 +47,7 @@ class ParallelAnnotator(AnnotatorWithCache):
     SLEEP_TIME = 2.5
     RANDOMIZE_SLEEP_TIME = False
     USER_AGENT_GENERATOR = UserAgent()
+    MANDATORY_PROXIES = False
 
     @property
     def random_user_agent(self):
@@ -83,14 +84,15 @@ class ParallelAnnotator(AnnotatorWithCache):
 
         if self.proxies:
             logger.info('{} using proxies: {}'.format(self.name, self.proxies))
-        elif self.proxies == {}:
-            logger.warning('{} not using proxies!'.format(self.name))
-        elif self.proxies is None:  # i.e. different from emtpy dict {}
-            message = ('No proxies set for {}. Please set self.proxies to '
-                       'avoid a possible ban or explicitely set proxies as an '
-                       'empty dict (self.proxies={{}}) if you want to proceed '
-                       'anyway.'.format(self.name))
-            raise NoProxiesException(message)
+        else:
+            if self.MANDATORY_PROXIES:
+                message = ('No proxies set for {}. Please set self.proxies to '
+                           'avoid a possible ban or explicitely set proxies as an '
+                           'empty dict (self.proxies={{}}) if you want to proceed '
+                           'anyway.'.format(self.name))
+                raise NoProxiesException(message)
+            else:
+                logger.warning('{} not using proxies!'.format(self.name))
 
         with ThreadPoolExecutor(max_workers=self.BATCH_SIZE) as executor:
             sys.stdout.flush()  # Hack to display tqdm progress bar correctly

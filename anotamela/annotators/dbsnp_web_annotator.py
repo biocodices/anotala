@@ -14,8 +14,9 @@ class DbsnpWebAnnotator(ParallelAnnotator):
     """
     SOURCE_NAME = 'dbsnp_web'
     BATCH_SIZE = 15
-    SLEEP_TIME = 10
+    SLEEP_TIME = 1
     ANNOTATIONS_ARE_JSON = True
+    MANDATORY_PROXIES = True
 
     @staticmethod
     def _url(rs):
