@@ -1,4 +1,3 @@
-import requests
 from itertools import chain
 
 from anotamela.annotators.base_classes import ParallelAnnotator
@@ -25,6 +24,7 @@ class DbsnpWebAnnotator(ParallelAnnotator):
 
     @staticmethod
     def _parse_annotation(annotation):
+        annotation['rs_id'] = 'rs' + annotation['snp_id']
 
         # Extract this to a _parse_assemblies method
         assemblies = ['GRCh37.p13', 'GRCh38.p7']

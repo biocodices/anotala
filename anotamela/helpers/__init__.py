@@ -7,4 +7,5 @@ from .vep_table_parser import (
     read_VEP_header,
     read_VEP_table
 )
+from .rsids_from_vcf import rsids_from_vcf
 

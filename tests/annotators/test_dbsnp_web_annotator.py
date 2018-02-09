@@ -5,6 +5,7 @@ import pytest
 @pytest.fixture
 def raw_annotation():
     return {
+        'snp_id': '1',
         'assembly': {
             'GRCh37.p13': [
                 {
@@ -98,12 +99,16 @@ def test_parse_annotation(raw_annotation):
     assert parsed['GRCh38.p7_reverse'] is False
     assert sorted(parsed['GRCh38.p7_gene_symbols']) == ['GENE-1', 'GENE-2']
 
+    assert parsed['rs_id'] == 'rs1'
+
     incomplete_annotation = {
+        'snp_id': '2',
         'assembly': {
             'GRCh37.p13': [{'groupTerm': 'ALT_LOCI'}],
         }
     }
 
     # Shouldn't break:
-    DbsnpWebAnnotator._parse_annotation(incomplete_annotation)
+    parsed = DbsnpWebAnnotator._parse_annotation(incomplete_annotation)
 
+    assert parsed['rs_id'] == 'rs2'

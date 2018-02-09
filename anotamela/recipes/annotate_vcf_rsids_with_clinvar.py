@@ -1,17 +1,8 @@
 import json
 
 from anotamela.annotators import ClinvarRsAnnotator, ClinvarVariationAnnotator
+from anotamela.helpers import rsids_from_vcf
 
-
-def rsids_from_vcf(vcf_path):
-    with open(vcf_path) as f:
-        geno_lines = [line for line in f if line and not line.startswith('#')]
-
-    ids = [geno_line.split('\t')[2] for geno_line in geno_lines]
-    # ^ 3rd position (index=2) in the VCF lines is the ID
-    rs_ids = [id_ for id_ in ids if id_.startswith('rs')]
-
-    return rs_ids
 
 def annotate_vcf_rsids_with_clinvar(vcf_path, output_json_path=None,
                                     **annotator_options):
@@ -27,8 +18,9 @@ def annotate_vcf_rsids_with_clinvar(vcf_path, output_json_path=None,
     if output_json_path:
         with open(output_json_path, 'w') as f:
             json.dump(annotations, f)
-
-    return annotations
+        return output_json_path
+    else:
+        return annotations
 
 
 def annotate_rsids_with_clinvar(rs_ids, **annotator_options):
@@ -48,4 +40,3 @@ def annotate_rsids_with_clinvar(rs_ids, **annotator_options):
     annotations = clinvar_var.annotate(variant_ids)
 
     return list(annotations.values())
-
