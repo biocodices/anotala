@@ -62,6 +62,8 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
         info['associated_phenotypes'] = \
             cls._associated_phenotypes(clinical_assertions)
 
+        # If there is exactly ONE allele in this Variation entry, then put
+        # that allele information on the root level of the info dictionary:
         info['alleles'] = cls._extract_alleles(variation_report)
         if len(info['alleles']) == 1:
             allele_info = info['alleles'][0]
