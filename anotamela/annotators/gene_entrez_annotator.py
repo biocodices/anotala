@@ -28,15 +28,16 @@ class GeneEntrezAnnotator(EntrezAnnotator):
     def _parse_annotation(raw_annotation):
         fields_to_keep = ('Chromosome Description MapLocation Name Summary '
                           'NomenclatureName NomenclatureSymbol '
-                          'OtherDesignations OtherAliases').split()
+                          'OtherDesignations OtherAliases Mim').split()
 
         ann = {camel_to_snake(field): raw_annotation[field]
-               for field in fields_to_keep}
+               for field in fields_to_keep if field in fields_to_keep}
 
         for key, value in raw_annotation['Organism'].items():
             new_key = 'organism_' + camel_to_snake(key).replace('i_d', 'id')
             ann[new_key] = value
 
         ann['url'] = 'https://www.ncbi.nlm.nih.gov/gene/' + raw_annotation['id']
+        ann['entrez_id'] = int(raw_annotation['id'])
         return ann
 
