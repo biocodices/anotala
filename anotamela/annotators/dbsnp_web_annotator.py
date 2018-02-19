@@ -64,11 +64,17 @@ class DbsnpWebAnnotator(ParallelAnnotator):
 
             # Gene(s)
             gene_models = entry.get('geneModel') or []
+
             gene_symbols = {gene_model.get('geneSymbol')
                             for gene_model in gene_models}
             gene_symbols = [symbol for symbol in gene_symbols if symbol]
             key = '{}_gene_symbols'.format(assembly_name)
             annotation[key] = gene_symbols
+
+            gene_ids = {gene_model.get('geneId') for gene_model in gene_models}
+            gene_ids = [int(id_) for id_ in gene_ids if id_]
+            key = '{}_gene_entrez_ids'.format(assembly_name)
+            annotation[key] = gene_ids
 
         return annotation
 

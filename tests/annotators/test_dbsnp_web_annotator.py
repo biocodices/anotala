@@ -36,8 +36,8 @@ def raw_annotation():
                     'chrPosFrom': '110',
                     'chrPosTo': '210',
                     'geneModel': [
-                        {'geneSymbol': 'GENE-1'},
-                        {'geneSymbol': 'GENE-1'},
+                        {'geneId': '1', 'geneSymbol': 'GENE-1'},
+                        {'geneId': '1', 'geneSymbol': 'GENE-1'},
 
                         {
                             'codonPos': '1',
@@ -50,12 +50,8 @@ def raw_annotation():
                                 #  'fxnClass': '8',
                                 #  'fxnName': 'cds-reference'
                             },
-                            #  'geneId': '1717',
-                            #  'geneName': '7-dehydrocholesterol reductase',
+                            'geneId': '2',
                             'geneSymbol': 'GENE-2',
-                            #  'mrnaAcc': 'NM_001163817.1',
-                            #  'mrnaFrom': '1472',
-                            #  'mrnaTo': '1472',
                             'proteinAcc': 'NP_001157289.1',
                             'proteinPos': '408',
                             'snp2mRNAOrien': '1',
@@ -65,7 +61,6 @@ def raw_annotation():
                                     'aaCode': 'H',
                                     'allele': 'C',
                                     'codon': 'CAC',
-                                    #  'fxnClass': '42',
                                     'fxnName': 'missense'
                                 }
                             ],
@@ -98,6 +93,7 @@ def test_parse_annotation(raw_annotation):
     assert parsed['GRCh38.p7_stop'] == 210
     assert parsed['GRCh38.p7_reverse'] is False
     assert sorted(parsed['GRCh38.p7_gene_symbols']) == ['GENE-1', 'GENE-2']
+    assert sorted(parsed['GRCh38.p7_gene_entrez_ids']) == [1, 2]
 
     assert parsed['rs_id'] == 'rs1'
 
