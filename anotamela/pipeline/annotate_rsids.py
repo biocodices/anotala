@@ -35,6 +35,7 @@ def annotate_rsids(rsids, cache, use_web=True, use_cache=True,
     df = annotate_ids(rsids, annotator_classes, cache, use_web=use_web,
                       use_cache=use_cache, proxies=proxies,
                       sleep_time=sleep_time)
+
     df.rename(columns={'id': 'rsid'}, inplace=True)
     return df
 

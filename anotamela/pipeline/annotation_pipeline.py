@@ -11,6 +11,7 @@ from humanfriendly import format_timespan
 from pprint import pformat
 
 from anotamela.cache import create_cache, Cache
+from anotamela.recipes import annotate_rsids_with_clinvar
 from anotamela.pipeline import (
     read_variants_from_vcf,
     annotate_rsids,
@@ -142,6 +143,20 @@ class AnnotationPipeline:
 
         logger.info('Annotate the variants with rs ID')
         rs_variants = annotate_rsids(rsids, **self.annotation_kwargs)
+
+        logger.info('Add ClinVar Variation Reports')
+        # The annotation of ClinVar variant IDs comes after we already have
+        # clinvar entries for each rs ID:
+        clinvar_reports_per_rsid = annotate_rsids_with_clinvar(
+            rsids,
+            cache=self.annotation_kwargs['cache'],
+            proxies=self.annotation_kwargs['proxies'],
+            use_cache=self.annotation_kwargs['use_cache'],
+            use_web=self.annotation_kwargs['use_web'],
+            grouped_by_rsid=True,
+        )
+        rs_variants['clinvar_variation_reports'] = \
+            rs_variants['rsid'].map(clinvar_reports_per_rsid)
 
         logger.info('Extract Entrez gene data from the variants')
         dbsnp = rs_variants['dbsnp_myvariant']

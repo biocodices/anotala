@@ -38,3 +38,8 @@ def test_annotate_vcf_rsids_with_clinvar(vcf_path, dict_cache):
 def test_annotate_rsids_with_clinvar(dict_cache):
     result = annotate_rsids_with_clinvar(['rs268'], cache=dict_cache)
     assert result[0]['dbsnp_id'] == 'rs268'
+
+    result = annotate_rsids_with_clinvar(['rs268', 'rsNonExistent'], cache=dict_cache,
+                                         grouped_by_rsid=True)
+    assert result['rs268'][0]['dbsnp_id'] == 'rs268'
+    assert result['rsNonExistent'] == []
