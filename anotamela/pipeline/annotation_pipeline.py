@@ -155,7 +155,7 @@ class AnnotationPipeline:
             use_web=self.annotation_kwargs['use_web'],
             grouped_by_rsid=True,
         )
-        rs_variants['clinvar_variation_reports'] = \
+        rs_variants['clinvar_variations'] = \
             rs_variants['rsid'].map(clinvar_reports_per_rsid)
 
         logger.info('Extract Entrez gene data from the variants')

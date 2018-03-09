@@ -49,7 +49,7 @@ def test_run_from_rsids(proxies):
         'frequencies',
         'hgvs',
         'clinvar_entries',
-        'clinvar_variation_reports',
+        'clinvar_variations',
         'gwas_catalog',
         'dbnsfp',
         'snpeff_myvariant',
