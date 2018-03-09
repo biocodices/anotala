@@ -411,6 +411,7 @@ def test_associated_phenotypes():
     clinical_assertions = [
         {'phenotypes': [{'name': 'Pheno-1'}, {'name': 'Pheno-2'}]},
         {'phenotypes': [{'name': 'Pheno-2'}, {'name': 'Pheno-3'}]},
+        {} # Has no phenotypes key, shouldn't break
     ]
 
     result = ClinvarVariationAnnotator._associated_phenotypes(clinical_assertions)

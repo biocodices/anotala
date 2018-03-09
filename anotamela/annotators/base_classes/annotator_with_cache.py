@@ -4,6 +4,8 @@ from concurrent.futures import (
         as_completed
     )
 
+from tqdm import tqdm
+
 from anotamela.cache import Cache, create_cache
 
 
@@ -153,7 +155,7 @@ class AnnotatorWithCache():
             for id_, annotation in annotations.items():
                 future = executor.submit(self._parse_annotation, annotation)
                 future_to_id[future] = id_
-            for future in as_completed(future_to_id):
+            for future in tqdm(as_completed(future_to_id), total=len(future_to_id)):
                 id_ = future_to_id[future]
                 try:
                     parsed_annotations[id_] = future.result()

@@ -382,6 +382,6 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
     def _associated_phenotypes(clinical_assertions):
         phenotype_names = [phenotype['name']
                            for clinical_assertion in clinical_assertions
-                           for phenotype in clinical_assertion['phenotypes']]
+                           for phenotype in clinical_assertion.get('phenotypes', [])]
         return sorted(set(phenotype_names))
 

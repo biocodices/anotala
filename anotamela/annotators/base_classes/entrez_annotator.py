@@ -120,14 +120,16 @@ class EntrezAnnotator(AnnotatorWithCache):
         return batch_sizes[self.ENTREZ_SERVICE]
 
     def _efetch_query(self, ids):
-        for ids_group in grouped(ids, self.batch_size):
+        n_batchs = len(ids)//self.batch_size
+        for ids_group in tqdm(grouped(ids, self.batch_size), total=n_batchs):
             handle = Entrez.efetch(id=','.join(ids_group),
                                    **self.ENTREZ_PARAMS)
             yield ids_group, handle
 
 
     def _esummary_query(self, ids):
-        for ids_group in grouped(ids, self.batch_size):
+        n_batchs = len(ids)//self.batch_size
+        for ids_group in tqdm(grouped(ids, self.batch_size), total=n_batchs):
             handle = Entrez.esummary(db=self.ENTREZ_PARAMS['db'],
                                      id=','.join(ids_group))
             yield ids_group, handle
