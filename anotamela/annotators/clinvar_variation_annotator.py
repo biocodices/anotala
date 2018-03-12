@@ -314,6 +314,8 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
         alt_alleles = {allele for allele in alt_alleles if allele}
         if len(alt_alleles) == 1:
             info['genomic_allele'] = alt_alleles.pop()
+        else:
+            info['genomic_allele'] = None
 
         return info
 
