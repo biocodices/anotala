@@ -291,6 +291,8 @@ def test_extract_sequence_info_from_allele():
     assert result['alt_g38'] == 'G'
     assert result['accession_g38'] == 'NC_2'
 
+    assert result['genomic_allele'] == 'G'
+
     soup = make_soup("""
         <Allele>
             <SequenceLocation Assembly="GRCh37"

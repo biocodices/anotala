@@ -123,7 +123,7 @@ class AnnotationPipeline:
         logger.info('{} variants with single rs'.format(len(rs_variants)))
         logger.info('{} other variants'.format(len(other_variants)))
 
-        rs_annotations = self.run_from_rsids(rs_variants['id'])
+        rs_annotations = self.run_from_rsids(rs_variants['id'].values)
         self.rs_variants = pd.merge(rs_variants, rs_annotations,
                                     left_on='id', right_on='id', how='left')
 
@@ -215,10 +215,6 @@ class AnnotationPipeline:
         rs_variants.rename(columns={'clinvar_rs': 'clinvar_entries'},
                            inplace=True)
 
-        #  logger.info('Annotate RCV accessions with ClinVar Entrez')
-        #  rs_variants['clinvar_entries'] = \
-            #  annotate_clinvar_accessions(rs_variants['clinvar_entries'])
-
         self.rs_variants = rs_variants
         self.rs_variants.rename(columns={'rsid': 'id'}, inplace=True)
 
@@ -228,4 +224,3 @@ class AnnotationPipeline:
                     .format(format_timespan(time.time() - start_time)))
 
         return self.rs_variants
-

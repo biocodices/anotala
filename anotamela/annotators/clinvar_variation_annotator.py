@@ -62,12 +62,13 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
         info['associated_phenotypes'] = \
             cls._associated_phenotypes(clinical_assertions)
 
+        info['alleles'] = cls._extract_alleles(variation_report)
+
         # If there is exactly ONE allele in this Variation entry, then put
         # that allele information on the root level of the info dictionary:
-        info['alleles'] = cls._extract_alleles(variation_report)
         if len(info['alleles']) == 1:
-            allele_info = info['alleles'][0]
-            info.update(allele_info)
+            only_allele_info = info['alleles'][0]
+            info.update(only_allele_info)
 
         return info
 
@@ -290,6 +291,14 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
             info['ref_g38'] = g38.get('referenceAllele')
             info['alt_g38'] = g38.get('alternateAllele')
             info['chrom_g38'] = g38.get('Chr')
+
+        # Figure out the nucleotide/allele that this <Alelle> entry refers to:
+        # For instance, the change A>G refers to allele "G", which is stored
+        # under the "alt" key.
+        alt_alleles = [info.get('alt_g37'), info.get('alt_g38')]
+        alt_alleles = {allele for allele in alt_alleles if allele}
+        if len(alt_alleles) == 1:
+            info['genomic_allele'] = alt_alleles.pop()
 
         return info
 

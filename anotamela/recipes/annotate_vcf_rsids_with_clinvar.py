@@ -54,7 +54,8 @@ def annotate_rsids_with_clinvar(rs_ids, cache, proxies={}, use_web=True,
     if grouped_by_rsid:
         clinvar_reports = {
             k: list(group) for k, group in
-            groupby(clinvar_reports, key=lambda report: report.get('dbsnp_id', 'no-rs-id'))
+            groupby(clinvar_reports,
+                    key=lambda report: report.get('dbsnp_id', 'no-rs-id'))
         }
         # Make sure all queried rs_ids are present in the final dictionary:
         for rs_id in rs_ids:
