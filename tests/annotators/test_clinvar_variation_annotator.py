@@ -150,12 +150,27 @@ def test_extract_obervation():
     result = ClinvarVariationAnnotator._extract_observation(soup)
     assert result == {
         'variation_id': '1',
-        'clinical_significance': 'Pathogenic',
+        'clinical_significances': ['Pathogenic'],
         'date_last_evaluated': '2001-01-01',
         'type': 'primary',
         'review_status': 'criteria provided',
         'phenotypes': [{'name': 'Pheno-1'}],
     }
+
+
+def test_parse_clinical_significances():
+    f = ClinvarVariationAnnotator._parse_clinical_significances
+
+    assert f('Pathogenic') == ['Pathogenic']
+    assert f('Pathogenic/Likely pathogenic') == ['Pathogenic',
+                                                 'Likely pathogenic']
+    assert f('Benign/Likely benign, risk factor') == ['Benign',
+                                                      'Likely benign',
+                                                      'risk factor']
+    assert f('Benign/Likely benign, risk factor, other') == ['Benign',
+                                                             'Likely benign',
+                                                             'risk factor',
+                                                             'other']
 
 
 def test_extract_clinical_assertions():
@@ -209,7 +224,7 @@ def test_extract_clinical_assertions():
 
     germline = results[0]
     assert germline == {
-        'clinical_significance': 'ClinSig-1',
+        'clinical_significances': ['ClinSig-1'],
         'date_last_submitted': '2000-01-01',
         'method': 'Method-1',
         'phenotypes': [{'name': 'Pheno-1', 'omim_id': 'MIM-1',
@@ -220,7 +235,7 @@ def test_extract_clinical_assertions():
 
     somatic = results[1]
     assert somatic == {
-        'clinical_significance': 'ClinSig-2',
+        'clinical_significances': ['ClinSig-2'],
         'date_last_submitted': '2000-01-02',
         'method': 'Method-2',
         'phenotypes': [{'name': 'Pheno-2', 'omim_id': 'MIM-2',
@@ -400,13 +415,13 @@ def test_extract_allele_frequencies():
 
 def test_generate_clinical_summary():
     assertions = [
-        {'clinical_significance': 'ClinSig-1'},
-        {'clinical_significance': 'ClinSig-1'},
-        {'clinical_significance': 'ClinSig-2'},
+        {'clinical_significances': ['ClinSig-1']},
+        {'clinical_significances': ['ClinSig-1', 'ClinSig-2', 'ClinSig-3']},
+        {'clinical_significances': ['ClinSig-2']},
     ]
 
     result = ClinvarVariationAnnotator._generate_clinical_summary(assertions)
-    assert result == {'ClinSig-1': 2, 'ClinSig-2': 1}
+    assert result == {'ClinSig-1': 2, 'ClinSig-2': 2, 'ClinSig-3': 1}
 
 
 def test_associated_phenotypes():

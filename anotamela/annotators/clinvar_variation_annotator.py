@@ -54,14 +54,10 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
                                      for assertion in clinical_assertions})
         info['clinical_summary'] = \
             dict(cls._generate_clinical_summary(clinical_assertions))
-
         info['observation'] = cls._extract_observation(variation_report)
-        info['clinical_significance'] = \
-            info['observation']['clinical_significance']
-
+        info['clinical_significances'] = info['observation']['clinical_significances']
         info['associated_phenotypes'] = \
             cls._associated_phenotypes(clinical_assertions)
-
         info['alleles'] = cls._extract_alleles(variation_report)
 
         # If there is exactly ONE allele in this Variation entry, then put
@@ -76,6 +72,22 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
     def _extract_variation_id(variation_soup):
         """Extract the Variation ID from a ClinVar variation HTML soup."""
         return variation_soup['VariationID']
+
+    @staticmethod
+    def _parse_clinical_significances(clinsigs):
+        """
+        Parse a string with one or many clinical significances and return
+        a list with the values seen. Deals with some complex significances like
+        "Pathogenic/Likely pathogenic, Affects, risk factor".
+        """
+        clinical_significances = []
+        for sig_ in clinsigs.split('/'):
+            for sig in sig_.split(','):
+                clinical_significance = sig.strip()
+                if clinical_significance not in clinical_significances:
+                    clinical_significances.append(clinical_significance)
+        return clinical_significances
+
 
     @staticmethod
     def _extract_variation_name(variation_soup):
@@ -105,7 +117,9 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
             info['submitter_name'] = assertion['SubmitterName']
             info['date_last_submitted'] = assertion['DateLastSubmitted']
             clinsig = one(assertion.select('ClinicalSignificance'))
-            info['clinical_significance'] = clinsig.select_one('Description').text
+            info['clinical_significances'] = cls._parse_clinical_significances(
+                clinsig.select_one('Description').text
+            )
             info['method'] = clinsig.select_one('Method').text
 
             phenotype_lists = assertion.select('PhenotypeList')
@@ -166,8 +180,9 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
         observation['review_status'] = review_status.text
 
         clinsig = one(observation_el.select('ClinicalSignificance'))
-        observation['clinical_significance'] = \
+        observation['clinical_significances'] = cls._parse_clinical_significances(
             clinsig.select_one('Description').text
+        )
 
         observation['date_last_evaluated'] = clinsig.get('DateLastEvaluated')
 
@@ -384,8 +399,10 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
 
     @staticmethod
     def _generate_clinical_summary(clinical_assertions):
-        return Counter(assertion['clinical_significance']
-                       for assertion in clinical_assertions)
+        seen_clinsigs = []
+        for assertion in clinical_assertions:
+            seen_clinsigs += assertion['clinical_significances']
+        return Counter(seen_clinsigs)
 
     @staticmethod
     def _associated_phenotypes(clinical_assertions):
