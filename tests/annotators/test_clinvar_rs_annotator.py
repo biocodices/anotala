@@ -17,11 +17,12 @@ def test_parse_hit_single_rcv():
         'allele': 'G',
         'clinvar': {
             'root_level_key': 'root_level_value',
+            'variant_id': 123,
             'rcv': {
                 'accession': 'RCV1',
                 'clinical_significance': 'Pathogenic, risk factor',
                 'preferred_name': 'NM_000237.2(LPL):c.953A>G (p.Asn318=)',
-                'conditions': [{'identifiers': {}}]
+                'conditions': [{'identifiers': {}}],
             }
         }
     }
@@ -37,9 +38,10 @@ def test_parse_hit_single_rcv():
     # Test that it parses the preferred name
     assert rcv_annotation['cds_change'] == 'c.953A>G'
 
-    assert 'url' in rcv_annotation
-    assert 'genomic_allele' in rcv_annotation
-    assert 'coding_allele' in rcv_annotation
+    assert rcv_annotation['url']
+    assert rcv_annotation['variant_url']
+    assert rcv_annotation['genomic_allele']
+    assert rcv_annotation['coding_allele']
 
     # Test prot change is parsed, with the '=' replace with an aminoacid
     assert rcv_annotation['prot_change'] == 'p.Asn318Asn'
@@ -90,6 +92,7 @@ def test_parse_hit_multiple_rcvs():
     multiple_rcv_hits = {
         'allele': 'A',
         'clinvar': {
+            'variant_id': 1,
             'rcv': [{'conditions': {},  # dict instead of list!
                      'preferred_name': '',
                      'accession': '',

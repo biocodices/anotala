@@ -64,6 +64,7 @@ class ClinvarRsAnnotator(MyVariantAnnotator):
                     del(condition['identifiers'])
 
             annotation['url'] = cls._url(annotation['accession'])
+            annotation['variant_url'] = cls._variant_url(hit['clinvar']['variant_id'])
 
             name_info = cls._parse_preferred_name(annotation['preferred_name'])
             annotation.update(name_info)
@@ -94,7 +95,11 @@ class ClinvarRsAnnotator(MyVariantAnnotator):
 
     @staticmethod
     def _url(accession):
-        return 'https://www.ncbi.nlm.nih.gov/clinvar/{}'.format(accession)
+        return f'https://www.ncbi.nlm.nih.gov/clinvar/{accession}'
+
+    @staticmethod
+    def _variant_url(variant_id):
+        return f'https://www.ncbi.nlm.nih.gov/clinvar/variation/{variant_id}'
 
     @classmethod
     def _parse_preferred_name(cls, preferred_name):

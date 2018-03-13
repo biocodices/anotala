@@ -25,7 +25,7 @@ def test_annotate(annotator):
 
     assert len(result['clinical_assertions']) == 1
     clin = result['clinical_assertions'][0]
-    assert clin['clinical_significance'] == 'Pathogenic'
+    assert clin['clinical_significances'] == ['Pathogenic']
     assert clin['date_last_submitted'] == '2010-12-30'
     assert clin['method'] == 'literature only'
     assert clin['submitter_name'] == 'OMIM'
