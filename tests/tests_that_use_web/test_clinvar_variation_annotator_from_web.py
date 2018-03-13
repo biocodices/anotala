@@ -12,6 +12,7 @@ def test_annotate(annotator):
     result = annotator.annotate_one('1550')
 
     assert result['variation_id'] == '1550'
+    assert '1550' in result['url']
     assert 'c.953A>G' in result['variation_name']
     assert result['variation_type'] == 'Simple'
 

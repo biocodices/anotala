@@ -40,6 +40,7 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
         variation_report = one(variation_reports)
 
         info['variation_id'] = cls._extract_variation_id(variation_report)
+        info['url'] = cls._url(info['variation_id'])
         info['variation_name'] = cls._extract_variation_name(variation_report)
 
         if not info['variation_name'] == 'Multiple Alleles':
@@ -413,3 +414,6 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
                            for phenotype in clinical_assertion.get('phenotypes', [])]
         return sorted(set(phenotype_names))
 
+    @staticmethod
+    def _url(variation_id):
+        return f'https://www.ncbi.nlm.nih.gov/clinvar/variation/{variation_id}'
