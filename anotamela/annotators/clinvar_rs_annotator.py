@@ -1,5 +1,7 @@
 import re
 
+from more_itertools import unique_everseen
+
 from anotamela.annotators.base_classes import MyVariantAnnotator
 from anotamela.helpers import (
     listify,
@@ -56,7 +58,9 @@ class ClinvarRsAnnotator(MyVariantAnnotator):
             if 'clinical_significance' in annotation:
                 del(annotation['clinical_significance'])
 
-            annotation['conditions'] = listify(annotation['conditions'])
+            conditions = listify(annotation['conditions'])
+            annotation['conditions'] = conditions
+            annotation['condition_names'] = cls._extract_condition_names(conditions)
 
             for condition in annotation['conditions']:
                 condition.update(cls._parse_condition_identifiers(condition))
@@ -134,3 +138,8 @@ class ClinvarRsAnnotator(MyVariantAnnotator):
 
         return ids
 
+    @staticmethod
+    def _extract_condition_names(conditions):
+        condition_names = [condition.get('name') for condition in conditions]
+        condition_names = [name for name in condition_names if name]
+        return list(unique_everseen(condition_names))

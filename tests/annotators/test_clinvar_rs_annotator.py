@@ -22,7 +22,9 @@ def test_parse_hit_single_rcv():
                 'accession': 'RCV1',
                 'clinical_significance': 'Pathogenic, risk factor',
                 'preferred_name': 'NM_000237.2(LPL):c.953A>G (p.Asn318=)',
-                'conditions': [{'identifiers': {}}],
+                'conditions': [{'identifiers': {}, 'name': 'Cond-1'},
+                               {'name': 'Cond-2'},
+                               {'name': 'Cond-2'}],
             }
         }
     }
@@ -43,6 +45,9 @@ def test_parse_hit_single_rcv():
     assert rcv_annotation['genomic_allele']
     assert rcv_annotation['coding_allele']
 
+    # Test it extracts condition names
+    assert rcv_annotation['condition_names'] == ['Cond-1', 'Cond-2']
+
     # Test prot change is parsed, with the '=' replace with an aminoacid
     assert rcv_annotation['prot_change'] == 'p.Asn318Asn'
 
@@ -56,6 +61,17 @@ def test_parse_hit_single_rcv():
 
     # Test hit info is copied to each RCV entry
     assert rcv_annotation['root_level_key'] == 'root_level_value'
+
+
+def text_extract_condition_names():
+    conditions = [
+        {},
+        {'name': 'Cond-1'},
+        {'name': 'Cond-2'},
+        {'name': 'Cond-1'}
+    ]
+    result = ClinvarRsAnnotator._extract_condition_names(conditions)
+    assert result == ['Cond-1', 'Cond-2']
 
 
 def test_parse_preferred_name():
