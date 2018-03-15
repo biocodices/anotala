@@ -21,7 +21,6 @@ def annotate_clinvar_accessions(clinvar_entries):
 
     # WIP CODE!
 
-
     #  new_series = pd.Series([])
 
     #  accessions = clinvar_entries.map(itemgetter('accession'))
@@ -39,6 +38,3 @@ def annotate_clinvar_accessions(clinvar_entries):
         #  #  accession_data = accessions_annotations[]
         #  new_entries.update()
         #  # new_series[ix] =
-
-        #  # SEGUIR ACÁ!!!
-
