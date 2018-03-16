@@ -1,3 +1,4 @@
+from collections import defaultdict
 from itertools import chain
 
 from anotamela.annotators.base_classes import ParallelAnnotator
@@ -23,12 +24,13 @@ class DbsnpWebAnnotator(ParallelAnnotator):
         path = 'https://www.ncbi.nlm.nih.gov/projects/SNP/snp_gene.cgi?rs={0}'
         return path.format(rs)
 
-    @staticmethod
-    def _parse_annotation(annotation):
+    @classmethod
+    def _parse_annotation(cls, annotation):
         annotation['rs_id'] = 'rs' + annotation['snp_id']
-
         # Extract this to a _parse_assemblies method
         assemblies = ['GRCh37.p13', 'GRCh38.p7']
+
+        all_gene_models = []
 
         for assembly_name in assemblies:
             entries = annotation['assembly'].get(assembly_name) or []
@@ -64,6 +66,7 @@ class DbsnpWebAnnotator(ParallelAnnotator):
 
             # Gene(s)
             gene_models = entry.get('geneModel') or []
+            all_gene_models += gene_models # Will be used to extract consequences
 
             gene_symbols = {gene_model.get('geneSymbol')
                             for gene_model in gene_models}
@@ -75,6 +78,9 @@ class DbsnpWebAnnotator(ParallelAnnotator):
             gene_ids = [int(id_) for id_ in gene_ids if id_]
             key = '{}_gene_entrez_ids'.format(assembly_name)
             annotation[key] = gene_ids
+
+        annotation['consequences_per_gene'] = \
+            cls._extract_consequences_per_gene_from_gene_models(all_gene_models)
 
         return annotation
 
@@ -98,3 +104,17 @@ class DbsnpWebAnnotator(ParallelAnnotator):
 
         return sorted(list(unique_genes))
 
+    @staticmethod
+    def _extract_consequences_per_gene_from_gene_models(gene_models):
+        """Extract the functional annotation per gene from +gene_models+.
+        Returns a dictiionaty."""
+        functional_annotations_per_gene = defaultdict(list)
+
+        for gene_model in gene_models:
+            gene = gene_model.get('geneSymbol', 'NO-GENE')
+            alleles = gene_model.get('variation_allele', [])
+            for allele in alleles:
+                consequence = allele.get('fxnName')
+                functional_annotations_per_gene[gene].append(consequence)
+
+        return dict(functional_annotations_per_gene)
