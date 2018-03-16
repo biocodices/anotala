@@ -1,6 +1,8 @@
 from collections import defaultdict
 from itertools import chain
 
+from more_itertools import unique_everseen
+
 from anotamela.annotators.base_classes import ParallelAnnotator
 
 
@@ -116,5 +118,10 @@ class DbsnpWebAnnotator(ParallelAnnotator):
             for allele in alleles:
                 consequence = allele.get('fxnName')
                 functional_annotations_per_gene[gene].append(consequence)
+
+        for gene in functional_annotations_per_gene.keys():
+            consequences = functional_annotations_per_gene[gene]
+            unique_consequences = list(unique_everseen(consequences))
+            functional_annotations_per_gene[gene] = unique_consequences
 
         return dict(functional_annotations_per_gene)

@@ -19,6 +19,7 @@ def raw_annotation():
                             'geneId': '2',
                             'geneSymbol': 'GENE-2',
                             'variation_allele': [
+                                {'fxnName': 'UTR-5'},
                                 {'fxnName': 'UTR-5'}
                             ]
                         },
