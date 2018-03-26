@@ -113,32 +113,34 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
             'somatic': 'ClinicalAssertionList > SomaticList > Somatic',
         }
 
-        def parse_assertion(assertion):
-            info = {}
-            info['submitter_name'] = assertion['SubmitterName']
-            info['date_last_submitted'] = assertion['DateLastSubmitted']
-            clinsig = one(assertion.select('ClinicalSignificance'))
-            info['clinical_significances'] = cls._parse_clinical_significances(
-                clinsig.select_one('Description').text
-            )
-            info['method'] = clinsig.select_one('Method').text
-
-            phenotype_lists = assertion.select('PhenotypeList')
-            if phenotype_lists:
-                # We assume there is one PhenotypeList per clinical assertion:
-                phenotype_list = one(phenotype_lists)
-                info['phenotypes'] = cls._parse_phenotype_list(phenotype_list)
-
-            return info
-
         for assertion_type, selector in selectors.items():
             assertions = variation_soup.select(selector)
             for assertion in assertions:
-                info = parse_assertion(assertion)
+                info = cls._parse_assertion(assertion)
                 info['type'] = assertion_type
                 clinical_assertions.append(info)
 
         return clinical_assertions
+
+
+    @classmethod
+    def _parse_assertion(cls, assertion):
+        info = {}
+        info['submitter_name'] = assertion['SubmitterName']
+        info['date_last_submitted'] = assertion['DateLastSubmitted']
+        clinsig = one(assertion.select('ClinicalSignificance'))
+        info['clinical_significances'] = cls._parse_clinical_significances(
+            clinsig.select_one('Description').text
+        )
+        info['method'] = clinsig.select_one('Method').text
+
+        phenotype_lists = assertion.select('PhenotypeList')
+        if phenotype_lists:
+            # We assume there is one PhenotypeList per clinical assertion:
+            phenotype_list = one(phenotype_lists)
+            info['phenotypes'] = cls._parse_phenotype_list(phenotype_list)
+
+        return info
 
 
     @staticmethod

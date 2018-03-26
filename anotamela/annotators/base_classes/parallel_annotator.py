@@ -78,9 +78,11 @@ class ParallelAnnotator(AnnotatorWithCache):
         """
         grouped_ids = list(grouped(ids, self.BATCH_SIZE))
         msg = ('{}: get {} entries in {} batches '
-               '({} items/batch & sleep {}s between batches)')
+               '({} items/batch & sleep {}{}s between batches)')
         logger.info(msg.format(self.name, len(ids), len(grouped_ids),
-                               self.BATCH_SIZE, self.SLEEP_TIME))
+                               self.BATCH_SIZE,
+                               ('~' if self.RANDOMIZE_SLEEP_TIME else ''),
+                               self.SLEEP_TIME))
 
         if self.proxies:
             logger.info('{} using proxies: {}'.format(self.name, self.proxies))
