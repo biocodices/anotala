@@ -9,6 +9,7 @@ import pandas as pd
 import coloredlogs
 from humanfriendly import format_timespan
 from pprint import pformat
+from more_itertools import collapse
 
 from anotamela.cache import create_cache, Cache
 from anotamela.recipes import annotate_rsids_with_clinvar
@@ -26,6 +27,7 @@ from anotamela.pipeline import (
     annotate_swissprot_ids,
     group_swissprot_variants_by_rsid,
     # annotate_clinvar_accessions,
+    add_variation_info_to_clinvar_entries,
 )
 
 
@@ -137,7 +139,7 @@ class AnnotationPipeline:
         """
         start_time = time.time()
 
-        opts = pformat({**self.__dict__} , width=50)
+        opts = pformat({**self.__dict__}, width=50)
         logger.info('Starting annotation pipeline with options:\n\n{}\n'
                     .format(opts))
 
@@ -145,9 +147,7 @@ class AnnotationPipeline:
         rs_variants = annotate_rsids(rsids, **self.annotation_kwargs)
 
         logger.info('Add ClinVar Variation Reports')
-        # The annotation of ClinVar variant IDs comes after we already have
-        # clinvar entries for each rs ID:
-        clinvar_reports_per_rsid = annotate_rsids_with_clinvar(
+        clinvar_variations_per_rsid = annotate_rsids_with_clinvar(
             rsids,
             cache=self.annotation_kwargs['cache'],
             proxies=self.annotation_kwargs['proxies'],
@@ -156,7 +156,13 @@ class AnnotationPipeline:
             grouped_by_rsid=True,
         )
         rs_variants['clinvar_variations'] = \
-            rs_variants['rsid'].map(clinvar_reports_per_rsid)
+            rs_variants['rsid'].map(clinvar_variations_per_rsid)
+
+        logger.info('Add ClinVar variation info to ClinVar entries')
+        clinvar_variations = list(collapse(clinvar_variations_per_rsid.values()))
+        rs_variants['clinvar_rs'] = \
+            add_variation_info_to_clinvar_entries(rs_variants['clinvar_rs'],
+                                                  clinvar_variations)
 
         logger.info('Extract Entrez gene data from the variants')
         dbsnp = rs_variants['dbsnp_myvariant']

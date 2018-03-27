@@ -11,7 +11,7 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
     """
     Annotates Clinvar Variation IDs using Biopython's Entrez service.
     """
-    SOURCE_NAME = 'clinvar'
+    SOURCE_NAME = 'clinvar_variation'
     ENTREZ_SERVICE = 'efetch'
     ENTREZ_PARAMS = {
         'db': 'clinvar',
