@@ -66,6 +66,8 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
         if len(info['alleles']) == 1:
             only_allele_info = info['alleles'][0]
             info.update(only_allele_info)
+        else:
+            info['genomic_allele'] = None
 
         cls._extract_dbsnp_ids_from_alleles_for_haplotypes(info)
 
