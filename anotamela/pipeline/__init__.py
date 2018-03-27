@@ -14,7 +14,6 @@ from .extract_gwas_traits import extract_gwas_traits
 from .annotate_swissprot_ids import annotate_swissprot_ids
 from .group_swissprot_variants_by_rsid import group_swissprot_variants_by_rsid
 from .annotate_clinvar_accessions import annotate_clinvar_accessions
-from .add_variation_info_to_clinvar_entries import add_variation_info_to_clinvar_entries
 
 from .annotation_pipeline import AnnotationPipeline
 

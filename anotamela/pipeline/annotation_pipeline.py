@@ -9,7 +9,6 @@ import pandas as pd
 import coloredlogs
 from humanfriendly import format_timespan
 from pprint import pformat
-from more_itertools import collapse
 
 from anotamela.cache import create_cache, Cache
 from anotamela.recipes import annotate_rsids_with_clinvar
@@ -27,7 +26,6 @@ from anotamela.pipeline import (
     annotate_swissprot_ids,
     group_swissprot_variants_by_rsid,
     # annotate_clinvar_accessions,
-    add_variation_info_to_clinvar_entries,
 )
 
 
@@ -157,12 +155,6 @@ class AnnotationPipeline:
         )
         rs_variants['clinvar_variations'] = \
             rs_variants['rsid'].map(clinvar_variations_per_rsid)
-
-        logger.info('Add ClinVar variation info to ClinVar entries')
-        clinvar_variations = list(collapse(clinvar_variations_per_rsid.values()))
-        rs_variants['clinvar_rs'] = \
-            add_variation_info_to_clinvar_entries(rs_variants['clinvar_rs'],
-                                                  clinvar_variations)
 
         logger.info('Extract Entrez gene data from the variants')
         dbsnp = rs_variants['dbsnp_myvariant']
