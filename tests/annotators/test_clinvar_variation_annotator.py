@@ -428,9 +428,21 @@ def test_associated_phenotypes():
     clinical_assertions = [
         {'phenotypes': [{'name': 'Pheno-1'}, {'name': 'Pheno-2'}]},
         {'phenotypes': [{'name': 'Pheno-2'}, {'name': 'Pheno-3'}]},
-        {} # Has no phenotypes key, shouldn't break
+        {}  # Has no phenotypes key, shouldn't break
     ]
 
     result = ClinvarVariationAnnotator._associated_phenotypes(clinical_assertions)
     assert result == ['Pheno-1', 'Pheno-2', 'Pheno-3']
 
+
+def test_extract_dbsnp_ids_from_alleles_for_haplotypes():
+    info = {
+        'variation_type': 'Haplotype',
+        'alleles': [
+            {'dbsnp_id': 'rs1'},
+            {'dbsnp_id': 'rs2'},
+            {},
+        ]
+    }
+    ClinvarVariationAnnotator._extract_dbsnp_ids_from_alleles_for_haplotypes(info)
+    assert info['dbsnp_ids'] == ['rs1', 'rs2']

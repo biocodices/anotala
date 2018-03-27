@@ -67,7 +67,20 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
             only_allele_info = info['alleles'][0]
             info.update(only_allele_info)
 
+        cls._extract_dbsnp_ids_from_alleles_for_haplotypes(info)
+
         return info
+
+    @staticmethod
+    def _extract_dbsnp_ids_from_alleles_for_haplotypes(info):
+        """
+        Given the info dict of a Variation, if it's a Haplotype, extract
+        the dbSNP IDs of its alleles into a list at level 0 of the dict.
+        """
+        if info.get('variation_type') == 'Haplotype':
+            dbsnp_ids = [allele.get('dbsnp_id') for allele in info['alleles']]
+            dbsnp_ids = [id_ for id_ in dbsnp_ids if id_]
+            info.update({'dbsnp_ids': dbsnp_ids})
 
     @staticmethod
     def _extract_variation_id(variation_soup):

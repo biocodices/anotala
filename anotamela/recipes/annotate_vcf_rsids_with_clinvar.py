@@ -1,6 +1,5 @@
 import json
-from itertools import groupby
-from operator import itemgetter
+from collections import defaultdict
 
 from anotamela.annotators import ClinvarRsAnnotator, ClinvarVariationAnnotator
 from anotamela.helpers import rsids_from_vcf
@@ -38,7 +37,6 @@ def annotate_rsids_with_clinvar(rs_ids, cache, proxies={}, use_web=True,
     annotator_options = dict(cache=cache, proxies=proxies)
     annotate_options = dict(use_web=use_web, use_cache=use_cache)
 
-
     clinvar_rs = ClinvarRsAnnotator(**annotator_options)
     annotations_rs = clinvar_rs.annotate(rs_ids, **annotate_options)
 
@@ -48,23 +46,32 @@ def annotate_rsids_with_clinvar(rs_ids, cache, proxies={}, use_web=True,
     variant_ids = [id_ for id_ in variant_ids if id_]
 
     clinvar_var = ClinvarVariationAnnotator(**annotator_options)
-    clinvar_reports = clinvar_var.annotate(variant_ids, **annotate_options)
-    clinvar_reports = list(clinvar_reports.values())
+    clinvar_variations = clinvar_var.annotate(variant_ids, **annotate_options)
+    clinvar_variations = list(clinvar_variations.values())
 
     if grouped_by_rsid:
-        clinvar_reports = {
-            k: list(group) for k, group in
-            groupby(clinvar_reports,
-                    key=lambda report: report.get('dbsnp_id', 'no-rs-id'))
-        }
+        clinvar_variations_by_rsid = defaultdict(list)
+
+        for variation in clinvar_variations:
+            dbsnp_id = variation.get('dbsnp_id')
+            dbsnp_ids = variation.get('dbsnp_ids')
+
+            if dbsnp_id:
+                clinvar_variations_by_rsid[dbsnp_id].append(variation)
+            elif dbsnp_ids:
+                for id_ in dbsnp_ids:
+                    clinvar_variations_by_rsid[id_].append(variation)
+
         # Make sure all queried rs_ids are present in the final dictionary:
         for rs_id in rs_ids:
-            if rs_id not in clinvar_reports:
-                clinvar_reports[rs_id] = []
+            if rs_id not in clinvar_variations_by_rsid:
+                clinvar_variations_by_rsid[rs_id] = []
 
         # Remove clinvar reports about other variants:
-        for key in list(clinvar_reports.keys()):
+        for key in list(clinvar_variations_by_rsid.keys()):
             if key not in rs_ids:
-                del(clinvar_reports[key])
+                del(clinvar_variations_by_rsid[key])
 
-    return clinvar_reports
+        clinvar_variations = clinvar_variations_by_rsid
+
+    return clinvar_variations
