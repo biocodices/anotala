@@ -1,6 +1,5 @@
 import time
 import logging
-import warnings
 from itertools import chain
 from os.path import expanduser
 from functools import partial
@@ -12,6 +11,7 @@ from pprint import pformat
 
 from anotamela.cache import create_cache, Cache
 from anotamela.recipes import annotate_rsids_with_clinvar
+from anotamela.annotators.base_classes.parallel_annotator import NoProxiesException
 from anotamela.pipeline import (
     read_variants_from_vcf,
     annotate_rsids,
@@ -75,14 +75,16 @@ class AnnotationPipeline:
         }
 
         if proxies is None:
-            warnings.warn("It's not advisable to run the complete pipeline "
-                          "without proxies, specially if you're going to "
-                          "annotate a lot of variants. OMIM scraping can get "
-                          "your IP banned. Try installing Tor locally and pass "
-                          "something this: "
-                          "proxies={'http': 'socks5://localhost:9050'}. If you "
-                          "still want to run without proxies, set proxies "
-                          "explicitely as an empty dict (proxies={}).")
+            raise NoProxiesException(
+                "It's not advisable to run the complete pipeline "
+                "without proxies, specially if you're going to "
+                "annotate a lot of variants, because OMIM can get "
+                "your IP banned. Try installing Tor locally and pass "
+                "something this: "
+                "proxies={'http': 'socks5://localhost:9050'}. If you "
+                "still want to run without proxies, set proxies "
+                "explicitely as an empty dict (proxies={})."
+            )
 
     def run_from_vcf(self, vcf_path):
         """

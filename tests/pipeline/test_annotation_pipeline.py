@@ -4,6 +4,7 @@ import pytest
 
 from anotamela.cache import Cache, DictCache
 from anotamela.pipeline import AnnotationPipeline
+from anotamela.annotators.base_classes.parallel_annotator import NoProxiesException
 
 
 def test_init():
@@ -15,8 +16,12 @@ def test_init():
 
     # Test it accepts an already instantiated Cache
     dict_cache = DictCache()
-    pipe = AnnotationPipeline(cache=dict_cache)
+    pipe = AnnotationPipeline(cache=dict_cache, proxies={})
     assert pipe.annotation_kwargs['cache'] is dict_cache
+
+    # Test it raises if it's initialized withoug explicit proxies setting
+    with pytest.raises(NoProxiesException):
+        AnnotationPipeline(cache=dict_cache)
 
 
 def test_run_from_rsids(proxies):
@@ -26,7 +31,7 @@ def test_run_from_rsids(proxies):
         dict_cache.storage = pickle.load(f)
 
     # Every annotation will be brought from the pickle-loaded cache
-    pipe = AnnotationPipeline(cache=dict_cache, use_web=False)
+    pipe = AnnotationPipeline(cache=dict_cache, use_web=False, proxies=proxies)
 
     # The .pickle loaded above has annotations for this single rs ID,
     # to allow this test to run fast with real data.
