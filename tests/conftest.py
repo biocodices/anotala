@@ -15,7 +15,7 @@ AVAILABLE_CACHES['mock_cache'] = AVAILABLE_CACHES['dict']
 
 @pytest.fixture(scope='module')
 def proxies():
-    return {'http': 'socks5://caladan.lan:9050'}
+    return {'http': 'socks5://caladan.local:9050'}
 
 
 _common_dict_cache = DictCache()
@@ -43,4 +43,3 @@ def get_cache(cache_name):
         return create_cache(cache_name)
     except OperationalError:
         return
-

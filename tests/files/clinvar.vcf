@@ -1,0 +1,4 @@
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+1	100	Var-1	G	A	.	.	ALLELEID=Allele-1;CLNDISDB=MedGen:Med-Gen-1,OMIM:Omim-1,Orphanet:ORPHA-1;CLNDN=Condition-1;CLNHGVS=Name-1;CLNREVSTAT=Revision-Status-1;CLNSIG=Significance-1;CLNVC=single_nucleotide_variant;CLNVCSO=SO:0001483;GENEINFO=ISG15:9636;MC=SO:0001583|missense_variant;ORIGIN=1;RS=1
+2	200	Var-2	C	T	.	.	ALLELEID=181485;CLNDISDB=MedGen:C4015293,OMIM:616126,Orphanet:ORPHA319563;CLNDN=Immunodeficiency_38_with_basal_ganglia_calcification;CLNHGVS=NC_000001.10:g.949523C>T;CLNREVSTAT=no_assertion_criteria_provided;CLNSIG=Pathogenic;CLNVC=single_nucleotide_variant;CLNVCSO=SO:0001483;CLNVI=OMIM_Allelic_Variant:147571.0003;GENEINFO=ISG15:9636;MC=SO:0001587|nonsense;ORIGIN=1;RS=2
+
