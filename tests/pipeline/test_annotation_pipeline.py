@@ -4,7 +4,7 @@ import pytest
 
 from anotamela.cache import Cache, DictCache
 from anotamela.pipeline import AnnotationPipeline
-from anotamela.annotators.base_classes.parallel_annotator import NoProxiesException
+from anotamela.annotators.base_classes.parallel_web_annotator import NoProxiesException
 
 
 def test_init():

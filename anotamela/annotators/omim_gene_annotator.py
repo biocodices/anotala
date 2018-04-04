@@ -4,7 +4,7 @@ from operator import itemgetter
 
 from bs4 import BeautifulSoup
 
-from anotamela.annotators.base_classes import ParallelAnnotator
+from anotamela.annotators.base_classes import ParallelWebAnnotator
 from anotamela.helpers import (
     gene_to_mim,
     mim_to_gene,
@@ -17,7 +17,7 @@ from anotamela.helpers import (
 logger = logging.getLogger(__name__)
 
 
-class OmimGeneAnnotator(ParallelAnnotator):
+class OmimGeneAnnotator(ParallelWebAnnotator):
     """
     Provider of OMIM annotations for genes (e.g. 605557).
     Responses are cached.

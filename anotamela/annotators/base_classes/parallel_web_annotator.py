@@ -8,7 +8,7 @@ from numpy.random import random_sample
 from fake_useragent import UserAgent
 from tqdm import tqdm
 
-from anotamela.annotators.base_classes import AnnotatorWithCache
+from anotamela.annotators.base_classes import WebAnnotatorWithCache
 from anotamela.helpers import grouped
 
 
@@ -19,7 +19,7 @@ class NoProxiesException(Exception):
     pass
 
 
-class ParallelAnnotator(AnnotatorWithCache):
+class ParallelWebAnnotator(WebAnnotatorWithCache):
     """
     Base class for annotators that have a _url(id_) method or alternatively
     a _query(id) method. This class implements a 'manual' parallelization with
@@ -32,7 +32,7 @@ class ParallelAnnotator(AnnotatorWithCache):
 
     Example:
 
-        Class MyAnnotator(ParallelAnnotator):
+        Class MyAnnotator(ParallelWebAnnotator):
             BACTH_SIZE = 500
 
             def _url(self, id_):

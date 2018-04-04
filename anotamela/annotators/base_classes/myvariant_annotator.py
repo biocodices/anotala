@@ -5,7 +5,7 @@ import logging
 from myvariant import MyVariantInfo
 from tqdm import tqdm
 
-from anotamela.annotators.base_classes import AnnotatorWithCache
+from anotamela.annotators.base_classes import WebAnnotatorWithCache
 from anotamela.helpers import (
     grouped,
     infer_annotated_allele,
@@ -15,7 +15,7 @@ from anotamela.helpers import (
 logger = logging.getLogger(__name__)
 
 
-class MyVariantAnnotator(AnnotatorWithCache):
+class MyVariantAnnotator(WebAnnotatorWithCache):
     """
     This class is meant as a class for annotators that use myvariant.info.
     To use it, define a new class that inherits from this one and that has:

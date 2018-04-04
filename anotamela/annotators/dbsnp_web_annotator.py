@@ -3,10 +3,10 @@ from itertools import chain
 
 from more_itertools import unique_everseen
 
-from anotamela.annotators.base_classes import ParallelAnnotator
+from anotamela.annotators.base_classes import ParallelWebAnnotator
 
 
-class DbsnpWebAnnotator(ParallelAnnotator):
+class DbsnpWebAnnotator(ParallelWebAnnotator):
     """
     Provider of DbSNP annotations taken from their web. Responses are cached.
 

@@ -1,18 +1,17 @@
-import os
 import logging
 
 import Bio
 from Bio import Entrez
 from tqdm import tqdm
 
-from anotamela.annotators.base_classes import AnnotatorWithCache
+from anotamela.annotators.base_classes import WebAnnotatorWithCache
 from anotamela.helpers import set_email_for_entrez, grouped
 
 
 logger = logging.getLogger(__name__)
 
 
-class EntrezAnnotator(AnnotatorWithCache):
+class EntrezAnnotator(WebAnnotatorWithCache):
     """
     Base class for annotators that use one of Entrez services. Classes that
     inherit from this one should have:
@@ -40,7 +39,7 @@ class EntrezAnnotator(AnnotatorWithCache):
           response from Entrez should be handled by Entrez.read(). This works
           for some but not all DBs.
 
-        - as any AnnotatorWithCache, a _parse_annotation static or classmethod
+        - as any WebAnnotatorWithCache, a _parse_annotation static or classmethod
     """
     def _batch_query(self, ids):
         """

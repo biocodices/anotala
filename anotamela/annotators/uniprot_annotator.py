@@ -5,13 +5,13 @@ from Bio import SwissProt as SwissProtReader
 from Bio import ExPASy
 from Bio.SeqUtils import seq3
 
-from anotamela.annotators.base_classes import ParallelAnnotator
+from anotamela.annotators.base_classes import ParallelWebAnnotator
 
 
 logger = logging.getLogger(__name__)
 
 
-class UniprotAnnotator(ParallelAnnotator):
+class UniprotAnnotator(ParallelWebAnnotator):
     SOURCE_NAME = 'uniprot'
     ANNOTATIONS_ARE_JSON = True
 

@@ -2,11 +2,11 @@ from itertools import groupby
 from operator import itemgetter
 import re
 
-from anotamela.annotators.base_classes import ParallelAnnotator
+from anotamela.annotators.base_classes import ParallelWebAnnotator
 from anotamela.helpers import camel_to_snake
 
 
-class GwasCatalogAnnotator(ParallelAnnotator):
+class GwasCatalogAnnotator(ParallelWebAnnotator):
     SOURCE_NAME = 'gwas_catalog'
     ANNOTATIONS_ARE_JSON = True
     MANDATORY_PROXIES = True

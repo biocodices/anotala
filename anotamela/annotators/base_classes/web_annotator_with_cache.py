@@ -7,7 +7,7 @@ from anotamela.cache import Cache, create_cache
 logger = logging.getLogger(__name__)
 
 
-class AnnotatorWithCache(Annotator):
+class WebAnnotatorWithCache(Annotator):
     """
     Abstract Base Class for web annotators with cache. The point of this class
     is to provide a shared logic of annotating a list of IDs with the cache
@@ -45,7 +45,7 @@ class AnnotatorWithCache(Annotator):
         initializer.
 
         Set proxies as a dict like {'http': 'socks5://localhost:9050'} or as
-        an empty dict in case you're using a ParallelAnnotator.
+        an empty dict in case you're using a ParallelWebAnnotator.
         """
         self.name = self.__class__.__name__
         self.proxies = proxies

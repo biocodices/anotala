@@ -1,9 +1,9 @@
 from biomart import BiomartServer
 
-from anotamela.annotators.base_classes import ParallelAnnotator
+from anotamela.annotators.base_classes import ParallelWebAnnotator
 
 
-class BiomartRegionsAnnotator(ParallelAnnotator):
+class BiomartRegionsAnnotator(ParallelWebAnnotator):
     """
     This class annotates a given list of regions with the SNPs located in those
     regions. GRCh37 coordinates are expected.

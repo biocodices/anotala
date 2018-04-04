@@ -11,7 +11,7 @@ from pprint import pformat
 
 from anotamela.cache import create_cache, Cache
 from anotamela.recipes import annotate_rsids_with_clinvar
-from anotamela.annotators.base_classes.parallel_annotator import NoProxiesException
+from anotamela.annotators.base_classes.parallel_web_annotator import NoProxiesException
 from anotamela.pipeline import (
     read_variants_from_vcf,
     annotate_rsids,

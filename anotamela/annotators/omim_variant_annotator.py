@@ -1,8 +1,8 @@
-from anotamela.annotators.base_classes import AnnotatorWithCache
+from anotamela.annotators.base_classes import WebAnnotatorWithCache
 from anotamela.annotators import OmimGeneAnnotator
 
 
-class OmimVariantAnnotator(AnnotatorWithCache):
+class OmimVariantAnnotator(WebAnnotatorWithCache):
     """
     Provider of OMIM annotations for gene variants (e.g. 605557.0001).
     Responses are cached.

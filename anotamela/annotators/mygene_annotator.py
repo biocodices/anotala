@@ -1,10 +1,10 @@
 from mygene import MyGeneInfo
 
-from anotamela.annotators.base_classes import AnnotatorWithCache
+from anotamela.annotators.base_classes import WebAnnotatorWithCache
 from anotamela.helpers import grouped
 
 
-class MygeneAnnotator(AnnotatorWithCache):
+class MygeneAnnotator(WebAnnotatorWithCache):
     """
     Provides gene annotations given one or more gene symbols (e.g. TTN).
     """

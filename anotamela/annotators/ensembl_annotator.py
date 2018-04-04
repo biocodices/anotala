@@ -5,14 +5,14 @@ import logging
 
 from tqdm import tqdm
 
-from anotamela.annotators.base_classes import AnnotatorWithCache
+from anotamela.annotators.base_classes import WebAnnotatorWithCache
 from anotamela.helpers import grouped
 
 
 logger = logging.getLogger(__name__)
 
 
-class EnsemblAnnotator(AnnotatorWithCache):
+class EnsemblAnnotator(WebAnnotatorWithCache):
     """
     Annotates rsids with Ensembl! REST service via POST requests.
 
