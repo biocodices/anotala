@@ -14,8 +14,14 @@ def parser():
 
 
 def test_read_file(parser):
-    result = parser.read_file(path_to_vcf())
-    assert len(result) == 3
+    df = parser.read_file(path_to_vcf())
+    assert len(df) == 3
+
+    # extracts 'rs_id' as a new column
+    assert 'rs_id' in df
+
+    # adds "rs" to RS numbers
+    assert df['rs_id'].values.tolist() == ['rs1', 'rs1', 'rs2']
 
 
 def test_parse_data(parser):
@@ -44,7 +50,7 @@ def test_parse_data(parser):
 
     # renames columns
     assert df.loc[0, 'variation_id'] == 'Var-1'
-    assert df.loc[0, 'rs_id'] == 'rs1'
+    # assert df.loc[0, 'rs_id'] == 'rs1'
     assert df.loc[0, 'clinvar_hgvs'] == 'name-1'
     assert df.loc[0, 'source_info'] == input_df.loc[0, 'info']
     assert df.loc[0, 'clinical_significance'] == 'Sig-1'
@@ -57,9 +63,6 @@ def test_parse_data(parser):
     assert 'GENEINFO' not in df
     assert 'ORIGIN' not in df
     assert 'MC' not in df
-
-    # adds "rs" to RS numbers
-    assert df['rs_id'].values.tolist() == ['rs1', 'rs2', 'rs3']
 
     # extract keys as new columns
     assert df['FOO'].values.tolist() == ['foo', None, None]

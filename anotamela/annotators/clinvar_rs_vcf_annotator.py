@@ -12,7 +12,6 @@ class ClinvarRsVCFAnnotator(LocalFileAnnotator):
             path_to_annotations_file = path_to_source_file('clinvar_20180128.vcf.gz')
 
         super().__init__(path_to_annotations_file)
-        # self.data is created at super().__init__
 
     def _read_file(self, path):
         return self._parser.read_file(path)
@@ -20,12 +19,21 @@ class ClinvarRsVCFAnnotator(LocalFileAnnotator):
     def _parse_data(self, data):
         return self._parser.parse_data(data)
 
+    @staticmethod
+    def _filter_data_by(df, field_name, field_values_to_keep):
+        filtered_df = df[df[field_name].isin(field_values_to_keep)]
+        return filtered_df.reset_index(drop=True)
+
     def _annotate_many_ids(self, ids_to_annotate):
         """
         Expects a list of rs *ids_to_annotate* and it will try to find them
         in the ClinVar VCF file. Returns a dictionary where the rs IDs are
         the keys.
         """
+        # This step is necessary to limit the expensive parsing
+        # only to the VCF entries that will be actually used:
+        self._data = self._load_data(filter_by={'rs_id': ids_to_annotate})
+
         rows_with_rs = self.data['rs_id'].isin(ids_to_annotate)
         grouped_by_rs = self.data[rows_with_rs].groupby('rs_id')
 

@@ -1,3 +1,4 @@
+import pandas as pd
 import pytest
 
 from anotamela.annotators import ClinvarRsVCFAnnotator
@@ -15,6 +16,18 @@ def test_init():
     # With package-provided ClinVar VCF:
     #  annotator = ClinvarRsVCFAnnotator()
     #  assert len(annotator.data) == 341_303
+
+
+def test_filter_data_by():
+    df = pd.DataFrame([
+        {'rs_id': 'rs1', 'chrom': '1'},
+        {'rs_id': 'rs1', 'chrom': '1'},
+        {'rs_id': 'rs2', 'chrom': '2'},
+        {'rs_id': 'rs3', 'chrom': '3'},
+    ])
+    result = ClinvarRsVCFAnnotator._filter_data_by(df, 'rs_id', ['rs1', 'rs3'])
+    assert len(result) == 3
+    assert result['rs_id'].values.tolist() == ['rs1', 'rs1', 'rs3']
 
 
 def test_annotate():

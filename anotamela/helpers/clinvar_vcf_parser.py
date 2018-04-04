@@ -3,7 +3,6 @@ import logging
 
 import pandas as pd
 from more_itertools import collapse
-from tqdm import tqdm
 from vcf_to_dataframe import vcf_to_dataframe
 
 
@@ -12,23 +11,26 @@ logger = logging.getLogger(__name__)
 
 class ClinvarVCFParser:
     def read_file(self, path):
-        return vcf_to_dataframe(path)
+        df = vcf_to_dataframe(path)
+
+        # This step is done before the rest of the parsing to expose the rs_id,
+        # so that the data can be filtered by those IDs before the
+        # computationally heavy parsing done at `parse_data`:
+        df = self._add_rs_to_dbsnp_id(df)
+        df['rs_id'] = df['info'].map(lambda d: d.get('rs_id'))
+
+        return df
 
     def parse_data(self, df):
         logger.info(f'Parsing ClinVar VCF, this might take a while')
-        functions = [
-            self._add_rs_to_dbsnp_id,
-            self._extract_keys,
-            self._extract_external_db_disease_ids,
-            self._parse_and_extract_sources,
-            self._parse_and_extract_gene_info,
-            self._parse_origin,
-            self._extract_molectular_consequences,
-            self._rename_columns,
-            self._drop_columns,
-        ]
-        for function in tqdm(functions):
-            df = function(df)
+        df = self._extract_keys(df)
+        df = self._extract_external_db_disease_ids(df)
+        df = self._parse_and_extract_sources(df)
+        df = self._parse_and_extract_gene_info(df)
+        df = self._parse_origin(df)
+        df = self._extract_molectular_consequences(df)
+        df = self._rename_columns(df)
+        df = self._drop_columns(df)
         return df
 
     @staticmethod
