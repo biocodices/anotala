@@ -36,7 +36,7 @@ coloredlogs.install(level='INFO')
 
 class AnnotationPipeline:
     def __init__(self, cache, use_cache=True, use_web=True, proxies=None,
-                 sleep_time=None, **cache_kwargs):
+                 sleep_time=None, clinvar_vcf_path=None, **cache_kwargs):
         """
         Initialize a pipeline with a given set of options. The options will
         be used for any subsequent pipeline.run() actions.
@@ -73,6 +73,7 @@ class AnnotationPipeline:
             'proxies': proxies,
             'sleep_time': sleep_time,
         }
+        self.clinvar_vcf_path = clinvar_vcf_path
 
         if proxies is None:
             raise NoProxiesException(
@@ -150,6 +151,7 @@ class AnnotationPipeline:
         clinvar_variations_per_rsid = annotate_rsids_with_clinvar(
             rsids,
             cache=self.annotation_kwargs['cache'],
+            clinvar_vcf_path=self.clinvar_vcf_path,
             proxies=self.annotation_kwargs['proxies'],
             use_cache=self.annotation_kwargs['use_cache'],
             use_web=self.annotation_kwargs['use_web'],

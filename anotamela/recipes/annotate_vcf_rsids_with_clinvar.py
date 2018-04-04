@@ -27,8 +27,8 @@ def annotate_vcf_rsids_with_clinvar(vcf_path, output_json_path=None,
         return annotations
 
 
-def _get_clinvar_variation_ids_from_rs_ids(rs_ids, **annotator_options):
-    clinvar_vcf = ClinvarRsVCFAnnotator()
+def _get_clinvar_variation_ids_from_rs_ids(rs_ids, clinvar_vcf_path):
+    clinvar_vcf = ClinvarRsVCFAnnotator(path_to_annotations_file=clinvar_vcf_path)
     annotations = clinvar_vcf.annotate(rs_ids)
     variation_ids = set()
     for rs, vcf_entries in annotations.items():
@@ -37,12 +37,16 @@ def _get_clinvar_variation_ids_from_rs_ids(rs_ids, **annotator_options):
     return variation_ids
 
 
-def annotate_rsids_with_clinvar(rs_ids, cache, proxies={}, use_web=True,
-                                use_cache=True, grouped_by_rsid=False):
+def annotate_rsids_with_clinvar(rs_ids, cache, clinvar_vcf_path=None,
+                                proxies={}, use_web=True, use_cache=True,
+                                grouped_by_rsid=False):
     """
     Annotate a list of rs IDs with ClinVar (get their ClinVar Variation Report).
 
     Returns a list of annotations (each one a dictionary).
+
+    Pass a +clinvar_vcf_path+ if you want to specify the pat to the ClinVar
+    VCF file that will be used to map rs IDs -> variation IDs.
 
     Pass +grouped_by_rsid+=True to get instead a dictionary with the original rs_ids as
     keys and a list of Clinvar Variation Reports for each of them.
@@ -50,7 +54,9 @@ def annotate_rsids_with_clinvar(rs_ids, cache, proxies={}, use_web=True,
     annotator_options = dict(cache=cache, proxies=proxies)
     annotate_options = dict(use_web=use_web, use_cache=use_cache)
 
-    variation_ids = _get_clinvar_variation_ids_from_rs_ids(rs_ids)
+    variation_ids = \
+        _get_clinvar_variation_ids_from_rs_ids(rs_ids,
+                                               clinvar_vcf_path=clinvar_vcf_path)
 
     clinvar_var = ClinvarVariationAnnotator(**annotator_options)
     clinvar_variations = clinvar_var.annotate(variation_ids, **annotate_options)
