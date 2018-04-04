@@ -12,6 +12,7 @@ from pprint import pformat
 from anotamela.cache import create_cache, Cache
 from anotamela.recipes import annotate_rsids_with_clinvar
 from anotamela.annotators.base_classes.parallel_web_annotator import NoProxiesException
+from anotamela.annotators import ClinvarRsVCFAnnotator
 from anotamela.pipeline import (
     read_variants_from_vcf,
     annotate_rsids,
@@ -146,6 +147,12 @@ class AnnotationPipeline:
 
         logger.info('Annotate the variants with rs ID')
         rs_variants = annotate_rsids(rsids, **self.annotation_kwargs)
+
+        logger.info('Add ClinVar VCF Entries')
+        clinvar_vcf_annotator = ClinvarRsVCFAnnotator(self.clinvar_vcf_path)
+        clinvar_vcf_annotations_by_rs = clinvar_vcf_annotator.annotate(rsids)
+        rs_variants['clinvar_vcf_entries'] = \
+            rs_variants['rsid'].map(clinvar_vcf_annotations_by_rs)
 
         logger.info('Add ClinVar Variation Reports')
         clinvar_variations_per_rsid = annotate_rsids_with_clinvar(
