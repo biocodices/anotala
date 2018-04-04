@@ -28,7 +28,6 @@ from .biomart_regions_annotator import BiomartRegionsAnnotator
 
 RS_ANNOTATOR_CLASSES = [
     ClinvarRsAnnotator,
-    ClinvarRsVCFAnnotator,
     SnpeffAnnotator,
     HgvsAnnotator,
     FrequenciesAnnotator,
@@ -55,6 +54,7 @@ ENTREZ_GENE_ANNOTATOR_CLASSES = {klass.SOURCE_NAME: klass
 # all annotators:
 ALL_ANNOTATOR_CLASSES = [
     ClinvarRCVAnnotator,
+    ClinvarRsVCFAnnotator,
     ClinvarVariationAnnotator,
     OmimGeneAnnotator,
     OmimVariantAnnotator,

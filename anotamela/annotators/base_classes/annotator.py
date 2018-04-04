@@ -12,6 +12,9 @@ logger = logging.getLogger(__name__)
 
 
 class Annotator():
+    def __init__(self):
+        self.name = self.__class__.__name__
+
     def annotate_one(self, id_, **kwargs):
         """Annotate one ID. Returns the annotation. Wrapper of annotate()."""
         id_ = str(id_)

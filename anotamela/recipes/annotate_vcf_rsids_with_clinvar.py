@@ -1,7 +1,10 @@
 import json
 from collections import defaultdict
 
-from anotamela.annotators import ClinvarRsAnnotator, ClinvarVariationAnnotator
+from anotamela.annotators import (
+    ClinvarVariationAnnotator,
+    ClinvarRsVCFAnnotator,
+)
 from anotamela.helpers import rsids_from_vcf
 
 
@@ -24,6 +27,16 @@ def annotate_vcf_rsids_with_clinvar(vcf_path, output_json_path=None,
         return annotations
 
 
+def _get_clinvar_variation_ids_from_rs_ids(rs_ids, **annotator_options):
+    clinvar_vcf = ClinvarRsVCFAnnotator()
+    annotations = clinvar_vcf.annotate(rs_ids)
+    variation_ids = set()
+    for rs, vcf_entries in annotations.items():
+        for vcf_entry in vcf_entries:
+            variation_ids.add(vcf_entry['variation_id'])
+    return variation_ids
+
+
 def annotate_rsids_with_clinvar(rs_ids, cache, proxies={}, use_web=True,
                                 use_cache=True, grouped_by_rsid=False):
     """
@@ -37,16 +50,10 @@ def annotate_rsids_with_clinvar(rs_ids, cache, proxies={}, use_web=True,
     annotator_options = dict(cache=cache, proxies=proxies)
     annotate_options = dict(use_web=use_web, use_cache=use_cache)
 
-    clinvar_rs = ClinvarRsAnnotator(**annotator_options)
-    annotations_rs = clinvar_rs.annotate(rs_ids, **annotate_options)
-
-    variant_ids = [entry.get('variant_id')
-                   for annotation in annotations_rs.values()
-                   for entry in annotation]
-    variant_ids = [id_ for id_ in variant_ids if id_]
+    variation_ids = _get_clinvar_variation_ids_from_rs_ids(rs_ids)
 
     clinvar_var = ClinvarVariationAnnotator(**annotator_options)
-    clinvar_variations = clinvar_var.annotate(variant_ids, **annotate_options)
+    clinvar_variations = clinvar_var.annotate(variation_ids, **annotate_options)
     clinvar_variations = list(clinvar_variations.values())
 
     if grouped_by_rsid:

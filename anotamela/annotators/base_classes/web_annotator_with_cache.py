@@ -47,7 +47,7 @@ class WebAnnotatorWithCache(Annotator):
         Set proxies as a dict like {'http': 'socks5://localhost:9050'} or as
         an empty dict in case you're using a ParallelWebAnnotator.
         """
-        self.name = self.__class__.__name__
+        super().__init__()
         self.proxies = proxies
         self.cache_kwargs = cache_kwargs
 
