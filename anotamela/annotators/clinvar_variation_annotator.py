@@ -4,6 +4,7 @@ from more_itertools import one
 from bs4 import BeautifulSoup
 
 from anotamela.annotators.base_classes import EntrezAnnotator
+from anotamela.annotators import ClinvarRsAnnotator
 from anotamela.helpers import is_incidental_pheno
 
 
@@ -45,6 +46,8 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
 
         if not info['variation_name'] == 'Multiple Alleles':
             info['variation_type'] = cls._extract_variation_type(variation_report)
+            # Adds gene, transcript, prot_change, cds_change, if available:
+            info.update(ClinvarRsAnnotator._parse_preferred_name(info['variation_name']))
 
         info['genes'] = cls._extract_genes(variation_report)
         if info['genes']:

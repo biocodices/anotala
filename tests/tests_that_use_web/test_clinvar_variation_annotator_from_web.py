@@ -11,6 +11,14 @@ def annotator():
 def test_annotate(annotator):
     result = annotator.annotate_one('1550')
 
+    assert result['name'] == 'NM_000237.2(LPL):c.953A>G (p.Asn318Ser)'
+
+    # Extracted from the variation name:
+    assert result['prot_change'] == 'p.Asn318Ser'
+    assert result['cds_change'] == 'c.953A>G'
+    assert result['transcript'] == 'NM_000237.2'
+    assert result['gene'] == 'LPL'
+
     assert result['variation_id'] == '1550'
     assert '1550' in result['url']
     assert 'c.953A>G' in result['variation_name']

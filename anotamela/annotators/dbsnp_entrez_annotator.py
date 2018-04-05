@@ -1,8 +1,12 @@
 from copy import deepcopy
+import logging
 
 from bs4 import BeautifulSoup
 
 from anotamela.annotators.base_classes import EntrezAnnotator
+
+
+logger = logging.getLogger(__name__)
 
 
 class DbsnpEntrezAnnotator(EntrezAnnotator):
@@ -90,6 +94,7 @@ class DbsnpEntrezAnnotator(EntrezAnnotator):
         # and the queried rs ID will be put as a "synonym". We want the queried
         # rs ID to be available as key in the dictionary as well!
 
+        logger.info(f'Duplicating annotations for each synonym ID')
         for id_ in list(annotations.keys()):
             synonym_ids = annotations[id_].get('synonyms', [])
             for synonym_id in synonym_ids:
