@@ -6,6 +6,7 @@ redis
 sqlalchemy>=1.1.5
 pymysql>=0.7.9
 psycopg2
+coloredlogs
 fake-useragent
 tqdm>=4.11.2
 biopython>=1.68
