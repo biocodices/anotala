@@ -146,7 +146,8 @@ class AnnotationPipeline:
                     .format(opts))
 
         logger.info('Annotate the variants with rs ID')
-        rs_variants = annotate_rsids(rsids, **self.annotation_kwargs)
+        self.rs_variants = rs_variants = \
+            annotate_rsids(rsids, **self.annotation_kwargs)
 
         logger.info('Add ClinVar VCF Entries')
         clinvar_vcf_annotator = ClinvarRsVCFAnnotator(self.clinvar_vcf_path)
