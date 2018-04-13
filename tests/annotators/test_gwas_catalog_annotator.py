@@ -209,6 +209,7 @@ def test_parse_ci_range():
     f = GwasCatalogAnnotator._parse_ci_range
 
     assert f('[NR]') is None
+    assert f('[1.72-4]') == {'lower_limit': 1.72, 'upper_limit': 4}
     assert f('[1.10-1.25]') == {'lower_limit': 1.1, 'upper_limit': 1.25}
     assert f('1.10-1.25') == {'lower_limit': 1.1, 'upper_limit': 1.25}
     assert f('1.10 - 1.25') == {'lower_limit': 1.1, 'upper_limit': 1.25}

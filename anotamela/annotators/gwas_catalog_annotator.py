@@ -357,18 +357,21 @@ class GwasCatalogAnnotator(ParallelWebAnnotator):
             return None
 
         # Formats for this range are inconsistent. So far I've seen:
-        # "[1.01-1.25]"
-        # "1.01-1.25"
-        # "1.01 - 1.25"
-        # So I just try to capture two floats, and I'm not specific about the
-        # separation between them or surroundings.
-        float_pattern = '\d+\.\d+'
-        pattern = r'(?P<lower_limit>{0}).+(?P<upper_limit>{0})'.format(float_pattern)
-        values = re.compile(pattern).search(ci_range)
+        #
+        # [1.01-1.25]
+        # 1.01-1.25
+        # 1.01 - 1.25
+        # [1.72-4]
+        #
+        # So I just try to capture the two numbers:
+        parsed = ci_range.replace('[', '').replace(']', '')
+        numbers = [n.strip() for n in parsed.split('-')]
+        numbers = [float(n) for n in numbers]
+        values = dict(zip(['lower_limit', 'upper_limit'], numbers))
 
-        if not values:
-            msg = "Clouldn't find confidence interval values in \"{}\""
+        if not len(values) == 2:
+            msg = "Clouldn't find two confidence interval values in \"{}\""
             raise ValueError(msg.format(ci_range))
 
-        return {k: float(v) for k, v in values.groupdict().items()}
+        return values
 
