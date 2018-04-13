@@ -86,6 +86,8 @@ class ParallelWebAnnotator(WebAnnotatorWithCache):
 
         if self.proxies:
             logger.info('{} using proxies: {}'.format(self.name, self.proxies))
+        elif self.proxies == {}:
+            logger.info('{} explicitely set to use NO PROXIES!'.format(self.name))
         else:
             if self.MANDATORY_PROXIES:
                 message = ('No proxies set for {}. Please set self.proxies to '
