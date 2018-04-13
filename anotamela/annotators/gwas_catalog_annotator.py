@@ -362,16 +362,17 @@ class GwasCatalogAnnotator(ParallelWebAnnotator):
         # 1.01-1.25
         # 1.01 - 1.25
         # [1.72-4]
+        # [-0.5-1.5] # Negative numbers!
         #
         # So I just try to capture the two numbers:
-        parsed = ci_range.replace('[', '').replace(']', '')
-        numbers = [n.strip() for n in parsed.split('-')]
-        numbers = [float(n) for n in numbers]
-        values = dict(zip(['lower_limit', 'upper_limit'], numbers))
+        pattern = re.compile(r'(?P<lower_limit>-?\d+(?:\.\d+)?) ?- ?'
+                             r'(?P<upper_limit>-?\d+(?:\.\d+)?)')
+        values = pattern.search(ci_range)
 
-        if not len(values) == 2:
-            msg = "Clouldn't find two confidence interval values in \"{}\""
-            raise ValueError(msg.format(ci_range))
+        if not values:
+            raise ValueError("Clouldn't find two confidence interval values "
+                             f"in \"{ci_range}\"")
 
-        return values
+        numbers = {key: float(n) for key, n in values.groupdict().items()}
+        return numbers
 
