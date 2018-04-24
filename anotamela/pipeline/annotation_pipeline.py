@@ -178,6 +178,11 @@ class AnnotationPipeline:
         logger.info('Annotate the Entrez genes associated to the variants')
         entrez_gene_ids = \
             list(chain.from_iterable(rs_variants['entrez_gene_ids']))
+
+        # This was temporarily added while OMIM banned Tor IPs
+        logger.info('ENTREZ GENE IDS TO ANNOTATE:', entrez_gene_ids)
+        # Until here
+
         gene_annotations = annotate_entrez_gene_ids(entrez_gene_ids,
                                                     **self.annotation_kwargs)
 

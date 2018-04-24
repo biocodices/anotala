@@ -19,18 +19,19 @@ class BiomartRegionsAnnotator(ParallelWebAnnotator):
     SOURCE_NAME = 'biomart_regions'
     BATCH_SIZE = 5
     SLEEP_TIME = 0.5
+    VERBOSE = False
 
     ATTRIBUTES = ['refsnp_source', 'refsnp_id',
                   'chr_name', 'chrom_start', 'chrom_end', 'chrom_strand']
 
-    def __init__(self, verbose=False, **kwargs):
+    def __init__(self, **kwargs):
         """
-        Connect the annotator to Biomart's server. Set verbose=True to get info
-        of the queries as they're made.
+        Connect the annotator to Biomart's server. Set self.VERBOSE=True to get
+        info of the queries as they're made.
         """
         super().__init__(**kwargs)
         self.server = BiomartServer('http://grch37.ensembl.org/biomart')
-        self.server.verbose = verbose
+        self.server.verbose = self.VERBOSE
         if self.proxies and 'http' in self.proxies:
             self.server.http_proxy = self.proxies['http']
         self.database = self.server.databases['ENSEMBL_MART_SNP']
