@@ -63,6 +63,11 @@ class SqlCache(Cache):
         return "{}('{}')".format(self.__class__.__name__,
                                  self.credentials_filepath)
 
+    def get_cached_ids(self, namespace):
+        query = f'SELECT id FROM {namespace}'
+        return set(row['id'] for row in self.engine.execute(query))
+
+
     @classmethod
     def _connect_to_db(cls, credentials):
         """

@@ -60,6 +60,9 @@ class WebAnnotatorWithCache(Annotator):
         msg = "{}(cache={}, **{})"
         return msg.format(self.name, self.cache, self.cache_kwargs)
 
+    def get_cached_ids(self):
+        return self.cache.get_cached_ids(namespace=self.SOURCE_NAME)
+
     def _annotate_many_ids(self, ids_to_annotate, use_cache=True, use_web=True):
         """
         Annotate one or more IDs and return an info dictionary with the passed

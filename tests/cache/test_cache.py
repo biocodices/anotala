@@ -26,6 +26,19 @@ def test_get_nonexistent_key():
         cache.get('non-existent-key', '_anotamela_test_json', as_json=False)
 
 
+def test_get_cached_ids():
+    mock_cache = create_cache('mock_cache')
+    mock_cache.storage = {
+        'table-name': {
+            'foo': 'foo!',
+            'bar': 'bar!',
+            'baz': 'baz!',
+        }
+    }
+    assert mock_cache.get_cached_ids(namespace='table-name') == \
+        set(['foo', 'bar', 'baz'])
+
+
 @pytest.mark.parametrize('test_data,namespace,as_json', TEST_PARAMS)
 def test_get(namespace, test_data, as_json):
     mock_cache = create_cache('mock_cache')

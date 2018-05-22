@@ -68,6 +68,10 @@ class Cache:
         if data_for_cache:
             self._client_set(data_for_cache, namespace, as_json)
 
+    def get_cached_ids(self, namespace):
+        msg = f'Not implemented for {self.__class__.__name__}'
+        raise NotImplementedError(msg)
+
     @staticmethod
     def _only_printable(s):
         return ''.join(char for char in s if char in string.printable)

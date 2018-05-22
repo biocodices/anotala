@@ -14,6 +14,9 @@ class DictCache(Cache):
         self.name = 'DictCache'
         self.storage = defaultdict(dict)
 
+    def get_cached_ids(self, namespace):
+        return set(self.storage[namespace].keys())
+
     def _client_set(self, info_dict, namespace, as_json):
         table = self.storage[namespace]
         if as_json:
