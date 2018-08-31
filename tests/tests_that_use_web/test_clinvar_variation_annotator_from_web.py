@@ -32,19 +32,20 @@ def test_annotate(annotator):
     assert gene['strand'] == '+'
     assert gene['hgnc_id'] == '6677'
 
-    assert len(result['clinical_assertions']) == 1
+    assert len(result['clinical_assertions']) == 2
     clin = result['clinical_assertions'][0]
     assert clin['clinical_significances'] == ['Pathogenic']
-    assert clin['date_last_submitted'] == '2010-12-30'
-    assert clin['method'] == 'literature only'
-    assert clin['submitter_name'] == 'OMIM'
+    assert clin['date_last_submitted'] == '2017-12-03'
+    assert clin['method'] == 'clinical testing'
+    assert clin['submitter_name'] == \
+            'Genomic Research Center,Shahid Beheshti University of Medical Sciences'
     assert clin['phenotypes'] == [
-        {'name': 'Hyperlipidemia, familial combined',
+        {'name': 'Hyperapobetalipoproteinemia',
          'omim_id': '144250',
          'incidental': False}
     ]
 
-    assert result['clinical_summary'] == {'Pathogenic': 1}
+    assert result['clinical_summary'] == {'Pathogenic': 2}
 
     alleles = result['alleles']
     assert len(alleles) == 1
@@ -61,6 +62,5 @@ def test_annotate(annotator):
     assert allele['variant_type'] == 'single nucleotide variant'
     assert allele['consequences'][0]['function'] == 'missense variant'
 
-    assert result['associated_phenotypes'] == \
-        ['Hyperlipidemia, familial combined']
+    assert result['associated_phenotypes'] == ['Hyperapobetalipoproteinemia']
 

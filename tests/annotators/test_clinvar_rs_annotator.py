@@ -20,7 +20,7 @@ def test_parse_hit_single_rcv():
             'variant_id': 123,
             'rcv': {
                 'accession': 'RCV1',
-                'clinical_significance': 'Pathogenic, risk factor',
+                'clinical_significance': 'Benign/Likely benign, risk factor',
                 'preferred_name': 'NM_000237.2(LPL):c.953A>G (p.Asn318=)',
                 'conditions': [{'identifiers': {}, 'name': 'Cond-1'},
                                {'name': 'Cond-2'},
@@ -57,7 +57,8 @@ def test_parse_hit_single_rcv():
 
     # Test clinsig is parsed
     assert 'clinical_significance' not in rcv_annotation
-    assert rcv_annotation['clinical_significances'] == ['Pathogenic', 'risk factor']
+    assert rcv_annotation['clinical_significances'] == \
+        ['Benign', 'Likely benign', 'risk factor']
 
     # Test hit info is copied to each RCV entry
     assert rcv_annotation['root_level_key'] == 'root_level_value'

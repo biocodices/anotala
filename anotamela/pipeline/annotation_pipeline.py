@@ -1,8 +1,9 @@
 import time
 import logging
 from itertools import chain
-from os.path import expanduser
+from os.path import expanduser, join
 from functools import partial
+from tempfile import gettempdir
 
 import pandas as pd
 import coloredlogs
@@ -28,6 +29,7 @@ from anotamela.pipeline import (
     group_swissprot_variants_by_rsid,
     # annotate_clinvar_accessions,
 )
+from anotamela.helpers import gene_to_mim
 
 
 logger = logging.getLogger(__name__)
@@ -179,9 +181,30 @@ class AnnotationPipeline:
         entrez_gene_ids = \
             list(chain.from_iterable(rs_variants['entrez_gene_ids']))
 
-        # This was temporarily added while OMIM banned Tor IPs
-        logger.info('ENTREZ GENE IDS TO ANNOTATE:', entrez_gene_ids)
-        # Until here
+        ##### NOTE: OMIM banned Tor IPs #############################
+        #
+        # Since OMIM banned Tor IPs, our proxy strategy is not working.
+        # TODO: set up a Dante or similar service with socks5 proxies
+        # elsewhere.
+        #
+        # Meanwhile, I'm adding this manually to dump the IDs to be annotated
+        # in a file and annotate those with OMIM in some server elsewhere.
+        #
+        logger.warning('Annotate OMIM gene entrez ids manually:')
+        fn = join(gettempdir(), "gene_entrez_ids_to_annotate_with_OMIM.list")
+        with open(fn, "w") as f:
+            for id_ in entrez_gene_ids:
+                f.write(f"{id_}\n")
+        logger.warning(f'Entrez gene ids to annotate with OMIM dumped in: {fn}')
+
+        fn = join(gettempdir(), "mim_ids_to_annotate.list")
+        with open(fn, "w") as f:
+            for id_ in entrez_gene_ids:
+                if id_ in gene_to_mim():
+                    f.write(f"{gene_to_mim(id_)}\n")
+        logger.warning(f'MIM ids to annotate with OMIM dumped in: {fn}')
+        #
+        ############################################################
 
         gene_annotations = annotate_entrez_gene_ids(entrez_gene_ids,
                                                     **self.annotation_kwargs)

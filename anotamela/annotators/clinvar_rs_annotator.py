@@ -42,6 +42,14 @@ class ClinvarRsAnnotator(MyVariantAnnotator):
     FIELDS = 'clinvar'
     VARIANT_REGEX = _build_variant_regex()
 
+    @staticmethod
+    def _split_significance_string(significances):
+        # Some significances are 'compound', like "Pathogenic, risk factor",
+        # or like "Benign/Likely benign".
+        # We parse them always to a list like ['Pathogenic', 'risk factor']
+        # or ["Benign", "Likely benign"].
+        return re.split(r', |/', significances)
+
     @classmethod
     def _parse_hit(cls, hit):
         if 'clinvar' not in hit:
@@ -50,13 +58,13 @@ class ClinvarRsAnnotator(MyVariantAnnotator):
         rcv_annotations = listify(hit['clinvar']['rcv'])
 
         for annotation in rcv_annotations:
-            # Some significances are 'compound', like "Pathogenic, risk factor"
-            # We parse them always to a list like ['Pathogenic', 'risk factor']:
-            annotation['clinical_significances'] = \
-                annotation.get('clinical_significance', '').split(', ')
-
             if 'clinical_significance' in annotation:
+                clinsig_string = annotation['clinical_significance']
+                annotation['clinical_significances'] = \
+                    cls._split_significance_string(clinsig_string)
                 del(annotation['clinical_significance'])
+            else:
+                annotation['clinical_significances'] = []
 
             conditions = listify(annotation['conditions'])
             annotation['conditions'] = conditions
