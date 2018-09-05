@@ -134,23 +134,30 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
         for assertion_type, selector in selectors.items():
             assertions = variation_soup.select(selector)
             for assertion in assertions:
-                info = cls._parse_assertion(assertion)
+                info = cls._parse_clinical_assertion(assertion)
                 info['type'] = assertion_type
                 clinical_assertions.append(info)
 
         return clinical_assertions
 
-
     @classmethod
-    def _parse_assertion(cls, assertion):
+    def _parse_clinical_assertion(cls, assertion):
         info = {}
         info['submitter_name'] = assertion['SubmitterName']
         info['date_last_submitted'] = assertion['DateLastSubmitted']
         clinsig = one(assertion.select('ClinicalSignificance'))
+        clinsig_description = clinsig.select_one('Description').text
         info['clinical_significances'] = cls._parse_clinical_significances(
-            clinsig.select_one('Description').text
+            clinsig_description
         )
-        info['method'] = clinsig.select_one('Method').text
+        info['clinical_significance_detail'] = {
+            'description': clinsig.select_one('Description').text,
+            'citations': [cls._parse_citation(citation) for citation in
+                          clinsig.select('Citation')],
+            'method': one(clinsig.select('Method')).text,
+            'comments': [cls._parse_comment(comment) for comment in
+                         clinsig.select('Comment')]
+        }
 
         phenotype_lists = assertion.select('PhenotypeList')
         if phenotype_lists:
@@ -160,6 +167,23 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
 
         return info
 
+    @staticmethod
+    def _parse_citation(citation):
+        info = {'type': citation['Type']}
+        for id_ in citation.select('ID'):
+            source = id_['Source']
+            if source == 'PubMed':
+                source = 'pmid'
+            info[source] = id_.text
+        return info
+
+    @staticmethod
+    def _parse_comment(comment):
+        return {
+            'data_source': comment['DataSource'],
+            'type': comment['Type'],
+            'text': comment.text.strip(),
+        }
 
     @staticmethod
     def _parse_phenotype_list(phenotype_list):

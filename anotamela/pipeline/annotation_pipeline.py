@@ -147,17 +147,25 @@ class AnnotationPipeline:
         logger.info('Starting annotation pipeline with options:\n\n{}\n'
                     .format(opts))
 
-        logger.info('Annotate the variants with rs ID')
+        logger.info('Annotate the RS IDs with all available annotators')
         self.rs_variants = rs_variants = \
             annotate_rsids(rsids, **self.annotation_kwargs)
 
-        logger.info('Add ClinVar VCF Entries')
+        # NOTE:
+        # "clinvar_vcf_entries" are entries that come from ClinVar's VCF
+        # file, which can be downloaded from their FTP servers.
+        # IT lacks *a lot* of information that's on their web, so we don't
+        # really use these downstream.
+        logger.info('Add ClinVar VCF Entries associated to the RS IDs')
         clinvar_vcf_annotator = ClinvarRsVCFAnnotator(self.clinvar_vcf_path)
         clinvar_vcf_annotations_by_rs = clinvar_vcf_annotator.annotate(rsids)
         rs_variants['clinvar_vcf_entries'] = \
             rs_variants['rsid'].map(clinvar_vcf_annotations_by_rs)
 
-        logger.info('Add ClinVar Variation Reports')
+        # NOTE:
+        # "clinvar_variations" are entries that come from ClinVar's web
+        # (via the efetch API) and those are very useful and used a lot:
+        logger.info('Add ClinVar Variation Reports associated to the RS IDs')
         clinvar_variations_per_rsid = annotate_rsids_with_clinvar(
             rsids,
             cache=self.annotation_kwargs['cache'],
@@ -169,6 +177,16 @@ class AnnotationPipeline:
         )
         rs_variants['clinvar_variations'] = \
             rs_variants['rsid'].map(clinvar_variations_per_rsid)
+
+        # NOTE:
+        # some variants can't be found in ClinVar easily via their RS ID,
+        # so we need to check by coordinates (e.g. rs754809877 -> 536457)
+        # logger.info('Add ClinVar Variation Reports based genomic location')
+        # PLAN:
+        # - extract_location(rs_variants) # From DbSNPWeb
+        # - use ClinvarLocationAnnotator with a list of tuples (chrom, pos)
+        # - extract clinvar variation from "clinvar_location_entries"
+        # - use ClinvarVariationAnnotator for those
 
         logger.info('Extract Entrez gene data from the variants')
         dbsnp = rs_variants['dbsnp_myvariant']

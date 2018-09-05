@@ -133,6 +133,7 @@ def test_extract_obervation():
                 <Observation VariationID="1" ObservationType="primary">
                     <ClinicalSignificance DateLastEvaluated="2001-01-01">
                         <Description>Pathogenic</Description>
+
                     </ClinicalSignificance>
                     <ReviewStatus>criteria provided</ReviewStatus>
                     <PhenotypeList>
@@ -191,7 +192,18 @@ def test_extract_clinical_assertions():
 
                         <ClinicalSignificance>
                             <Description>ClinSig-1</Description>
+
+                            <Citation Type="general">
+                                <ID Source="PubMed">123</ID>
+                            </Citation
+                            <Citation Type="general">
+                                <ID Source="PubMed">234</ID>
+                            </Citation
+                            <Comment DataSource="Comment-Source-1" Type="Comment-type">
+                                Some comment about the variant.
+                            </Comment>
                             <Method>Method-1</Method>
+
                         </ClinicalSignificance>
 
                     </Germline>
@@ -225,8 +237,16 @@ def test_extract_clinical_assertions():
     germline = results[0]
     assert germline == {
         'clinical_significances': ['ClinSig-1'],
+        'clinical_significance_detail': {
+            'description': 'ClinSig-1',
+            'citations': [{'type': 'general', 'pmid': '123'},
+                          {'type': 'general', 'pmid': '234'}],
+            'method': 'Method-1',
+            'comments': [{'data_source': 'Comment-Source-1',
+                          'type': 'Comment-type',
+                          'text': 'Some comment about the variant.'}]
+        },
         'date_last_submitted': '2000-01-01',
-        'method': 'Method-1',
         'phenotypes': [{'name': 'Pheno-1', 'omim_id': 'MIM-1',
                         'incidental': False}],
         'submitter_name': 'Submitter-1',
@@ -236,8 +256,13 @@ def test_extract_clinical_assertions():
     somatic = results[1]
     assert somatic == {
         'clinical_significances': ['ClinSig-2'],
+        'clinical_significance_detail': {
+            'description': 'ClinSig-2',
+            'citations': [],
+            'comments': [],
+            'method': 'Method-2',
+        },
         'date_last_submitted': '2000-01-02',
-        'method': 'Method-2',
         'phenotypes': [{'name': 'Pheno-2', 'omim_id': 'MIM-2',
                         'incidental': False}],
         'submitter_name': 'Submitter-2',
@@ -249,6 +274,38 @@ def test_extract_clinical_assertions():
                      '</GermlineList></VariationReport>')
     # Make sure it does not break on missing data
     ClinvarVariationAnnotator._extract_clinical_assertions(soup)
+
+
+def test_parse_citation():
+    soup = make_soup("""
+        <Citation Type="Citation-Type">
+            <ID Source="Source-1">123</ID>
+        </Citation>
+    """)
+    result = ClinvarVariationAnnotator._parse_citation(soup)
+    assert result == {'type': 'Citation-Type', 'Source-1': '123'}
+
+    soup = make_soup("""
+        <Citation Type="Citation-Type">
+            <ID Source="PubMed">123</ID>
+        </Citation>
+    """)
+    result = ClinvarVariationAnnotator._parse_citation(soup)
+    assert result == {'type': 'Citation-Type', 'pmid': '123'}
+
+
+def test_parse_comment():
+    soup = make_soup("""
+        <Comment DataSource="Comment-Source-1" Type="Comment-type">
+            Some comment.
+        </Comment>
+    """)
+    result = ClinvarVariationAnnotator._parse_comment(soup)
+    assert result == {
+        'data_source': 'Comment-Source-1',
+        'type': 'Comment-type',
+        'text': 'Some comment.'
+    }
 
 
 def test_extract_allele_basic_info():

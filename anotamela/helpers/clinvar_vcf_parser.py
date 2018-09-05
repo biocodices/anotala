@@ -22,6 +22,9 @@ class ClinvarVCFParser:
         return df
 
     def parse_data(self, df):
+        if not len(df):
+            return df
+
         logger.info(f'Parsing ClinVar VCF, this might take a while')
         df = self._extract_keys(df)
         df = self._extract_external_db_disease_ids(df)

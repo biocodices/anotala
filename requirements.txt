@@ -5,7 +5,7 @@ requests[socks]
 redis
 sqlalchemy>=1.1.5
 pymysql>=0.7.9
-psycopg2
+psycopg2-binary
 coloredlogs
 fake-useragent
 tqdm>=4.11.2

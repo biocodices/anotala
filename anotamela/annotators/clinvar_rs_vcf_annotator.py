@@ -1,28 +1,8 @@
-from anotamela.annotators.base_classes import LocalFileAnnotator
-from anotamela.helpers import ClinvarVCFParser, path_to_source_file
+from anotamela.annotators.base_classes import ClinvarVCFAnnotator
 
 
-class ClinvarRsVCFAnnotator(LocalFileAnnotator):
+class ClinvarRsVCFAnnotator(ClinvarVCFAnnotator):
     SOURCE_NAME = 'clinvar_rs_vcf'
-
-    def __init__(self, path_to_annotations_file=None):
-        self._parser = ClinvarVCFParser()
-
-        if not path_to_annotations_file:
-            path_to_annotations_file = path_to_source_file('clinvar_20180128.vcf.gz')
-
-        super().__init__(path_to_annotations_file)
-
-    def _read_file(self, path):
-        return self._parser.read_file(path)
-
-    def _parse_data(self, data):
-        return self._parser.parse_data(data)
-
-    @staticmethod
-    def _filter_data_by(df, field_name, field_values_to_keep):
-        filtered_df = df[df[field_name].isin(field_values_to_keep)]
-        return filtered_df.reset_index(drop=True)
 
     def _annotate_many_ids(self, ids_to_annotate):
         """
