@@ -43,3 +43,9 @@ def get_cache(cache_name):
         return create_cache(cache_name)
     except OperationalError:
         return
+
+
+# With the real ClinVar VCF, this test would take too long
+@pytest.fixture()
+def path_to_test_clinvar_vcf():
+    return pytest.helpers.file('clinvar.vcf')

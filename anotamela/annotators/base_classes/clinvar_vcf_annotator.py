@@ -32,7 +32,7 @@ class ClinvarVCFAnnotator(LocalFileAnnotator):
     def __repr__(self):
         klass = self.__class__.__name__
         args = f"path_to_annotations_file='{self.path}'"
-        return (f"{klass}({args})")
+        return (f'{klass}({args})')
 
     def _read_file(self, path):
         return self._parser.read_file(path)
@@ -44,5 +44,3 @@ class ClinvarVCFAnnotator(LocalFileAnnotator):
     def _filter_data_by(df, field_name, field_values_to_keep):
         filtered_df = df[df[field_name].isin(field_values_to_keep)]
         return filtered_df.reset_index(drop=True)
-
-

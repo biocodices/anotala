@@ -183,10 +183,13 @@ class AnnotationPipeline:
         # so we need to check by coordinates (e.g. rs754809877 -> 536457)
         # logger.info('Add ClinVar Variation Reports based genomic location')
         # PLAN:
-        # - extract_location(rs_variants) # From DbSNPWeb
-        # - use ClinvarLocationAnnotator with a list of tuples (chrom, pos)
-        # - extract clinvar variation from "clinvar_location_entries"
-        # - use ClinvarVariationAnnotator for those
+        # - generate_position_tag(rs_variants) # From DbSNPWeb
+        # - use those with `annotate_position_tags_with_clinvar`
+        # - map the results by position tag to the position tags in the df
+        #   those are clinvar variations
+        # - merge those clinvar variations with the ones from rsids?
+        #   or maybe fill the missing ones?
+        # - generate a tag later in reports_generation: many clinvar variations!
 
         logger.info('Extract Entrez gene data from the variants')
         dbsnp = rs_variants['dbsnp_myvariant']

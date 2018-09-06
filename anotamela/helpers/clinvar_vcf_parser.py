@@ -1,5 +1,6 @@
 import re
 import logging
+from operator import itemgetter
 
 import pandas as pd
 from more_itertools import collapse
@@ -18,6 +19,8 @@ class ClinvarVCFParser:
         # computationally heavy parsing done at `parse_data`:
         df = self._add_rs_to_dbsnp_id(df)
         df['rs_id'] = df['info'].map(lambda d: d.get('rs_id'))
+        df['variant_type'] = df['info'].map(itemgetter('CLNVC'))
+        df['chrom_pos'] = df.apply(self._compute_chrom_pos, axis=1)
 
         return df
 
@@ -35,6 +38,16 @@ class ClinvarVCFParser:
         df = self._rename_columns(df)
         df = self._drop_columns(df)
         return df
+
+    @staticmethod
+    def _compute_chrom_pos(variant):
+        """
+        Given a variant, create a tuple (chrom, position), but add +1 to
+        the position if the variant is a Deletion.
+        """
+        chromosome, position = variant['chrom'], variant['pos']
+        position += 1 if variant['variant_type'] == 'Deletion' else 0
+        return f"{chromosome}:{position}"
 
     @staticmethod
     def _add_rs_to_dbsnp_id(df):
@@ -88,7 +101,10 @@ class ClinvarVCFParser:
             name_value_pairs = regex.findall(clnvi)
             return dict(name_value_pairs)
 
-        df['sources'] = df['CLNVI'].map(parse_CLNVI_field, na_action='ignore')
+        if 'CLNVI' in df:
+            df['sources'] = df['CLNVI'].map(parse_CLNVI_field, na_action='ignore')
+        else:
+            df['sources'] = [{}] * len(df) # Fill with empty dictionaries
 
         sources_to_extract = {
             'OMIM_Allelic_Variant': 'omim_variant_id',
@@ -160,11 +176,13 @@ class ClinvarVCFParser:
         columns_to_drop = [
             'RS',
             'CLNVI',
+            'CLNVC',
             'GENEINFO',
             'ORIGIN',
             'MC',
         ]
-        return df.copy().drop(columns_to_drop, axis=1)
+        present_columns = df.columns.intersection(columns_to_drop)
+        return df.copy().drop(present_columns, axis=1)
 
     @staticmethod
     def _rename_columns(df):
@@ -176,7 +194,6 @@ class ClinvarVCFParser:
             'CLNREVSTAT': 'revision_status',
             'info': 'source_info',
             'CLNSIG': 'clinical_significance',
-            'CLNVC': 'variant_type',
             'CLNVCSO': 'sequence_ontology_id',
         }
         return df.rename(columns=column_names)

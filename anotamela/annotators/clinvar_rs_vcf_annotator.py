@@ -17,12 +17,12 @@ class ClinvarRsVCFAnnotator(ClinvarVCFAnnotator):
         rows_with_rs = self.data['rs_id'].isin(ids_to_annotate)
         grouped_by_rs = self.data[rows_with_rs].groupby('rs_id')
 
-        records_by_rs = {}
+        clinvar_vcf_entries_by_rs = {}
 
         for rs_id, rs_rows in grouped_by_rs:
             records = rs_rows.to_dict('records')
             for record in records:
                 record = {key: value for key, value in record.items() if value}
-            records_by_rs[rs_id] = records
+            clinvar_vcf_entries_by_rs[rs_id] = records
 
-        return records_by_rs
+        return clinvar_vcf_entries_by_rs

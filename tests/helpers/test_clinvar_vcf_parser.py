@@ -15,13 +15,18 @@ def parser():
 
 def test_read_file(parser):
     df = parser.read_file(path_to_vcf())
-    assert len(df) == 3
+    assert len(df) == 4
 
-    # extracts 'rs_id' as a new column
+    # extracts some columns before parsing
     assert 'rs_id' in df
+    assert 'chrom_pos' in df
+    assert 'variant_type' in df
 
     # adds "rs" to RS numbers
-    assert df['rs_id'].values.tolist() == ['rs1', 'rs1', 'rs2']
+    assert df['rs_id'].values.tolist() == ['rs1', 'rs1b', 'rs2', 'rs3']
+
+    # adds +1 *only to Deletion* positions
+    assert df['chrom_pos'].tolist() == ['1:100', '1:110', '2:200', '3:300']
 
 
 def test_parse_data(parser):
