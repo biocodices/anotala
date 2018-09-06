@@ -1,6 +1,11 @@
 from anotamela.annotators.base_classes import LocalFileAnnotator
 from anotamela.helpers import ClinvarVCFParser, path_to_source_file
 
+from logging import getLogger
+
+
+logger = getLogger(__name__)
+
 
 class ClinvarVCFAnnotator(LocalFileAnnotator):
     """
@@ -17,7 +22,7 @@ class ClinvarVCFAnnotator(LocalFileAnnotator):
       the VCF data filtering by a specific field with the provided
       *ids_to_annotate*.
     """
-    PACKAGED_CLINVAR_VCF = path_to_source_file('clinvar_20180729.vcf.gz')
+    PACKAGED_CLINVAR_VCF = path_to_source_file('clinvar_20180729.grch37.vcf.gz')
     # Ideally, the user would provide her own clinvar vcf file, but we include
     # one in the package so that this annotator works out of the box.
 
@@ -25,6 +30,8 @@ class ClinvarVCFAnnotator(LocalFileAnnotator):
         self._parser = ClinvarVCFParser()
 
         if not path_to_annotations_file:
+            logger.warn('Using packaged ClinVar VCF to annotate: '
+                        f'{self.PACKAGED_CLINVAR_VCF}')
             path_to_annotations_file = self.PACKAGED_CLINVAR_VCF
 
         super().__init__(path_to_annotations_file)

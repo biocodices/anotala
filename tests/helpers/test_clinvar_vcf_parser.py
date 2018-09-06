@@ -55,11 +55,11 @@ def test_parse_data(parser):
 
     # renames columns
     assert df.loc[0, 'variation_id'] == 'Var-1'
-    # assert df.loc[0, 'rs_id'] == 'rs1'
+    # assert df.loc[0, 'rs_id'] == 'rs1' # exported to read_data
     assert df.loc[0, 'clinvar_hgvs'] == 'name-1'
     assert df.loc[0, 'source_info'] == input_df.loc[0, 'info']
     assert df.loc[0, 'clinical_significance'] == 'Sig-1'
-    assert df.loc[0, 'variant_type'] == 'Type-1'
+    # assert df.loc[0, 'variant_type'] == 'Type-1' # exported to read_data
     assert df.loc[0, 'sequence_ontology_id'] == 'SO:1'
 
     # removes unnecessary columns

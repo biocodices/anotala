@@ -12,6 +12,7 @@ from .ensembl_annotator import EnsemblAnnotator
 
 from .clinvar_rcv_annotator import ClinvarRCVAnnotator
 from .clinvar_variation_annotator import ClinvarVariationAnnotator
+
 from .clinvar_rs_vcf_annotator import ClinvarRsVCFAnnotator
 from .clinvar_pos_vcf_annotator import ClinvarPosVCFAnnotator
 

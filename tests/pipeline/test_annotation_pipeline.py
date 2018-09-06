@@ -56,6 +56,7 @@ def test_run_from_rsids(proxies):
         'clinvar_entries',
         'clinvar_vcf_entries',
         'clinvar_variations',
+        'clinvar_variations_from_position',
         'gwas_catalog',
         'dbnsfp',
         'snpeff_myvariant',
@@ -107,4 +108,3 @@ def test_run_from_rsids(proxies):
 
     assert variant['entrez_gene_symbols'] == ['NOS3']
     assert variant['entrez_gene_ids'] == ['4846']
-

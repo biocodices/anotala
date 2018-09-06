@@ -11,7 +11,6 @@ from humanfriendly import format_timespan
 from pprint import pformat
 
 from anotamela.cache import create_cache, Cache
-from anotamela.recipes import annotate_rsids_with_clinvar
 from anotamela.annotators.base_classes.parallel_web_annotator import NoProxiesException
 from anotamela.annotators import ClinvarRsVCFAnnotator
 from anotamela.pipeline import (
@@ -28,6 +27,9 @@ from anotamela.pipeline import (
     annotate_swissprot_ids,
     group_swissprot_variants_by_rsid,
     # annotate_clinvar_accessions,
+    annotate_rsids_with_clinvar,
+    generate_position_tags,
+    annotate_position_tags_with_clinvar,
 )
 from anotamela.helpers import gene_to_mim
 
@@ -39,7 +41,8 @@ coloredlogs.install(level='INFO')
 
 class AnnotationPipeline:
     def __init__(self, cache, use_cache=True, use_web=True, proxies=None,
-                 sleep_time=None, clinvar_vcf_path=None, **cache_kwargs):
+                 sleep_time=None, clinvar_vcf_path=None,
+                 genome_assembly='GRCh37.p13', **cache_kwargs):
         """
         Initialize a pipeline with a given set of options. The options will
         be used for any subsequent pipeline.run() actions.
@@ -59,6 +62,9 @@ class AnnotationPipeline:
           {'http': 'socks5://localhost:9050'}
         - sleep_time (default=None) is optional. If set, it will be used to
           override all annotators SLEEP_TIME between queries.
+        - genome_assembly: either "GRCh37.p13" or "GRCh38.p7", it will be used
+          to generate position tags to identify each variant and match them
+          to ClinVar Variation Reports in case the rs ID is not enough.
         - **cache_kwargs will be passed to the Cache constructor if the cache
           option is not already a Cache instance.
 
@@ -77,6 +83,7 @@ class AnnotationPipeline:
             'sleep_time': sleep_time,
         }
         self.clinvar_vcf_path = clinvar_vcf_path
+        self.genome_assembly = genome_assembly
 
         if proxies is None:
             raise NoProxiesException(
@@ -178,18 +185,27 @@ class AnnotationPipeline:
         rs_variants['clinvar_variations'] = \
             rs_variants['rsid'].map(clinvar_variations_per_rsid)
 
-        # NOTE:
-        # some variants can't be found in ClinVar easily via their RS ID,
-        # so we need to check by coordinates (e.g. rs754809877 -> 536457)
-        # logger.info('Add ClinVar Variation Reports based genomic location')
-        # PLAN:
-        # - generate_position_tag(rs_variants) # From DbSNPWeb
-        # - use those with `annotate_position_tags_with_clinvar`
-        # - map the results by position tag to the position tags in the df
-        #   those are clinvar variations
-        # - merge those clinvar variations with the ones from rsids?
-        #   or maybe fill the missing ones?
-        # - generate a tag later in reports_generation: many clinvar variations!
+        logger.info('Generate position tags')
+        rs_variants['position_tag'] = rs_variants.apply(
+            generate_position_tags, assembly=self.genome_assembly, axis=1)
+
+        logger.info('Add ClinVar Variation Reports based on position tags')
+        clinvar_variations_per_position = annotate_position_tags_with_clinvar(
+            rs_variants['position_tag'],
+            cache=self.annotation_kwargs['cache'],
+            clinvar_vcf_path=self.clinvar_vcf_path,
+            proxies=self.annotation_kwargs['proxies'],
+            use_cache=self.annotation_kwargs['use_cache'],
+            use_web=self.annotation_kwargs['use_web'],
+            grouped_by_position=True,
+        )
+        rs_variants['clinvar_variations_from_position'] = \
+            rs_variants['position_tag'].map(clinvar_variations_per_position)
+
+        no_clinvar_variations = \
+            rs_variants['clinvar_variations'].map(lambda l: not l)
+        rs_variants.loc[no_clinvar_variations, 'clinvar_variations'] = \
+            rs_variants.loc[no_clinvar_variations, 'clinvar_variations_from_position']
 
         logger.info('Extract Entrez gene data from the variants')
         dbsnp = rs_variants['dbsnp_myvariant']

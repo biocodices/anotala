@@ -14,6 +14,11 @@ from .extract_gwas_traits import extract_gwas_traits
 from .annotate_swissprot_ids import annotate_swissprot_ids
 from .group_swissprot_variants_by_rsid import group_swissprot_variants_by_rsid
 from .annotate_clinvar_accessions import annotate_clinvar_accessions
+from .generate_position_tags import generate_position_tags
+from .annotate_items_with_clinvar import annotate_items_with_clinvar
+from .annotate_rsids_with_clinvar import annotate_rsids_with_clinvar
+from .annotate_position_tags_with_clinvar import annotate_position_tags_with_clinvar
+
 
 from .annotation_pipeline import AnnotationPipeline
 
