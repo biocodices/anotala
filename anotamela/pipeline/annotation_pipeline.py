@@ -243,9 +243,6 @@ class AnnotationPipeline:
         #
         ############################################################
 
-        gene_annotations = annotate_entrez_gene_ids(entrez_gene_ids,
-                                                    **self.annotation_kwargs)
-
         logger.info('Get the OMIM variants described for the Entrez genes')
         omim_variants = \
             get_omim_variants_from_entrez_genes(entrez_gene_ids,
@@ -273,6 +270,9 @@ class AnnotationPipeline:
                        pubmed_entries_by_pmid=pubmed_entries)
         rs_variants['gwas_catalog'] = \
             rs_variants['gwas_catalog'].map(func, na_action='ignore')
+
+        gene_annotations = annotate_entrez_gene_ids(entrez_gene_ids,
+                                                    **self.annotation_kwargs)
 
         logger.info('Extract Swissprot IDs')
         swissprot_ids = extract_swissprot_ids(gene_annotations['mygene'])

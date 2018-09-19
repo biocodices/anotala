@@ -2,11 +2,13 @@ import requests
 import json
 import time
 import logging
+import re
 
 from tqdm import tqdm
+import pandas as pd
 
 from anotamela.annotators.base_classes import WebAnnotatorWithCache
-from anotamela.helpers import grouped
+from anotamela.helpers import grouped, path_to_source_file
 
 
 logger = logging.getLogger(__name__)
@@ -93,3 +95,79 @@ class EnsemblAnnotator(WebAnnotatorWithCache):
 
         return annotation
 
+    @classmethod
+    def genotypes_list_to_dataframe(cls, genotypes, variant_id=None,
+                                    ref_allele=None):
+        """
+        Given a list of Ensembl genotypes as annotated by EnsemblAnnotator
+        with .full_info = True, return a tidy dataframe with one genotype per
+        row, and extra columns for the sample name, population, superpopulation,
+        a boolean indicating wether the sample belongs to 1000 Genomes or not,
+        both alleles in a list.
+
+        If marker_id is not None, the marker_id will also be set.
+
+        If ref_allele is not None, the genotype will also be expressed as
+        ALT allele dosage in a `alt_allele_dosage` column.
+
+        1000 Genome compound sample identifiers like 1000GENOMES:phase_3:HG00097
+        will be parsed.
+
+        Example input:
+            [{'gender': 'Female',
+              'sample': '1000GENOMES:phase_3:HG00097',
+              'genotype': 'C|T'},
+               ...]
+
+        """
+        df = pd.DataFrame(genotypes)
+        df['sample_full_name'] = df['sample']
+        df['sample'] = df['sample'].map(cls.parse_1KG_sample_name)
+        df['genotype_alleles'] = df['genotype'].map(cls.parse_genotype_string)
+        df['in_1kg'] = df['sample_full_name'].str.contains('1000GENOMES')
+
+        populations = cls.read_1kg_populations()
+        df = df.merge(populations[['sample', 'pop', 'super_pop']],
+                      how='left', on='sample')
+        df = df.rename(columns={
+            'pop': 'population',
+            'super_pop': 'region'
+        })
+
+        df['alt_allele_dosage'] = None
+        df['ref_allele'] = ref_allele
+        if ref_allele:
+            df['alt_allele_dosage'] = df['genotype_alleles'].map(
+                lambda alleles: alleles.count(ref_allele)
+            )
+        df['variant_id'] = variant_id
+        col_order = [
+            'sample',
+            'population',
+            'region',
+            'variant_id',
+            'genotype_alleles',
+            'ref_allele',
+            'alt_allele_dosage',
+            'in_1kg',
+            'gender',
+            'genotype',
+            'sample_full_name',
+        ]
+        return df[col_order]
+
+    @staticmethod
+    def parse_1KG_sample_name(sample_name):
+        if sample_name.startswith('1000GENOMES:'):
+            sample_name = sample_name.split(':', 2)[2]
+        return sample_name
+
+    @staticmethod
+    def parse_genotype_string(genotype_string):
+        return tuple(re.split(r'\||/', genotype_string))
+
+    @staticmethod
+    def read_1kg_populations():
+        fn = 'integrated_call_samples_v3.20130502.ALL.panel'
+        df = pd.read_table(path_to_source_file(fn), sep='\s+')
+        return df
