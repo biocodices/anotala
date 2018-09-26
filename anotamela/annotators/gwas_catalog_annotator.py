@@ -363,9 +363,11 @@ class GwasCatalogAnnotator(ParallelWebAnnotator):
         # 1.01 - 1.25
         # [1.72-4]
         # [-0.5-1.5] # Negative numbers!
+        # [1.24–1.33] # Notice the weird dash
         #
         # So I just try to capture the two numbers:
-        pattern = re.compile(r'(?P<lower_limit>-?\d+(?:\.\d+)?) ?- ?'
+        pattern = re.compile(r'(?P<lower_limit>-?\d+(?:\.\d+)?)'
+                             r' ?[-–] ?'
                              r'(?P<upper_limit>-?\d+(?:\.\d+)?)')
         values = pattern.search(ci_range)
 
