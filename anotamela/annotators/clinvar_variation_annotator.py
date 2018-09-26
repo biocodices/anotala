@@ -150,6 +150,10 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
         info['clinical_significances'] = cls._parse_clinical_significances(
             clinsig_description
         )
+        # TODO: These dictionary is unnecessary.
+        # Since we already assume above that there is ONLY ONE clinsig
+        # per Variation, then all these sub-keys inside the dictionary
+        # could live in the parent level, info:
         info['clinical_significance_detail'] = {
             'description': clinsig.select_one('Description').text,
             'citations': [cls._parse_citation(citation) for citation in
