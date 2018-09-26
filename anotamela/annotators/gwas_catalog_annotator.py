@@ -125,9 +125,9 @@ class GwasCatalogAnnotator(ParallelWebAnnotator):
 
         info['urls'] = {rsid: cls._web_url(rsid) for rsid in info['rsids']}
 
-        float_key = 'risk_allele_frequency_in_controls'
-        if float_key in info:
-            info[float_key] = float(info[float_key])
+        key = 'risk_allele_frequency_in_controls'
+        if key in info and 'NR' not in info[key]:
+            info[key] = float(info[key])
 
         if 'strongest_alleles' in info:
             info['genomic_alleles'] = {}
