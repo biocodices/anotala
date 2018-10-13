@@ -18,7 +18,7 @@ class EnsemblAnnotator(WebAnnotatorWithCache):
     """
     Annotates rsids with Ensembl! REST service via POST requests.
 
-    Set EnsemblAnnotator.full_info = True to get phenotypes, genotypes and
+    Set EnsemblAnnotator.full_info = False not to get phenotypes, genotypes and
     population info besides the basic variant annotations.
     """
     SOURCE_NAME = 'ensembl'
@@ -34,7 +34,7 @@ class EnsemblAnnotator(WebAnnotatorWithCache):
     SLEEP_TIME = 0
 
     api_version = 'GRCh37'
-    full_info = False
+    full_info = True # If we're going to cache, let's have full_info always
 
     def _batch_query(self, ids):
         if self.proxies:
