@@ -9,7 +9,7 @@ def annotate_rsids_with_clinvar(rs_ids, clinvar_vcf_path=None,
 
     Returns a list of annotations (each one a dictionary).
 
-    Pass a +clinvar_vcf_path+ if you want to specify the pat to the ClinVar
+    Pass a +clinvar_vcf_path+ if you want to specify the path to the ClinVar
     VCF file that will be used to map rs IDs -> variation IDs.
 
     Pass +grouped_by_rsid+=True to get instead a dictionary with the original rs_ids as

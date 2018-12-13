@@ -67,4 +67,3 @@ def _get_clinvar_variation_ids_from(items, items_type, clinvar_vcf_path):
             variation_id = str(vcf_entry['variation_id'])
             variation_ids[item].append(variation_id)
     return variation_ids
-

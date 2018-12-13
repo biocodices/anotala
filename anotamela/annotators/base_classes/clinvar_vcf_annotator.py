@@ -22,7 +22,7 @@ class ClinvarVCFAnnotator(LocalFileAnnotator):
       the VCF data filtering by a specific field with the provided
       *ids_to_annotate*.
     """
-    PACKAGED_CLINVAR_VCF = path_to_source_file('clinvar_20180729.grch37.vcf.gz')
+    PACKAGED_CLINVAR_VCF = path_to_source_file('clinvar_20181202.grch37.vcf.gz')
     # Ideally, the user would provide her own clinvar vcf file, but we include
     # one in the package so that this annotator works out of the box.
 

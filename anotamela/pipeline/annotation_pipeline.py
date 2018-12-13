@@ -172,7 +172,8 @@ class AnnotationPipeline:
         # NOTE:
         # "clinvar_variations" are entries that come from ClinVar's web,
         # via the efetch API. These are *very useful* and used a lot,
-        # they have almost exactly everything you can see on their web:
+        # they have almost exactly everything you can see on their web.
+        # Here, the ClinVar VCF is used to map rs IDs -> ClinVar variation IDs.
         logger.info('Add ClinVar Variation Reports associated to the RS IDs')
         clinvar_variations_per_rsid = annotate_rsids_with_clinvar(
             rsids,
