@@ -52,4 +52,3 @@ def test_read_credentials():
     # Check sensible defaults were loaded
     assert result['port'] == 3306
     assert result['driver'] == 'mysql+pymysql'
-

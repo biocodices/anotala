@@ -171,7 +171,6 @@ class SqlCache(Cache):
             driver: mysql
 
         """
-
         config = {
             'host': 'localhost',
             'port': 3306,
@@ -188,4 +187,3 @@ class SqlCache(Cache):
 
         config.update(user_config)
         return config
-

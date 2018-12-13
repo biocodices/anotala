@@ -106,12 +106,12 @@ test_params = [
             'keys_to_check': ('AMA_Citation CitationData Abstract ArticleDate '
                               'Mesh Ids pmid url')
         }),
-        (GwasCatalogAnnotator, {
-            'ids_to_annotate': 'rs7329174',
-            'keys_to_check': ('rsids strongest_alleles p_value_exponent '
-                              'sample_info sample_size entrez_mapped_genes '
-                              'reported_genes pubmed_entries')
-        })
+        #  (GwasCatalogOldAnnotator, {
+            #  'ids_to_annotate': 'rs7329174',
+            #  'keys_to_check': ('rsids strongest_alleles p_value_exponent '
+                              #  'sample_info sample_size entrez_mapped_genes '
+                              #  'reported_genes pubmed_entries')
+        #  })
     ]
 
 

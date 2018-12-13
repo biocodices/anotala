@@ -68,6 +68,9 @@ class MyVariantAnnotator(WebAnnotatorWithCache):
             hit['allele'] = infer_annotated_allele(hit['_id'])
 
         annotations = [cls._parse_hit(hit) for hit in hits]
+
+        # Parsing hits might result in empty values, since some hits do not
+        # contain any relevant annotation. We need to remove those explicitely:
         annotations = [ann for ann in annotations if ann]
 
         # If the annotations are already lists, merge them into a flat list:

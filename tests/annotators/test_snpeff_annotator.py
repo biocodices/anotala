@@ -27,3 +27,5 @@ def test_snpeff_annotator_parse_hit():
     annotations = SnpeffAnnotator._parse_hit(hit_multiple)
     assert len(annotations) == 3
 
+    hit_without_snpeff_data = {}
+    assert SnpeffAnnotator._parse_hit(hit_without_snpeff_data) is None

@@ -13,6 +13,12 @@ class SnpeffAnnotator(MyVariantAnnotator):
 
     @classmethod
     def _parse_hit(cls, hit):
+        # Sometimes (e.g. rs203319) a SNP will have two alleles, one with
+        # a SnpEff annotation and other without one, so this key will be
+        # missing:
+        if 'snpeff' not in hit:
+            return None
+
         annotations = hit['snpeff']['ann']
 
         # Make sure the annotations are always a *list* of annotations
@@ -33,4 +39,3 @@ class SnpeffAnnotator(MyVariantAnnotator):
                 annotation['hgvs_p'] = parse_prot_change(annotation['hgvs_p'])
 
         return annotations
-

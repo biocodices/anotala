@@ -57,7 +57,7 @@ def test_run_from_rsids(proxies):
         'clinvar_vcf_entries',
         'clinvar_variations',
         'clinvar_variations_from_position',
-        'gwas_catalog',
+        # 'gwas_catalog',
         'dbnsfp',
         'snpeff_myvariant',
         'entrez_gene_ids',

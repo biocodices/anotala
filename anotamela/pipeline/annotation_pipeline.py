@@ -142,7 +142,7 @@ class AnnotationPipeline:
 
         self.other_variants = other_variants
 
-    def run_from_rsids(self, rsids):
+    def run_from_rsids(self, rsids, gwas_annotation_enabled=False):
         """
         Given a list of rs IDs, annotate them and return the annotations in
         a pandas DataFrame. Variant annotations will be stored in
@@ -170,8 +170,9 @@ class AnnotationPipeline:
             rs_variants['rsid'].map(clinvar_vcf_annotations_by_rs)
 
         # NOTE:
-        # "clinvar_variations" are entries that come from ClinVar's web
-        # (via the efetch API) and those are very useful and used a lot:
+        # "clinvar_variations" are entries that come from ClinVar's web,
+        # via the efetch API. These are *very useful* and used a lot,
+        # they have almost exactly everything you can see on their web:
         logger.info('Add ClinVar Variation Reports associated to the RS IDs')
         clinvar_variations_per_rsid = annotate_rsids_with_clinvar(
             rsids,
@@ -251,9 +252,13 @@ class AnnotationPipeline:
         logger.info('Extract PMIDs from the OMIM variants')
         pmids = extract_pmids(omim_variants)
 
-        logger.info('Extract PMIDs from the GWAS Catalog entries')
-        for gwas_entries in rs_variants['gwas_catalog'].dropna():
-            pmids += extract_pmids(gwas_entries)
+        if not gwas_annotation_enabled:
+            rs_variants['gwas_catalog'] = []
+
+        if gwas_annotation_enabled:
+            logger.info('Extract PMIDs from the GWAS Catalog entries')
+            for gwas_entries in rs_variants['gwas_catalog'].dropna():
+                pmids += extract_pmids(gwas_entries)
 
         logger.info('Annotate the PMIDs')
         pubmed_entries = annotate_pmids(pmids, **self.annotation_kwargs)
@@ -265,11 +270,12 @@ class AnnotationPipeline:
         rs_to_omim_variants = group_omim_variants_by_rsid(omim_variants)
         rs_variants['omim_entries'] = rs_variants['rsid'].map(rs_to_omim_variants)
 
-        logger.info('Update GWAS PubMed entries with the PubMed annotations')
-        func = partial(update_pubmed_entries,
-                       pubmed_entries_by_pmid=pubmed_entries)
-        rs_variants['gwas_catalog'] = \
-            rs_variants['gwas_catalog'].map(func, na_action='ignore')
+        if gwas_annotation_enabled:
+            logger.info('Update GWAS PubMed entries with the PubMed annotations')
+            func = partial(update_pubmed_entries,
+                        pubmed_entries_by_pmid=pubmed_entries)
+            rs_variants['gwas_catalog'] = \
+                rs_variants['gwas_catalog'].map(func, na_action='ignore')
 
         gene_annotations = annotate_entrez_gene_ids(entrez_gene_ids,
                                                     **self.annotation_kwargs)

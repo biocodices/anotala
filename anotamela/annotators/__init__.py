@@ -8,6 +8,7 @@ from .hgvs_annotator import HgvsAnnotator
 from .snpeff_annotator import SnpeffAnnotator
 from .frequencies_annotator import FrequenciesAnnotator
 from .gwas_catalog_annotator import GwasCatalogAnnotator
+from .gwas_catalog_old_annotator import GwasCatalogOldAnnotator
 from .ensembl_annotator import EnsemblAnnotator
 
 from .clinvar_rcv_annotator import ClinvarRCVAnnotator
@@ -27,45 +28,10 @@ from .pubmed_annotator import PubmedAnnotator
 
 from .biomart_regions_annotator import BiomartRegionsAnnotator
 
+# Leave this at the bottom:
 
-RS_ANNOTATOR_CLASSES = [
-    ClinvarRsAnnotator,
-    SnpeffAnnotator,
-    HgvsAnnotator,
-    FrequenciesAnnotator,
-    DbsnpMyvariantAnnotator,
-    DbsnpEntrezAnnotator,
-    DbsnpWebAnnotator,
-    DbnsfpAnnotator,
-    GwasCatalogAnnotator,
-    EnsemblAnnotator,
-]
-
-RS_ANNOTATOR_CLASSES = {klass.SOURCE_NAME: klass
-                        for klass in RS_ANNOTATOR_CLASSES}
-
-ENTREZ_GENE_ANNOTATOR_CLASSES = [
-    MygeneAnnotator,
-    GeneEntrezAnnotator,
-]
-
-ENTREZ_GENE_ANNOTATOR_CLASSES = {klass.SOURCE_NAME: klass
-                                 for klass in ENTREZ_GENE_ANNOTATOR_CLASSES}
-
-# This is used elsewhere to programatically update the cache for
-# all annotators:
-ALL_ANNOTATOR_CLASSES = [
-    ClinvarRCVAnnotator,
-    ClinvarRsVCFAnnotator,
-    ClinvarPosVCFAnnotator,
-    ClinvarVariationAnnotator,
-    OmimGeneAnnotator,
-    OmimVariantAnnotator,
-    UniprotAnnotator,
-    PubmedAnnotator,
-    BiomartRegionsAnnotator,
-]
-ALL_ANNOTATOR_CLASSES = {klass.SOURCE_NAME: klass
-                         for klass in ALL_ANNOTATOR_CLASSES}
-ALL_ANNOTATOR_CLASSES.update(RS_ANNOTATOR_CLASSES)
-ALL_ANNOTATOR_CLASSES.update(ENTREZ_GENE_ANNOTATOR_CLASSES)
+from .useful_constants import (
+    ALL_ANNOTATOR_CLASSES,
+    RS_ANNOTATOR_CLASSES,
+    ENTREZ_GENE_ANNOTATOR_CLASSES,
+)
