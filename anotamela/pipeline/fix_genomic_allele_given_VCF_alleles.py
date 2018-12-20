@@ -37,6 +37,7 @@ def fix_genomic_alleles_for_variant(variant):
             )
         except ValueError:
             logger.warning(f'Genomic allele fix failed at key: "{key}"')
+
     return variant
 
 
@@ -67,17 +68,22 @@ def fix_genomic_allele_given_VCF_alleles(entry_or_entries, ref, alts):
 
 
 def _fix_genomic_allele_for_single_entry(entry, ref, alts):
-    """Auxiliari function.
+    """Auxiliary function.
     See fix_genomic_allele_given_VCF_alleles for the explanation."""
     if not isinstance(entry, dict):
         raise ValueError(f'I was expecting a dict, I got a {type(entry)}: ' +
                          str(entry))
 
     entry_allele = entry.get('genomic_allele')
+
     if not entry_allele:
         return entry
 
     alleles = set([ref] + alts)
+
+    # Do not fix an allele that's already as the VCF alleles
+    if entry_allele in alleles:
+        return entry
 
     # VCF notation for indel includes the nucleotide previous to the mutation
     # itself. So, for an insertion of a "C" after an "A", the alleles are
@@ -101,6 +107,11 @@ def _fix_genomic_allele_for_single_entry(entry, ref, alts):
     if entry_allele and is_indel and common_previous_nucleotide and not multiallelic_del:
         fixed_allele = re.sub(r'ins|del', '', entry_allele)
         fixed_allele = f'{common_previous_nucleotide}{fixed_allele}'
-        fixed_entry['genomic_allele'] = fixed_allele
+
+        if fixed_allele in alleles:
+            fixed_entry['genomic_allele'] = fixed_allele
+
+            # FIXME: debugging print
+            logger.debug(f"REF={ref}, ALT={alts}, original={entry_allele} -> fixed={fixed_allele}")
 
     return fixed_entry

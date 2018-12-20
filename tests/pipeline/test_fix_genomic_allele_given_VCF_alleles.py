@@ -28,6 +28,20 @@ def test_fix_genomic_alleles_for_variant():
 def test_fix_genomic_allele_given_VCF_alleles():
     f = fix_genomic_allele_given_VCF_alleles
 
+    snp = {'genomic_allele': 'C'}
+    result = f(snp, ref='A', alts=['C'])
+    assert result['genomic_allele'] == 'C'
+
+    # Do not fix an allelle that's already OK
+    already_ok = {'genomic_allele': 'ACC'}
+    result = f(already_ok, ref='AC', alts=['ACC'])
+    assert result['genomic_allele'] == 'ACC'
+
+    # If the "fixed" allele is not a VCF alleles, do NOT use it.
+    # Some alleles are unfixable!
+    result = f({'genomic_allele': 'ACTG'}, ref='A', alts=['AC'])
+    assert result['genomic_allele'] == 'ACTG'
+
     insertion = {'genomic_allele': 'insC'}
     result = f(insertion, ref='A', alts=['AC'])
     assert result['genomic_allele'] == 'AC'
