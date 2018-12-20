@@ -4,11 +4,7 @@ from itertools import zip_longest
 
 from Bio import Entrez
 
-
-SNP_RE = re.compile(r'(?P<old_allele>[ATCG])>(?P<new_allele>[ATCG])')
-SYN_SNP_RE = re.compile(r'(?P<new_allele>[ATCG])=')
-INDEL_RE = re.compile(r'.*(?P<new_allele>del.*|ins.*|dup.*)')
-PROT_RE = re.compile(r'(?P<aa1>[A-Za-z]{3})(?P<pos>\d+)(?P<aa2>[A-Za-z]{3}|=|\*)')
+from anotamela.helpers.variation_patterns import PROT_RE
 
 
 def grouped(iterable, group_size, as_list=False):
@@ -27,21 +23,6 @@ def listify(maybe_list):
     if isinstance(maybe_list, list):
         return maybe_list
     return [maybe_list]
-
-
-def infer_annotated_allele(mutation):
-    """Given a *mutation* like 'c.123A>G', infer the allele 'G'."""
-    if not mutation:
-        return
-
-    allele = mutation  # If all fails, return the same mutation
-
-    for regex in [SNP_RE, SYN_SNP_RE, INDEL_RE]:
-        match = regex.search(mutation)
-        if match:
-            allele = match.group('new_allele')
-
-    return allele
 
 
 def parse_prot_change(prot_change):

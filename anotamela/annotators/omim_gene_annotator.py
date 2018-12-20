@@ -23,7 +23,7 @@ class OmimGeneAnnotator(ParallelWebAnnotator):
     Responses are cached.
 
         > omim_gene_annotator = OmimGeneAnnotator()
-        > omim_gene_annotator.annotate('605557)
+        > omim_gene_annotator.annotate_one('605557')
         # => { '605557': ... }
 
     The base sleep time between requests is 60s because OMIM is quite strict

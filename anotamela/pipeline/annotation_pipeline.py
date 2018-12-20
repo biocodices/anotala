@@ -30,6 +30,7 @@ from anotamela.pipeline import (
     annotate_rsids_with_clinvar,
     generate_position_tags,
     annotate_position_tags_with_clinvar,
+    fix_genomic_allele_given_VCF_alleles,
 )
 from anotamela.helpers import gene_to_mim
 
@@ -137,9 +138,31 @@ class AnnotationPipeline:
         logger.info('{} other variants'.format(len(other_variants)))
 
         rs_annotations = self.run_from_rsids(rs_variants['id'].values)
-        self.rs_variants = pd.merge(rs_variants, rs_annotations,
-                                    left_on='id', right_on='id', how='left')
+        rs_variants = pd.merge(rs_variants, rs_annotations,
+                               left_on='id', right_on='id', how='left')
 
+        # NOTE: When running from a VCF, we have the REF and ALT alleles
+        # for each variant. Specially for indels, those sometimes doesn't
+        # exactly match the annotated alleles for each rs ID (VCF notation
+        # for indels includes the nucleotide immediately before the indel).
+        # We fix the annotations here to match the VCF notation if possible.
+        # This fix is extremely helpful downstream to match alleles of the
+        # sample genotype (which come from a VCF) with the alleles of the
+        # annotations.
+        logger.info('Fixing genomic_allele in the annotations based on the ' +
+                    'VCF alleles seen at each variant.')
+        def fix_genomic_alleles(variant):
+            non_entries_keys = ["chrom", "pos", "id", "ref", "alt", "qual",
+                                "filter", "info", "format", "position_tag" ]
+            for key in variant.index:
+                if key not in non_entries_keys:
+                    variant[key] = fix_genomic_allele_given_VCF_alleles(
+                        entry_or_entries=variant[key],
+                        ref=variant['ref'], alts=variant['alt']
+                    )
+        rs_variants = rs_variants.apply(fix_genomic_alleles, axis=1)
+
+        self.rs_variants = rs_variants
         self.other_variants = other_variants
 
     def run_from_rsids(self, rsids, gwas_annotation_enabled=False):
@@ -155,8 +178,15 @@ class AnnotationPipeline:
                     .format(opts))
 
         logger.info('Annotate the RS IDs with all available annotators')
-        self.rs_variants = rs_variants = \
-            annotate_rsids(rsids, **self.annotation_kwargs)
+        self.rs_variants = rs_variants = annotate_rsids(
+            rsids,
+            cache=self.annotation_kwargs['cache'],
+            use_cache=self.annotation_kwargs['use_cache'],
+            use_web=self.annotation_kwargs['use_web'],
+            proxies=self.annotation_kwargs['proxies'],
+            annotator_names='all',
+            sleep_time=None,
+        )
 
         # NOTE:
         # "clinvar_vcf_entries" are entries that come from ClinVar's VCF
@@ -207,7 +237,8 @@ class AnnotationPipeline:
         no_clinvar_variations = \
             rs_variants['clinvar_variations'].map(lambda l: not l)
         rs_variants.loc[no_clinvar_variations, 'clinvar_variations'] = \
-            rs_variants.loc[no_clinvar_variations, 'clinvar_variations_from_position']
+            rs_variants.loc[no_clinvar_variations,
+                            'clinvar_variations_from_position']
 
         logger.info('Extract Entrez gene data from the variants')
         dbsnp = rs_variants['dbsnp_myvariant']

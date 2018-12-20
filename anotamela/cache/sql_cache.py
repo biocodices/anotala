@@ -110,8 +110,10 @@ class SqlCache(Cache):
         # JSON field type in case the table named *namespace* doesn't exist.
         table = self._get_table(namespace, as_json=as_json)
 
+        # We remove the keys in case they exist, before writing the new data:
         ids_to_remove = info_dict.keys()
         self._client_del(ids_to_remove, namespace)
+
         new_annotations = [{'id': id_, 'annotation': ann}
                            for id_, ann in info_dict.items()]
         self.engine.execute(table.insert(), new_annotations)

@@ -6,7 +6,7 @@ RS_ANNOTATOR_CLASSES = [
     HgvsAnnotator,
     FrequenciesAnnotator,
     DbsnpMyvariantAnnotator,
-    DbsnpEntrezAnnotator,
+    # DbsnpEntrezAnnotator,
     DbsnpWebAnnotator,
     DbnsfpAnnotator,
     #  GwasCatalogAnnotator,

@@ -24,17 +24,17 @@ class EnsemblAnnotator(WebAnnotatorWithCache):
     SOURCE_NAME = 'ensembl'
     ANNOTATIONS_ARE_JSON = True
 
-    BATCH_SIZE = 5
-    # In theory Ensembl POST requests can handle up to 1,000 variants,
+    BATCH_SIZE = 200
+    # Ensembl POST requests can handle up to 200 variants,
     # but every now and then I get timeouts and truncated responses when I try
     # to get the full info for as low as 25 variants at a time.
-    # This is probably because we are asking for the full data: genotypes,
-    # population genotypes, etc.
+    # So, in case you set full_info = True for some annotation, you might need
+    # to decrease BATCH_SIZE to 20 or 10.
 
     SLEEP_TIME = 0
 
     api_version = 'GRCh37'
-    full_info = True # If we're going to cache, let's have full_info always
+    full_info = False # Full info is way too heavy/slow for massive annotation
 
     def _batch_query(self, ids):
         if self.proxies:
@@ -58,10 +58,11 @@ class EnsemblAnnotator(WebAnnotatorWithCache):
         headers = {'Content-Type': 'application/json',
                    'Accept': 'application/json'}
 
-        params = {'phenotypes': '1',
-                  'genotypes': '1',
-                  'pops': '1',
-                  'population_genotypes': '1'}
+        p = int(self.full_info) # Boolean to {0,1}
+        params = {'phenotypes': p,
+                  'genotypes': p,
+                  'pops': p,
+                  'population_genotypes': p}
         for key, value in params.items():
             url += '{}={};'.format(key, value)
 
@@ -86,7 +87,7 @@ class EnsemblAnnotator(WebAnnotatorWithCache):
                 'population_genotypes',
                 'genotypes'
             ]
-            for key in keys_to_remove:
+            for key in [k for k in keys_to_remove if k in annotation]:
                 del(annotation[key])
 
         maf = annotation.get('MAF')

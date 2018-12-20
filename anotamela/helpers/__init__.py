@@ -10,3 +10,4 @@ from .vep_table_parser import (
 from .rsids_from_vcf import rsids_from_vcf
 from .path_to_source_file import path_to_source_file
 from .clinvar_vcf_parser import ClinvarVCFParser
+from .infer_annotated_allele import infer_annotated_allele

@@ -5,7 +5,6 @@ from anotamela.helpers import (
     is_incidental_gene,
     is_incidental_pheno,
     listify,
-    infer_annotated_allele,
     parse_prot_change,
     grouped,
 )
@@ -54,17 +53,6 @@ def test_listify():
     assert listify(a_list) == a_list
     assert listify(a_dict) == [a_dict]
     assert listify(a_string) == [a_string]
-
-
-@pytest.mark.parametrize('cds_change,expected_allele', [
-    ('NM_1.1:c.123A>T', 'T'),
-    ('NM_015001.2:c.*11199_*11199delTTT', 'delTTT'),
-    ('c.123C=', 'C'),
-    ('non_matching', 'non_matching'),
-    ('', None),
-])
-def test_infer_annotated_allele(cds_change, expected_allele):
-    assert infer_annotated_allele(cds_change) == expected_allele
 
 
 def test_grouped():

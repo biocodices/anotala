@@ -37,8 +37,8 @@ class DbsnpWebAnnotator(ParallelWebAnnotator):
         for assembly_name in assemblies:
             entries = annotation['assembly'].get(assembly_name) or []
             entries = [e for e in entries
-                       if e['groupTerm'] == 'Primary_Assembly' and
-                       e['contigLabel'] != 'PAR']
+                       if e.get('groupTerm') == 'Primary_Assembly' and
+                       e.get('contigLabel') != 'PAR']
             # The 'PAR' contigLabel indicates a pseudo-autosomal region.
             # I've seen it for SNP rs6603251, located in the X chromosome
             # and in the "Y (PAR)". I decide to keep the X position.
@@ -49,9 +49,10 @@ class DbsnpWebAnnotator(ParallelWebAnnotator):
             entry = entries.pop()
             assert not entries
 
-            key = '{}_reverse'.format(assembly_name)
-            # Convert values '0' and '1' into False and True:
-            annotation[key] = bool(int(entry['snp2chrOrien']))
+            if entry['snp2chrOrien']:
+                key = '{}_reverse'.format(assembly_name)
+                # Convert values '0' and '1' into False and True:
+                annotation[key] = bool(int(entry['snp2chrOrien']))
 
             # Position
             keys = {
@@ -62,7 +63,7 @@ class DbsnpWebAnnotator(ParallelWebAnnotator):
             for key, name in keys.items():
                 new_key = '{}_{}'.format(assembly_name, name)
                 value = entry.get(key)
-                if value and 'start' in new_key or 'stop' in new_key:
+                if value and ('start' in new_key or 'stop' in new_key):
                     value = int(value)
                 annotation[new_key] = value
 
