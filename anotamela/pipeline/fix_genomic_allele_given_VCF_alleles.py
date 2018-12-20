@@ -2,6 +2,8 @@ import re
 from copy import deepcopy
 import logging
 
+import pandas as pd
+
 
 logger = logging.getLogger(__name__)
 
@@ -22,11 +24,12 @@ def fix_genomic_allele_given_VCF_alleles(entry_or_entries, ref, alts):
                  for entry in entry_or_entries]
     elif isinstance(entry_or_entries, dict):
         fixed = _fix_genomic_allele_for_single_entry(entry_or_entries, ref, alts)
+    elif pd.isnull(entry_or_entries):
+        fixed = None
     else:
         raise ValueError('I was expecting a dict or a list of dicts, ' +
                          f'but I got a {type(entry_or_entries)}: ' +
                          str(entry_or_entries))
-
 
     return fixed
 
@@ -64,11 +67,8 @@ def _fix_genomic_allele_for_single_entry(entry, ref, alts):
 
     fixed_entry = deepcopy(entry)
     if entry_allele and is_indel and common_previous_nucleotide and not multiallelic_del:
-        print(f'Received {entry_allele}')
         fixed_allele = re.sub(r'ins|del', '', entry_allele)
-        print(f'-> {fixed_allele}')
         fixed_allele = f'{common_previous_nucleotide}{fixed_allele}'
-        print(f'-> {fixed_allele}')
         fixed_entry['genomic_allele'] = fixed_allele
 
     return fixed_entry

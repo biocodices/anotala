@@ -1,5 +1,7 @@
 import pytest
 
+import numpy as np
+
 from anotamela.pipeline import fix_genomic_allele_given_VCF_alleles
 
 
@@ -37,3 +39,7 @@ def test_fix_genomic_allele_given_VCF_alleles():
     no_genomic_allele = {'other_key': 'other_value'}
     result = f(no_genomic_allele, ref='A', alts=['AC'])
     assert result == no_genomic_allele
+
+    # Deal with NaN
+    result = f(np.nan, ref='A', alts=['AC'])
+    assert result is None
