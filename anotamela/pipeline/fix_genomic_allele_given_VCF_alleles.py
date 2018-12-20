@@ -8,6 +8,38 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 
+def fix_genomic_alleles_for_variant(variant):
+    """
+    Given a variant (pd.Series or dict), fix the genomic alleles at all
+    columns/keys where it's possible. The fix happens inplace!
+    """
+    keys_to_skip = [
+        'chrom',
+        'pos',
+        'id',
+        'ref',
+        'alt',
+        'qual',
+        'filter',
+        'info',
+        'format',
+        'position_tag',
+        'entrez_gene_ids',
+        'entrez_gene_symbols',
+    ]
+    for key in variant.index:
+        if key in keys_to_skip:
+            continue
+        try:
+            variant[key] = fix_genomic_allele_given_VCF_alleles(
+                entry_or_entries=variant[key],
+                ref=variant['ref'], alts=variant['alt']
+            )
+        except ValueError:
+            logger.warning(f'Genomic allele fix failed at key: "{key}"')
+    return variant
+
+
 def fix_genomic_allele_given_VCF_alleles(entry_or_entries, ref, alts):
     """
     Given either a single entry or a list of entries, each a dictionary with

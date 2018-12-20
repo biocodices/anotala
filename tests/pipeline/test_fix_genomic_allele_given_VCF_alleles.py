@@ -1,8 +1,28 @@
 import pytest
 
+import pandas as pd
 import numpy as np
 
-from anotamela.pipeline import fix_genomic_allele_given_VCF_alleles
+from anotamela.pipeline import (
+    fix_genomic_alleles_for_variant,
+    fix_genomic_allele_given_VCF_alleles
+)
+
+
+def test_fix_genomic_alleles_for_variant():
+    variant = pd.Series({
+        'ref': 'A',
+        'alt': ['AC'],
+        'string': 'string',
+        'int': 1,
+        'entries': [{'genomic_allele': 'insC'}],
+        'entry': {'genomic_allele': 'insC'},
+    })
+    result = fix_genomic_alleles_for_variant(variant)
+    assert result['string'] == 'string'
+    assert result['int'] == 1
+    assert result['entries'] == [{'genomic_allele': 'AC'}]
+    assert result['entry'] == {'genomic_allele': 'AC'}
 
 
 def test_fix_genomic_allele_given_VCF_alleles():

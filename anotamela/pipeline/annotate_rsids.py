@@ -38,4 +38,3 @@ def annotate_rsids(rsids, cache, use_web=True, use_cache=True,
 
     df.rename(columns={'id': 'rsid'}, inplace=True)
     return df
-

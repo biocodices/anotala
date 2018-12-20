@@ -35,6 +35,3 @@ def annotate_ids(ids, annotator_classes, cache, use_web=True, use_cache=True,
                     .format(found, total, ratio, annotator.SOURCE_NAME))
 
     return df
-
-
-

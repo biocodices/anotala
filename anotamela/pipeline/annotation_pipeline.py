@@ -30,7 +30,7 @@ from anotamela.pipeline import (
     annotate_rsids_with_clinvar,
     generate_position_tags,
     annotate_position_tags_with_clinvar,
-    fix_genomic_allele_given_VCF_alleles,
+    fix_genomic_alleles_for_variant
 )
 from anotamela.helpers import gene_to_mim
 
@@ -151,16 +151,7 @@ class AnnotationPipeline:
         # annotations.
         logger.info('Fixing genomic_allele in the annotations based on the ' +
                     'VCF alleles seen at each variant.')
-        def fix_genomic_alleles(variant):
-            non_entries_keys = ["chrom", "pos", "id", "ref", "alt", "qual",
-                                "filter", "info", "format", "position_tag" ]
-            for key in variant.index:
-                if key not in non_entries_keys:
-                    variant[key] = fix_genomic_allele_given_VCF_alleles(
-                        entry_or_entries=variant[key],
-                        ref=variant['ref'], alts=variant['alt']
-                    )
-        rs_variants = rs_variants.apply(fix_genomic_alleles, axis=1)
+        rs_variants = rs_variants.apply(fix_genomic_alleles_for_variant, axis=1)
 
         self.rs_variants = rs_variants
         self.other_variants = other_variants

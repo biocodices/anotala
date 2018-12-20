@@ -18,7 +18,10 @@ from .generate_position_tags import generate_position_tags
 from .annotate_items_with_clinvar import annotate_items_with_clinvar
 from .annotate_rsids_with_clinvar import annotate_rsids_with_clinvar
 from .annotate_position_tags_with_clinvar import annotate_position_tags_with_clinvar
-from .fix_genomic_allele_given_VCF_alleles import fix_genomic_allele_given_VCF_alleles
+from .fix_genomic_allele_given_VCF_alleles import (
+    fix_genomic_allele_given_VCF_alleles,
+    fix_genomic_alleles_for_variant,
+)
 
 
 from .annotation_pipeline import AnnotationPipeline
