@@ -26,4 +26,3 @@ def annotate_entrez_gene_ids(entrez_gene_ids, cache, use_web=True,
                       sleep_time=sleep_time)
     df.rename(columns={'id': 'entrez_gene_id'}, inplace=True)
     return df
-

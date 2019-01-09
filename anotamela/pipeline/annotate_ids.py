@@ -17,6 +17,7 @@ def annotate_ids(ids, annotator_classes, cache, use_web=True, use_cache=True,
     annotate_entrez_ids, annotate_swissprot_ids, annotate_pmids methods.
     """
     df = pd.DataFrame({'id': ids}).drop_duplicates()
+    df['id'] = df['id'].astype(str)
 
     for annotator_class in annotator_classes:
         annotator = annotator_class(cache, proxies=proxies)

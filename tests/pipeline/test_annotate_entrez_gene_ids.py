@@ -18,4 +18,3 @@ def test_annotate_entrez_gene_ids(monkeypatch):
     # Check that the result dataframe is populated with all the annotators data
     for annotator_class in annotator_classes:
         assert annotator_class.SOURCE_NAME in result
-
