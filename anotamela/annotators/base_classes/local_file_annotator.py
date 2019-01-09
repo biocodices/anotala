@@ -8,15 +8,22 @@ class LocalFileAnnotator(Annotator):
     Abstract Base Class for annotators that use a local file as source of data.
     To implement a class that inherits from this one, define the methods:
 
-        - _read_file(self, path)
-        - _parse_data(self, path)
+        - _read_file(self, path) # => returns data
+        - _parse_data(self, data) # => returns parsed data
         - _annotate_many_ids(self, ids_to_annotate)
         - _filter_data_by(data, field_name, field_values_to_keep) [optional]
 
+    The base class has a _load_data() method that will make use of the defined
+    methods above. The loaded data is stored in a property "data".
+
+    Then you initialize the class with the parameter *path_to_annotations_file*.
     """
-    def __init__(self, path_to_annotations_file):
+    PATH_TO_ANNOTATIONS_FILE = None
+
+    def __init__(self, path_to_annotations_file=None):
         super().__init__()
-        self.path = abspath(expanduser(path_to_annotations_file))
+        path = path_to_annotations_file or self.PATH_TO_ANNOTATIONS_FILE
+        self.path = abspath(expanduser(path))
 
     @property
     def data(self):

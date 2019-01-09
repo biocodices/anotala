@@ -1,0 +1,4 @@
+#tax_id	GeneID	Symbol	LocusTag	Synonyms	dbXrefs	chromosome	map_location	description	type_of_gene	Symbol_from_nomenclature_authority	Full_name_from_nomenclature_authority	Nomenclature_status	Other_designations	Modification_date	Feature_type
+9606	1	GENE1	-	SYN1|SYN2	MIM:123|HGNC:HGNC:5|Ensembl:ENSG1	19	19q13.43	alpha-1-B glycoprotein	protein-coding	A1BG	alpha-1-B glycoprotein	O	alpha-1B-glycoprotein|HEL-S-163pA|epididymis secretory sperm binding protein Li 163pA	20181208	-
+9606	2	GENE2	-	SYN3|SYN4	MIM:223|HGNC:HGNC:5|Ensembl:ENSG2	19	19q13.43	alpha-1-B glycoprotein	protein-coding	A1BG	alpha-1-B glycoprotein	O	alpha-1B-glycoprotein|HEL-S-163pA|epididymis secretory sperm binding protein Li 163pA	20181208	-
+9606	3	GENE3	-	SYN5|SYN6	MIM:223|HGNC:HGNC:5|Ensembl:ENSG3	19	19q13.43	alpha-1-B glycoprotein	protein-coding	A1BG	alpha-1-B glycoprotein	O	alpha-1B-glycoprotein|HEL-S-163pA|epididymis secretory sperm binding protein Li 163pA	20181208	-

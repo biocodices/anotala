@@ -28,6 +28,8 @@ from .pubmed_annotator import PubmedAnnotator
 
 from .biomart_regions_annotator import BiomartRegionsAnnotator
 
+from .gene_entrez_local_annotator import GeneEntrezLocalAnnotator
+
 # Leave this at the bottom:
 
 from .useful_constants import (

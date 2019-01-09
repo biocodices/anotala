@@ -12,6 +12,12 @@ def annotator():
 def test_init(annotator):
     assert annotator.path == '/foo/bar'
 
+    class ChildAnnotator(LocalFileAnnotator):
+        PATH_TO_ANNOTATIONS_FILE = "/bar/baz"
+
+    custom_file_local_annotator = ChildAnnotator()
+    assert custom_file_local_annotator.path == "/bar/baz"
+
 
 def test_data(annotator):
     mock_load_data = Mock()

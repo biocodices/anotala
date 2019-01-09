@@ -7,8 +7,7 @@ class GeneEntrezAnnotator(EntrezAnnotator):
     Provider of Entrez Gene annotations. Usage:
 
         > gene_entrez = GeneEntrezAnnotator()
-        > gene_entrez.annotate('1756')  # Also accepts a list of IDs
-        # => { '1756': ... }
+        > gene_entrez.annotate_one('1756')
     """
     SOURCE_NAME = 'gene_entrez'
     ANNOTATIONS_ARE_JSON = True
