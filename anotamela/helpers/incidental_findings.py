@@ -11,7 +11,7 @@ import pandas as pd
 def get_omim_incidental_genes_and_phenos():
     """
     Visits https://www.ncbi.nlm.nih.gov/clinvar/docs/acmg/ and gets the
-    genes/phenos table as a pandas.DataFrame
+    genes/phenos table as a pandas.DataFrame. Updates it once a month.
     """
     date_str = datetime.now().strftime('%Y_%m')
     fn = join(gettempdir(), 'ACMG_incidental_genes_{}.csv'.format(date_str))
@@ -24,8 +24,8 @@ def get_omim_incidental_genes_and_phenos():
         df.columns = df.iloc[0]
         df = df.drop(0).reset_index(drop=True)
 
-        name = re.compile(r'(.+) \(')
-        mim_id = re.compile(r'.+ \(MIM (\d+)\)')
+        name = re.compile(r'(.+) ?\(')
+        mim_id = re.compile(r'.+ ?\(MIM (\d+)\)')
 
         mapping = {'Disease name and MIM number': 'phenotype',
                    'Gene via GTR': 'gene'}
@@ -41,7 +41,7 @@ def get_omim_incidental_genes_and_phenos():
         df.loc[no_gene, 'gene_MIM'] = \
             df.loc[no_gene, 'MedGen'].str.extract(r'\(MIM (\d+)\)', expand=False)
 
-        df = df.drop(['MedGen', 'Variations that may be pathogenic'], axis=1)
+        df = df.drop(['MedGen', 'Variations that maybe pathogenic'], axis=1)
 
         # Fix some missing values because colspan > 1
         last_row = None
