@@ -1,6 +1,5 @@
 from bs4 import BeautifulSoup
 
-import anotamela
 from anotamela.annotators import ClinvarVariationAnnotator
 
 
@@ -462,6 +461,7 @@ def test_extract_allele_frequencies():
         <Allele>
             <AlleleFrequency Value="0.01" Type="Type-1" MinorAllele="A" />
             <AlleleFrequency Value="0.02" Type="Type-2" MinorAllele="A" />
+            <AlleleFrequency Value="0.03" Type="Type-3" />
         </Allele>
     """)
 

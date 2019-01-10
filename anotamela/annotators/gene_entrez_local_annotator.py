@@ -20,7 +20,9 @@ class GeneEntrezLocalAnnotator(LocalFileAnnotator):
         return pd.read_table(path)
 
     def _parse_data(self, data):
-        return data # No parsing needed
+        # Annotation below depends on this stringification of IDs:
+        data['GeneID'] = data['GeneID'].astype(str)
+        return data
 
     def _annotate_many_ids(self, ids_to_annotate):
         """
@@ -33,11 +35,19 @@ class GeneEntrezLocalAnnotator(LocalFileAnnotator):
 
         for id_ in ids_to_annotate:
             try:
-                gene_ids.append(int(id_))
+                # If it's int-able, then it's an ID (no gene symbols are just
+                # numbers). However, we want it stringified. Notice that this
+                # agrees with the parsing in `_parse_data()` above: we convert
+                # IDs in the source data to strings!
+                int(id_)
+                gene_ids.append(str(id_))
             except ValueError:
                 gene_symbols.append(id_)
 
         matching_id = self.data['GeneID'].isin(gene_ids)
         matching_symbol = self.data['Symbol'].isin(gene_symbols)
 
-        return self.data[matching_id | matching_symbol].reset_index(drop=True)
+        df = self.data[matching_id | matching_symbol].reset_index(drop=True)
+        df = df.set_index('GeneID', drop=False)
+
+        return df.to_dict(orient='index')

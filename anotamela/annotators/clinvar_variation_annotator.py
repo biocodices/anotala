@@ -440,11 +440,11 @@ class ClinvarVariationAnnotator(EntrezAnnotator):
         freq_per_allele = defaultdict(dict)
 
         for frequency in allele.select('AlleleFrequency'):
-            allele = frequency['MinorAllele']
-            source = frequency['Type']
-            value = float(frequency['Value'])
-
-            freq_per_allele[allele][source] = value
+            allele = frequency.get('MinorAllele')
+            if allele:
+                source = frequency['Type']
+                value = float(frequency['Value'])
+                freq_per_allele[allele][source] = value
 
         return dict(freq_per_allele)
 

@@ -20,6 +20,7 @@ RS_ANNOTATOR_CLASSES = {klass.SOURCE_NAME: klass
 ENTREZ_GENE_ANNOTATOR_CLASSES = [
     MygeneAnnotator,
     GeneEntrezAnnotator,
+    GeneEntrezLocalAnnotator,
 ]
 
 ENTREZ_GENE_ANNOTATOR_CLASSES = {klass.SOURCE_NAME: klass

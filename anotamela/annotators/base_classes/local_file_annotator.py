@@ -10,7 +10,8 @@ class LocalFileAnnotator(Annotator):
 
         - _read_file(self, path) # => returns data
         - _parse_data(self, data) # => returns parsed data
-        - _annotate_many_ids(self, ids_to_annotate)
+        - _annotate_many_ids(self, ids_to_annotate) # => returns a dict with
+          the annotated ids as keys and annotations as values
         - _filter_data_by(data, field_name, field_values_to_keep) [optional]
 
     The base class has a _load_data() method that will make use of the defined

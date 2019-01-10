@@ -1,4 +1,8 @@
-from anotamela.annotators import ENTREZ_GENE_ANNOTATOR_CLASSES
+from anotamela.annotators import (
+    MygeneAnnotator,
+    GeneEntrezAnnotator,
+    GeneEntrezLocalAnnotator,
+)
 from anotamela.pipeline import annotate_ids
 
 
@@ -10,7 +14,7 @@ def annotate_entrez_gene_ids(entrez_gene_ids, cache, use_web=True,
     the annotators: either a Cache subclass instance or a cache name
     ('postgres', 'redis') for each annotator to initialize.
 
-    Extra kwargs are for the annotators:
+    Extra kwargs are for the web annotators:
 
         - use_cache (boolean) whether to use cached data
         - use_web (boolean) whether to use web annotation
@@ -19,10 +23,15 @@ def annotate_entrez_gene_ids(entrez_gene_ids, cache, use_web=True,
           as the time to sleep between queries.
 
     """
-    annotator_classes = ENTREZ_GENE_ANNOTATOR_CLASSES.values()
-
-    df = annotate_ids(entrez_gene_ids, annotator_classes, cache,
-                      use_web=use_web, use_cache=use_cache, proxies=proxies,
-                      sleep_time=sleep_time)
+    df = annotate_ids(entrez_gene_ids,
+                      [MygeneAnnotator, GeneEntrezAnnotator],
+                      cache, use_web=use_web, use_cache=use_cache,
+                      proxies=proxies, sleep_time=sleep_time)
     df.rename(columns={'id': 'entrez_gene_id'}, inplace=True)
+
+    local_annotator = GeneEntrezLocalAnnotator()
+    annotations = local_annotator.annotate(entrez_gene_ids)
+
+    df[local_annotator.SOURCE_NAME] = df['entrez_gene_id'].map(annotations)
+
     return df
