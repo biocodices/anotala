@@ -11,6 +11,7 @@ class GeneEntrezLocalAnnotator(LocalFileAnnotator):
     NCBI: ftp://ftp.ncbi.nih.gov/gene/DATA/GENE_INFO/Mammalia/
     Homo_sapiens.gene_info.gz
     """
+    SOURCE_NAME = 'gene_entrez_file'
     PATH_TO_ANNOTATIONS_FILE = join(dirname(dirname(__file__)),
                                     'sources',
                                     'Homo_sapiens.gene_info.2019-01-09.tsv')
