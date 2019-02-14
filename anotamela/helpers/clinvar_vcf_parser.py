@@ -7,7 +7,7 @@ from more_itertools import collapse
 from vcf_to_dataframe import vcf_to_dataframe
 
 
-logger = logging.getLogger(__name__)
+from anotamela import logger
 
 
 class ClinvarVCFParser:

@@ -35,9 +35,9 @@ from anotamela.pipeline import (
 from anotamela.helpers import gene_to_mim
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('anotamela')
 coloredlogs.DEFAULT_LOG_FORMAT = '[@%(hostname)s %(asctime)s] %(message)s'
-coloredlogs.install(level='INFO')
+coloredlogs.install(level='INFO', logger=logger)
 
 
 class AnnotationPipeline:
