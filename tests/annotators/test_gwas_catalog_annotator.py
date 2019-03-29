@@ -1,5 +1,5 @@
 import pytest
-from anotamela import GwasCatalogAnnotator
+from anotala import GwasCatalogAnnotator
 
 
 def test_url():

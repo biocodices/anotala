@@ -1,4 +1,4 @@
-from anotamela import DbsnpEntrezAnnotator
+from anotala import DbsnpEntrezAnnotator
 #  import pytest
 
 #  @pytest.fixture

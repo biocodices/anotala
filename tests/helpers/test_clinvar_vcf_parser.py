@@ -1,4 +1,4 @@
-from anotamela.helpers import ClinvarVCFParser
+from anotala.helpers import ClinvarVCFParser
 
 import pandas as pd
 import pytest

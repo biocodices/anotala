@@ -1,4 +1,4 @@
-from anotamela.annotators import HgvsAnnotator
+from anotala.annotators import HgvsAnnotator
 
 
 def test_parse_hit():

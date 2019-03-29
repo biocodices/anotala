@@ -1,8 +1,8 @@
 import pytest
 import pandas as pd
 
-from anotamela.annotators import *
-from anotamela.annotators.base_classes import EntrezAnnotator
+from anotala.annotators import *
+from anotala.annotators.base_classes import EntrezAnnotator
 
 test_params = [
         (DbsnpWebAnnotator, {

@@ -3,7 +3,7 @@ import json
 
 import pytest
 
-from anotamela.cache import create_cache
+from anotala.cache import create_cache
 
 
 logger = logging.getLogger()
@@ -11,9 +11,9 @@ logger = logging.getLogger()
 
 TEST_PARAMS = [
     # (test_data, namespace, as_json)
-    ({'key1': 'val1', 'key2': 'val2'}, '_anotamela_test', False),
+    ({'key1': 'val1', 'key2': 'val2'}, '_anotala_test', False),
     ({'key1': {'key1.1': 'val1.1',
-               'key1.2': 'val1.2'}}, '_anotamela_test_json', True)
+               'key1.2': 'val1.2'}}, '_anotala_test_json', True)
 ]
 
 
@@ -22,8 +22,8 @@ def test_get_nonexistent_key():
              pytest.helpers.get_cache('psql'))
     if cache:
         # Should not explode:
-        cache.get('non-existent-key', '_anotamela_test', as_json=True)
-        cache.get('non-existent-key', '_anotamela_test_json', as_json=False)
+        cache.get('non-existent-key', '_anotala_test', as_json=True)
+        cache.get('non-existent-key', '_anotala_test_json', as_json=False)
 
 
 def test_get_cached_ids():

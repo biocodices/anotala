@@ -1,6 +1,6 @@
 import pytest
 
-from anotamela.helpers import infer_annotated_allele
+from anotala.helpers import infer_annotated_allele
 
 
 @pytest.mark.parametrize('cds_change,expected_allele', [

@@ -1,4 +1,4 @@
-from anotamela import ClinvarVariationAnnotator
+from anotala import ClinvarVariationAnnotator
 
 import pytest
 

@@ -1,7 +1,7 @@
 from unittest.mock import Mock
 import pytest
 
-from anotamela.annotators.base_classes import LocalFileAnnotator
+from anotala.annotators.base_classes import LocalFileAnnotator
 
 
 @pytest.fixture

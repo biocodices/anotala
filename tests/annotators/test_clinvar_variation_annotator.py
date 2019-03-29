@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 
-from anotamela.annotators import ClinvarVariationAnnotator
+from anotala.annotators import ClinvarVariationAnnotator
 
 
 # See https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=clinvar&id=1550&rettype=variation

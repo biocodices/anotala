@@ -1,4 +1,4 @@
-from anotamela.recipes import search_clinvar_variants_for_phenotypes
+from anotala.recipes import search_clinvar_variants_for_phenotypes
 
 
 def test_search_clinvar_variants_for_phenotypes():

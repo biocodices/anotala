@@ -1,6 +1,6 @@
 import pytest
 
-from anotamela.helpers import (
+from anotala.helpers import (
     read_VEP_header,
     read_VEP_table,
 )

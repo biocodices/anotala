@@ -1,4 +1,4 @@
-from anotamela.pipeline import group_swissprot_variants_by_rsid
+from anotala.pipeline import group_swissprot_variants_by_rsid
 
 
 def test_group_swissprot_variants_by_rsid():

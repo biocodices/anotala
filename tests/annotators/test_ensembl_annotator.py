@@ -1,34 +1,33 @@
 import pandas as pd
-from anotamela import EnsemblAnnotator
+from anotala import EnsemblAnnotator
 
 
-### FIXME uncomment !!!!!!!!!!!!!!!!!!!!!!!!!
-#  def test_parse_annotation():
-    #  annotation = {
-        #  'MAF': '0.5',
-        #  'foo': 'bar',
-        #  'populations': [],
-        #  'population_genotypes': [],
-        #  'genotypes': [],
-    #  }
-    #  parsed = EnsemblAnnotator._parse_annotation(annotation.copy())
+def test_parse_annotation():
+    annotation = {
+        'MAF': '0.5',
+        'foo': 'bar',
+        'populations': [],
+        'population_genotypes': [],
+        'genotypes': [],
+    }
+    parsed = EnsemblAnnotator._parse_annotation(annotation.copy())
 
-    #  assert parsed['foo'] == 'bar'
-    #  assert parsed['MAF'] == 0.5
+    assert parsed['foo'] == 'bar'
+    assert parsed['MAF'] == 0.5
 
-    #  full_info_keys = [
-        #  'populations',
-        #  'population_genotypes',
-        #  'genotypes'
-    #  ]
-    #  for key in full_info_keys:
-        #  assert key not in parsed
+    full_info_keys = [
+        'populations',
+        'population_genotypes',
+        'genotypes'
+    ]
+    for key in full_info_keys:
+        assert key not in parsed
 
-    #  EnsemblAnnotator.full_info = True
-    #  parsed = EnsemblAnnotator._parse_annotation(annotation.copy())
+    EnsemblAnnotator.full_info = True
+    parsed = EnsemblAnnotator._parse_annotation(annotation.copy())
 
-    #  for key in full_info_keys:
-        #  assert key in parsed
+    for key in full_info_keys:
+        assert key in parsed
 
 
 def test_parse_1KG_sample_name():
@@ -101,3 +100,32 @@ def test_genotypes_list_to_dataframe():
     assert list(result['variant_id']) == ['rs123', 'rs123', 'rs123']
     assert list(result['population']) == ['GBR', 'GWD', pd.np.nan]
     assert list(result['region']) == ['EUR', 'AFR', pd.np.nan]
+
+
+def test_populations_list_to_dataframe():
+    populations = [
+        {'allele': 'A',
+         'frequency': 0.1,
+         'population': '1000GENOMES:phase_3:PEL',
+         'allele_count': 100},
+        {'allele': 'T',
+         'frequency': 0.2,
+         'population': '1000GENOMES:phase_3:CEU',
+         'allele_count': 200},
+        {'allele': 'C',
+         'frequency': 0.3,
+         'population': 'gnomADg:NFE',
+         'allele_count': 300},
+    ]
+
+    result = EnsemblAnnotator.populations_list_to_dataframe(populations)
+    assert result.loc[0, 'allele'] == 'A'
+    assert result.loc[0, 'allele_count'] == 100
+    assert result.loc[0, 'population'] == 'PEL'
+    assert result.loc[1, 'population'] == 'CEU'
+    assert result.loc[1, 'frequency'] == 0.2
+    assert result.loc[2, 'source'] == 'gnomADg:NFE'
+
+    # It should now about 1KG populations
+    assert result.loc[0, 'region'] == 'AMR'
+    assert result.loc[1, 'region'] == 'EUR'

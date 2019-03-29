@@ -1,6 +1,6 @@
 import pytest
 
-from anotamela.helpers import rsids_from_vcf
+from anotala.helpers import rsids_from_vcf
 
 
 @pytest.fixture

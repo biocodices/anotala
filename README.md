@@ -3,7 +3,7 @@
 ### GRCh38 and GRCh37 positions for a list of rs IDs
 
 ```python
-from anotamela import DbsnpWebAnnotator
+from anotala import DbsnpWebAnnotator
 
 # You can increase these values if you're using Tor:
 DbsnpWebAnnotator.BATCH_SIZE = 30
@@ -35,13 +35,13 @@ Given a list of PMIDs in a file (for instance, `/tmp/pubmeds.list`),
 get profuse annotations in JSON format for each of them:
 
 ```bash
-python anotamela/cli.py pubmed annotate-pmids --pmids-file /tmp/pubmeds.list --cache mysql -o json
+python anotala/cli.py pubmed annotate-pmids --pmids-file /tmp/pubmeds.list --cache mysql -o json
 ```
 
 ### Clinvar variants for a list of phenotypes, filtering by clinical significances
 
 ```python
-from anotamela.recipes import search_clinvar_variants_for_phenotypes
+from anotala.recipes import search_clinvar_variants_for_phenotypes
 
 phenos = ['Diabetes melllitus', 'Alzheimer']
 
@@ -58,14 +58,14 @@ variants = search_clinvar_variants_for_phenotypes(
 You can do this from the command line also (WIP):
 
 ```bash
-python anotamela/cli.py clinvar search --phenos "Diabetes mellitus,Alzheimer"
+python anotala/cli.py clinvar search --phenos "Diabetes mellitus,Alzheimer"
 --clinsigs pathogenic --cache mysql -o json
 ```
 
 ### Clinvar variants for a list of genes
 
 ```python
-from anotamela.recipes import clinvar_variants_for_genes
+from anotala.recipes import clinvar_variants_for_genes
 
 genes = ['BRCA2', 'CDH1', 'CDK4']
 variant_ids, annotations = clinvar_variants_for_genes(genes, cache='mysql')
@@ -80,7 +80,7 @@ df = clinvar_variants_for_genes(genes, cache='mysql', as_dataframe=True)
 ### GWAS Catalog list of traits for a given list of RS IDs
 
 ```python
-from anotamela.recipes import annotate_gwas_traits
+from anotala.recipes import annotate_gwas_traits
 
 proxies = {'http': 'socks5://localhost:9050'} # TOR instance!
 
@@ -100,7 +100,7 @@ package called [`project`](http://github.com/biocodices/project):
 WORKDIR = 'some_descriptive_name_for_the_project'
 
 from project import Project
-from anotamela import AnnotationPipeline
+from anotala import AnnotationPipeline
 
 pj = Project(WORKDIR)
 
@@ -133,7 +133,7 @@ downstream in a reports generation pipeline.
 However, the annotators can be used separately, like this:
 
 ```python
-from anotamela import DbsnpMyvariantAnnotator, OmimVariantAnnotator
+from anotala import DbsnpMyvariantAnnotator, OmimVariantAnnotator
 
 dbsnp_annotator = DbsnpMyvariantAnnotator(cache='redis')
 dbsnp_annotator.annotate(['rs268', 'rs123'])
@@ -173,12 +173,12 @@ annotate with OMIM.
 
 ## Cache
 
-`anotamela` can use different types of cache: `RedisCache`, `MysqlCache`,
+`anotala` can use different types of cache: `RedisCache`, `MysqlCache`,
 `PostgresCache`, `DictCache`.
 
 ### MySQL
 
-Make sure you have mysql installed, create a database (e.g. `anotamela_cache`)
+Make sure you have mysql installed, create a database (e.g. `anotala_cache`)
 and a user with privileges on that database. Then create a YAML file (by default
 it will be looked for in `~/.mysql_credentials.yml`) with the credentials:
 
@@ -187,15 +187,15 @@ host: <where the server is, "localhost" if it's local>
 user: <your mysql user, e.g. "juan">
 pass: <your mysql pass, e.g. "mypass">
 port: <usually 3306 for mysql>
-db: <the name of an *existing* db, e.g. "anotamela_cache">
+db: <the name of an *existing* db, e.g. "anotala_cache">
 driver: <for instance, "mysql+pymysql", if you have this one installed>
 ```
 
 ### Postgres
 
 If you are to use Postgres, make sure you have it installed and create a 
-database (e.g. `anotamela_cache` would be an appropriate name) and a user with
-privileges on it for `anotamela` to use. Then create a file (by default it will
+database (e.g. `anotala_cache` would be an appropriate name) and a user with
+privileges on it for `anotala` to use. Then create a file (by default it will
 be looked for in `~/.postgres_credentials.yml`) with your credentials:
 
 ```yaml
@@ -220,7 +220,7 @@ annotator = DbsnpMyvariantAnnotator(cache='postgres', credentials_file=creds)
 You will need to `pip install redis`.
 
 If you have a redis server running with default settings, you needn't do
-anything extra. `anotamela` will try to connect at `localhost`'s port 6379.
+anything extra. `anotala` will try to connect at `localhost`'s port 6379.
 If the server is running with non-default settings, specify those when
 initializating each annotator:
 

@@ -1,7 +1,7 @@
 import pytest
 from bs4 import BeautifulSoup
 
-from anotamela.annotators import ClinvarRCVAnnotator
+from anotala.annotators import ClinvarRCVAnnotator
 
 
 @pytest.fixture

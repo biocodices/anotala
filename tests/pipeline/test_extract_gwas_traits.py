@@ -1,4 +1,4 @@
-from anotamela.pipeline import extract_gwas_traits
+from anotala.pipeline import extract_gwas_traits
 
 
 def test_extract_gwas_traits():

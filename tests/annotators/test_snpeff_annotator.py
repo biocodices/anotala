@@ -1,4 +1,4 @@
-from anotamela import SnpeffAnnotator
+from anotala import SnpeffAnnotator
 
 
 def test_snpeff_annotator_parse_hit():

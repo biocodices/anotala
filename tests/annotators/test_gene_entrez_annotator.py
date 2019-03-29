@@ -1,4 +1,4 @@
-from anotamela import GeneEntrezAnnotator
+from anotala import GeneEntrezAnnotator
 
 
 def test_parse_annotation():

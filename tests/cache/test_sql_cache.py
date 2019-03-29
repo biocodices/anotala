@@ -1,13 +1,13 @@
 import pytest
 
-from anotamela.cache import SqlCache
+from anotala.cache import SqlCache
 
 
 TEST_PARAMS = [
     # (test_data, namespace, as_json)
-    ({'key1': 'val1', 'key2': 'val2'}, '_anotamela_test', False),
+    ({'key1': 'val1', 'key2': 'val2'}, '_anotala_test', False),
     ({'key1': {'key1.1': 'val1.1',
-               'key1.2': 'val1.2'}}, '_anotamela_test_json', True)
+               'key1.2': 'val1.2'}}, '_anotala_test_json', True)
 ]
 
 

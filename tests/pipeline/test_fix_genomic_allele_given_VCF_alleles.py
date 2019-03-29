@@ -3,7 +3,7 @@ import pytest
 import pandas as pd
 import numpy as np
 
-from anotamela.pipeline import (
+from anotala.pipeline import (
     fix_genomic_alleles_for_variant,
     fix_genomic_allele_given_VCF_alleles
 )

@@ -1,4 +1,4 @@
-from anotamela.recipes.search_clinvar_variants_for_phenotypes import (
+from anotala.recipes.search_clinvar_variants_for_phenotypes import (
     _build_query_from_terms,
     _build_filters_from_clinsigs,
     _search_clinvar,

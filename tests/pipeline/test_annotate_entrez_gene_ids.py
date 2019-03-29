@@ -1,7 +1,7 @@
 import pytest
 
-from anotamela.annotators import ENTREZ_GENE_ANNOTATOR_CLASSES
-from anotamela.pipeline import annotate_entrez_gene_ids
+from anotala.annotators import ENTREZ_GENE_ANNOTATOR_CLASSES
+from anotala.pipeline import annotate_entrez_gene_ids
 
 
 def test_annotate_entrez_gene_ids(monkeypatch):

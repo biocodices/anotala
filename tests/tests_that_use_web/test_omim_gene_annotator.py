@@ -1,7 +1,7 @@
 import pytest
 from bs4 import BeautifulSoup
 
-from anotamela import OmimGeneAnnotator
+from anotala import OmimGeneAnnotator
 
 
 TEST_ENTRY_ID = '609708'

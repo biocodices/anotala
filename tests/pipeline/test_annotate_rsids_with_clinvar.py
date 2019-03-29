@@ -1,4 +1,4 @@
-from anotamela.pipeline import annotate_rsids_with_clinvar
+from anotala.pipeline import annotate_rsids_with_clinvar
 
 
 def test_annotate_rsids_with_clinvar(dict_cache):

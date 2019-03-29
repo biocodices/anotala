@@ -1,6 +1,6 @@
 import pandas as pd
 
-from anotamela.annotators import ClinvarRsVCFAnnotator
+from anotala.annotators import ClinvarRsVCFAnnotator
 
 
 def test_init(path_to_test_clinvar_vcf):

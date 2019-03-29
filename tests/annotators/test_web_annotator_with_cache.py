@@ -1,6 +1,6 @@
 import pytest
 
-from anotamela.annotators.base_classes import WebAnnotatorWithCache
+from anotala.annotators.base_classes import WebAnnotatorWithCache
 
 
 @pytest.fixture

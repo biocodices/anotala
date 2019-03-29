@@ -1,4 +1,4 @@
-from anotamela import ClinvarRsAnnotator
+from anotala import ClinvarRsAnnotator
 
 
 def test_parse_annotation(monkeypatch):

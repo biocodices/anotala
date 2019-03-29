@@ -1,5 +1,5 @@
-from anotamela import GwasCatalogAnnotator
-from anotamela.recipes import annotate_gwas_traits
+from anotala import GwasCatalogAnnotator
+from anotala.recipes import annotate_gwas_traits
 
 
 TEST_CACHE = 'mysql'

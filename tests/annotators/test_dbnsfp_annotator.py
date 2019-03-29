@@ -1,4 +1,4 @@
-from anotamela import DbnsfpAnnotator
+from anotala import DbnsfpAnnotator
 
 
 def test_dbnsfp_annotator_parse_annotation():

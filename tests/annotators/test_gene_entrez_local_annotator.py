@@ -1,7 +1,7 @@
 import pytest
 import pandas as pd
 
-from anotamela.annotators import GeneEntrezLocalAnnotator
+from anotala.annotators import GeneEntrezLocalAnnotator
 
 @pytest.fixture
 def annotator():

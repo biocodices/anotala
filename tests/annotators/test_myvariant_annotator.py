@@ -1,4 +1,4 @@
-from anotamela.annotators.base_classes import MyVariantAnnotator
+from anotala.annotators.base_classes import MyVariantAnnotator
 
 
 def test_myvariant_annotator_parse_annotation(monkeypatch):

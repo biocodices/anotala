@@ -1,7 +1,7 @@
 import pytest
 
-from anotamela.annotators import RS_ANNOTATOR_CLASSES
-from anotamela.pipeline import annotate_rsids
+from anotala.annotators import RS_ANNOTATOR_CLASSES
+from anotala.pipeline import annotate_rsids
 
 
 def test_annotate_rsids(monkeypatch):

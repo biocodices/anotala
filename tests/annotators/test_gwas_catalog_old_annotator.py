@@ -1,6 +1,6 @@
 import pytest
 
-from anotamela import GwasCatalogOldAnnotator
+from anotala import GwasCatalogOldAnnotator
 
 
 def test_gwas_catalog_annotator_parse_annotation():

@@ -1,4 +1,4 @@
-from anotamela.pipeline import extract_pmids
+from anotala.pipeline import extract_pmids
 
 
 def test_extract_pmids():

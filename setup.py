@@ -8,11 +8,11 @@ with open('README.md') as f:
     long_description = f.read()
 
 setup(
-    name='anotamela',
+    name='anotala',
     version='1.0.1',
     author='Juan Manuel Berros',
     author_email='juanma.berros@gmail.com',
-    url='https://github.com/biocodices/anotamela',
+    url='https://github.com/biocodices/anotala',
     license='MIT',
     install_requires=requirements,
     packages=find_packages(),

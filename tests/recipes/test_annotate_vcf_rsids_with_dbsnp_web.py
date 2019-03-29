@@ -2,7 +2,7 @@ import os
 import json
 import pytest
 
-from anotamela.recipes.annotate_vcf_rsids_with_dbsnp_web import (
+from anotala.recipes.annotate_vcf_rsids_with_dbsnp_web import (
     annotate_rsids_with_dbsnp_web,
     annotate_vcf_rsids_with_dbsnp_web
 )
@@ -21,7 +21,7 @@ def test_annotate_vcf_rsids_with_dbsnp_web(vcf_path, dict_cache, proxies):
     )
     assert result[0]['rs_id'] == 'rs268'
 
-    out_fn = '/tmp/__anotamela_test_annotate_vcf_rsids_with_dbsnp_web.json'
+    out_fn = '/tmp/__anotala_test_annotate_vcf_rsids_with_dbsnp_web.json'
     try:
         result = annotate_vcf_rsids_with_dbsnp_web(
             vcf_path,

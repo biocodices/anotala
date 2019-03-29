@@ -1,7 +1,7 @@
 import pytest
 
-from anotamela.annotators import PubmedAnnotator
-from anotamela.pipeline import annotate_pmids
+from anotala.annotators import PubmedAnnotator
+from anotala.pipeline import annotate_pmids
 
 
 def test_annotate_pmids(monkeypatch):

@@ -5,9 +5,9 @@ from os.path import join, dirname
 import pytest
 from sqlalchemy.exc import OperationalError
 
-from anotamela.cache import create_cache
-from anotamela.cache import DictCache
-from anotamela.cache import AVAILABLE_CACHES
+from anotala.cache import create_cache
+from anotala.cache import DictCache
+from anotala.cache import AVAILABLE_CACHES
 
 
 AVAILABLE_CACHES['mock_cache'] = AVAILABLE_CACHES['dict']

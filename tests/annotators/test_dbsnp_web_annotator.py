@@ -1,4 +1,4 @@
-from anotamela import DbsnpWebAnnotator
+from anotala import DbsnpWebAnnotator
 import pytest
 
 

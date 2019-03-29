@@ -1,4 +1,4 @@
-from anotamela.pipeline import generate_position_tags
+from anotala.pipeline import generate_position_tags
 
 
 def test_generate_position_tags():

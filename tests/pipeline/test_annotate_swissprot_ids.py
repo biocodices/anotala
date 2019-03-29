@@ -1,5 +1,5 @@
-from anotamela.annotators import UniprotAnnotator
-from anotamela.pipeline import annotate_swissprot_ids
+from anotala.annotators import UniprotAnnotator
+from anotala.pipeline import annotate_swissprot_ids
 
 
 def test_annotate_swissprot_ids(monkeypatch):

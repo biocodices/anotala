@@ -1,4 +1,4 @@
-from anotamela.pipeline import extract_entrez_genes
+from anotala.pipeline import extract_entrez_genes
 
 
 def test_extract_entrez_genes():

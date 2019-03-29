@@ -1,5 +1,5 @@
-from anotamela import OmimGeneAnnotator
-from anotamela.pipeline import get_omim_variants_from_entrez_genes
+from anotala import OmimGeneAnnotator
+from anotala.pipeline import get_omim_variants_from_entrez_genes
 
 
 def test_get_omim_variants_from_entrez_genes(monkeypatch):

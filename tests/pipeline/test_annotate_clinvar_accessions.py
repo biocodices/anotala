@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-from anotamela.pipeline import annotate_clinvar_accessions
+from anotala.pipeline import annotate_clinvar_accessions
 
 
 @pytest.mark.skip('Not implemented completely')

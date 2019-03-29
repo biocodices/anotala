@@ -1,7 +1,7 @@
 import pytest
 import types
 
-from anotamela.helpers import (
+from anotala.helpers import (
     is_incidental_gene,
     is_incidental_pheno,
     listify,

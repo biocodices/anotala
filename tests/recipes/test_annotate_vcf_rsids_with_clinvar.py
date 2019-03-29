@@ -2,7 +2,7 @@ import os
 import json
 import pytest
 
-from anotamela.recipes.annotate_vcf_rsids_with_clinvar import (
+from anotala.recipes.annotate_vcf_rsids_with_clinvar import (
     annotate_vcf_rsids_with_clinvar
 )
 
@@ -19,7 +19,7 @@ def test_annotate_vcf_rsids_with_clinvar(vcf_path, dict_cache):
     )
     assert result[0]['dbsnp_id'] == 'rs268'
 
-    out_fn = '/tmp/__anotamela_test_annotate_vcf_rsids_with_clinvar.json'
+    out_fn = '/tmp/__anotala_test_annotate_vcf_rsids_with_clinvar.json'
     try:
         result = annotate_vcf_rsids_with_clinvar(
             vcf_path,

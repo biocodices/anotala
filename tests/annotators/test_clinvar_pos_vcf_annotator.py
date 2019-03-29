@@ -1,6 +1,6 @@
 import pandas as pd
 
-from anotamela.annotators import ClinvarPosVCFAnnotator
+from anotala.annotators import ClinvarPosVCFAnnotator
 
 
 def test_filter_data_by():

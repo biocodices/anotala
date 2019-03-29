@@ -1,4 +1,4 @@
-from anotamela.annotators import BiomartRegionsAnnotator
+from anotala.annotators import BiomartRegionsAnnotator
 
 
 def test_parse_annotation():

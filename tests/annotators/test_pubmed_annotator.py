@@ -1,4 +1,4 @@
-from anotamela.annotators import PubmedAnnotator
+from anotala.annotators import PubmedAnnotator
 
 
 def test_parse_annotation():

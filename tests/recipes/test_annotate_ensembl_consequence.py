@@ -1,5 +1,5 @@
-from anotamela import EnsemblAnnotator
-from anotamela.recipes import annotate_ensembl_consequence
+from anotala import EnsemblAnnotator
+from anotala.recipes import annotate_ensembl_consequence
 
 
 TEST_CACHE = 'mysql'

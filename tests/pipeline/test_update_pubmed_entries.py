@@ -1,4 +1,4 @@
-from anotamela.pipeline import update_pubmed_entries
+from anotala.pipeline import update_pubmed_entries
 
 
 def test_update_pubmed_entries():

@@ -1,4 +1,4 @@
-from anotamela.pipeline import annotate_position_tags_with_clinvar
+from anotala.pipeline import annotate_position_tags_with_clinvar
 
 
 def test_annotate_position_tags_with_clinvar(dict_cache):

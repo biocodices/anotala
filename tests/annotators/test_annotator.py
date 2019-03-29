@@ -1,4 +1,4 @@
-from anotamela.annotators.base_classes import Annotator
+from anotala.annotators.base_classes import Annotator
 
 
 def test_set_of_string_ids():

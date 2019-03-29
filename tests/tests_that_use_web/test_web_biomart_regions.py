@@ -1,6 +1,6 @@
 import vcr
 
-from anotamela.annotators import BiomartRegionsAnnotator
+from anotala.annotators import BiomartRegionsAnnotator
 
 
 def test_biomart_regions_from_web(proxies):

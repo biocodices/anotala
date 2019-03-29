@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from anotamela.pipeline import extract_swissprot_ids
+from anotala.pipeline import extract_swissprot_ids
 
 
 def test_extract_swissprot_ids():

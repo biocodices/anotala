@@ -1,4 +1,4 @@
-from anotamela import FrequenciesAnnotator
+from anotala import FrequenciesAnnotator
 
 
 freq, count = 0.1234010101, 100  # Fake frequency and allele count data

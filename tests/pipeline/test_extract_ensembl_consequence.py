@@ -1,6 +1,6 @@
 import numpy as np
 
-from anotamela.pipeline import extract_ensembl_consequence
+from anotala.pipeline import extract_ensembl_consequence
 
 
 def test_extract_ensembl_consequence():
