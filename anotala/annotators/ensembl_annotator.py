@@ -165,13 +165,13 @@ class EnsemblAnnotator(WebAnnotatorWithCache):
         return df
 
     @classmethod
-    def add_1KG_regions_to_df_with_populations(df):
+    def add_1KG_regions_to_df_with_populations(cls, df):
         """
         Given a dataframe `df` with a 'sample' ...
 
         #
         #
-        # Seguir acá!
+        # CÓÐIGO INCOMPLETO! ARREGLAR ESTO .....
         #
         #
         """
