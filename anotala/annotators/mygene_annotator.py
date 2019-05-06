@@ -6,7 +6,7 @@ from anotala.helpers import grouped
 
 class MygeneAnnotator(WebAnnotatorWithCache):
     """
-    Provides gene annotations given one or more gene symbols (e.g. TTN).
+    Provides gene annotations given one or more gene entrez IDs.
     """
     SOURCE_NAME = 'mygene'
     ANNOTATIONS_ARE_JSON = True
