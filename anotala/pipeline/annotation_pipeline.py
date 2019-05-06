@@ -18,8 +18,8 @@ from anotala.pipeline import (
     annotate_rsids,
     extract_entrez_genes,
     annotate_entrez_gene_ids,
-    get_omim_variants_from_entrez_genes,
-    group_omim_variants_by_rsid,
+    # get_omim_variants_from_entrez_genes,
+    # group_omim_variants_by_rsid,
     extract_pmids,
     annotate_pmids,
     update_pubmed_entries,
@@ -267,17 +267,20 @@ class AnnotationPipeline:
         #
         ############################################################
 
-        logger.info('Get the OMIM variants described for the Entrez genes')
-        omim_variants = \
-            get_omim_variants_from_entrez_genes(entrez_gene_ids,
-                                                **self.annotation_kwargs)
+        # FIXME: Uncomment next chunk for OMIM annotation!
+        #  logger.info('Get the OMIM variants described for the Entrez genes')
+        #  omim_variants = \
+            #  get_omim_variants_from_entrez_genes(entrez_gene_ids,
+                                                #  **self.annotation_kwargs)
 
-        logger.info('Extract PMIDs from the OMIM variants')
-        pmids = extract_pmids(omim_variants)
+        pmids = []
+
+        # FIXME: Uncomment
+        #  logger.info('Extract PMIDs from the OMIM variants')
+        #  pmids = extract_pmids(omim_variants)
 
         if not gwas_annotation_enabled:
-            rs_variants['gwas_catalog'] = []
-
+            rs_variants['gwas_catalog'] = rs_variants["rsid"].map(lambda v: [])
         if gwas_annotation_enabled:
             logger.info('Extract PMIDs from the GWAS Catalog entries')
             for gwas_entries in rs_variants['gwas_catalog'].dropna():
@@ -286,12 +289,18 @@ class AnnotationPipeline:
         logger.info('Annotate the PMIDs')
         pubmed_entries = annotate_pmids(pmids, **self.annotation_kwargs)
 
-        logger.info("Update OMIM's PubMed entries with the PubMed annotations")
-        omim_variants = update_pubmed_entries(omim_variants, pubmed_entries)
+        # FIXME: OMIM commented
+        #  logger.info("Update OMIM's PubMed entries with the PubMed annotations")
+        #  omim_variants = update_pubmed_entries(omim_variants, pubmed_entries)
 
-        logger.info('Associate each rs ID to a list of OMIM variants')
-        rs_to_omim_variants = group_omim_variants_by_rsid(omim_variants)
-        rs_variants['omim_entries'] = rs_variants['rsid'].map(rs_to_omim_variants)
+        # FIXME: OMIM commented
+        #  logger.info('Associate each rs ID to a list of OMIM variants')
+        #  rs_to_omim_variants = group_omim_variants_by_rsid(omim_variants)
+        #  rs_variants['omim_entries'] = rs_variants['rsid'].map(rs_to_omim_variants)
+
+        # FIXME: Delete next single line when OMIM works. This line makes
+        # all omim entries empty:
+        rs_variants['omim_entries'] = rs_variants['rsid'].map(lambda v: [])
 
         if gwas_annotation_enabled:
             logger.info('Update GWAS PubMed entries with the PubMed annotations')
