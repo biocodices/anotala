@@ -35,14 +35,12 @@ class MygeneAnnotator(WebAnnotatorWithCache):
 
     @staticmethod
     def _parse_annotation(raw_annotation):
-        fields_to_keep = ('name symbol entrezgene MIM HGNC uniprot '
-                          'type_of_gene').split()
-        annotation = {k: v for k, v in raw_annotation.items()
-                      if k in fields_to_keep}
+        annotation = {k: v for k, v in raw_annotation.items()}
+
         if 'uniprot' in annotation:
             swissprot_id = annotation['uniprot'].get('Swiss-Prot')
             if swissprot_id:
                 annotation['swissprot'] = swissprot_id
             del(annotation['uniprot'])
-        return annotation
 
+        return annotation
