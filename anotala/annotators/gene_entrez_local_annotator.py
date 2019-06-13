@@ -9,12 +9,12 @@ class GeneEntrezLocalAnnotator(LocalFileAnnotator):
     """
     Annotates Entrez gene IDs or symbols using a local file downloaded from
     NCBI: ftp://ftp.ncbi.nih.gov/gene/DATA/GENE_INFO/Mammalia/
-    Homo_sapiens.gene_info.gz
+    Homo_sapiens.gene_info.gz [updated 2019-06]
     """
     SOURCE_NAME = 'gene_entrez_file'
     PATH_TO_ANNOTATIONS_FILE = join(dirname(dirname(__file__)),
                                     'sources',
-                                    'Homo_sapiens.gene_info.2019-01-09.tsv')
+                                    'Homo_sapiens.gene_info.2019-06.tsv')
 
     def _read_file(self, path):
         return pd.read_table(path)
