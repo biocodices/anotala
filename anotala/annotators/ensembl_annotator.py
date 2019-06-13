@@ -40,6 +40,9 @@ class EnsemblAnnotator(WebAnnotatorWithCache):
         if self.proxies:
             logger.info('{} using proxies: {}'.format(self.name, self.proxies))
 
+        if self.full_info:
+            logger.warn('{} using full_info (quite slow)'.format(self.name))
+
         for group_of_ids in tqdm(grouped(ids, self.BATCH_SIZE, as_list=True)):
             yield self._post_query(group_of_ids)
             time.sleep(self.SLEEP_TIME)
