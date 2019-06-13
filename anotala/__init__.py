@@ -11,8 +11,9 @@ from .annotators import *
 from .pipeline import AnnotationPipeline
 
 
-coloredlogs.DEFAULT_LOG_FORMAT = \
-        '[@%(hostname)s %(asctime)s] %(levelname)s: %(message)s'
+#  coloredlogs.DEFAULT_LOG_FORMAT = \
+#          '[@%(hostname)s %(asctime)s] %(levelname)s: %(message)s'
+coloredlogs.DEFAULT_LOG_FORMAT = '%(message)s'
 coloredlogs.install(level=(environ.get('LOGLEVEL') or 'INFO'), logger=logger)
 
 logging.getLogger('requests').setLevel(logging.WARNING)
