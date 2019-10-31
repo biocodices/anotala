@@ -1,5 +1,4 @@
 import re
-from functools import lru_cache
 from os.path import join, isfile
 from datetime import datetime
 from tempfile import gettempdir
@@ -7,7 +6,6 @@ from tempfile import gettempdir
 import pandas as pd
 
 
-@lru_cache()
 def get_omim_incidental_genes_and_phenos():
     """
     Visits https://www.ncbi.nlm.nih.gov/clinvar/docs/acmg/ and gets the
