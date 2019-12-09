@@ -9,6 +9,7 @@ class FrequenciesAnnotator(MyVariantAnnotator):
     FIELDS = ('dbsnp.alleles gnomad_exome.af gnomad_genome.af '
               'dbnsfp.1000gp3 dbnsfp.exac '
               'dbnsfp.esp6500 dbnsfp.twinsuk.af cadd.1000g').split()
+    INTERPRET_POP_SYMBOLS = True
 
     @staticmethod
     def _parse_annotations_hook(annotations):
@@ -40,6 +41,8 @@ class FrequenciesAnnotator(MyVariantAnnotator):
             'dbNSFP_twinsUK': hit.get('dbnsfp', {}).get('twinsuk', {}),
             'dbNSFP_ExAC': hit.get('dbnsfp', {}).get('exac', {}),
             'CADD_1000g': hit.get('cadd', {}).get('1000g', {}),
+            'gnomad_exome': hit.get('gnomad_exome', {}).get('af', {}),
+            'gnomad_genome': hit.get('gnomad_genome', {}).get('af', {}),
         }
 
         for source_name, source_dict in sources.items():
@@ -60,8 +63,8 @@ class FrequenciesAnnotator(MyVariantAnnotator):
         """Round the allele frequency."""
         return round(freq, 6)
 
-    @staticmethod
-    def _parse_population(population):
+    @classmethod
+    def _parse_population(cls, population):
         """
         Translate tags like 'afr_af' to a description like 'African'.
         Return None for allele count tags like 'afr_ac'.
@@ -69,21 +72,24 @@ class FrequenciesAnnotator(MyVariantAnnotator):
         if population == 'ac' or population.endswith('_ac'):
             return  # Ignore allele counts (ac) data
 
-        population = population.replace('_af', '')
-        abbreviations = {
-            'af': 'General',
-            'ea': 'European American (EA)',
-            'aa': 'African American (AA)',
-            'adj': 'General (ADJ)',
-            'amr': 'American (AMR)',
-            'asn': 'Asian (ASN)',
-            'eur': 'European (EUR)',
-            'afr': 'African (AFR)',
-            'eas': 'East Asian (EAS)',
-            'sas': 'South Asian (SAS)',
-            'fin': 'Finnish (FIN)',
-            'nfe': 'Non-Finnish European (NFE)',
-            'oth': 'Other (OTH)',
-        }
-        return abbreviations.get(population, population.upper())
+        population = population.replace('_af', '').replace('_af', '')
+        if cls.INTERPRET_POP_SYMBOLS:
+            abbreviations = {
+                'af': 'General',
+                'ea': 'European American (EA)',
+                'aa': 'African American (AA)',
+                'adj': 'General (ADJ)',
+                'amr': 'American (AMR)',
+                'asn': 'Asian (ASN)',
+                'eur': 'European (EUR)',
+                'afr': 'African (AFR)',
+                'eas': 'East Asian (EAS)',
+                'sas': 'South Asian (SAS)',
+                'fin': 'Finnish (FIN)',
+                'nfe': 'Non-Finnish European (NFE)',
+                'oth': 'Other (OTH)',
+            }
+            return abbreviations.get(population, population.upper())
+        else:
+            return population.upper()
 

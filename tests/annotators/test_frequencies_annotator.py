@@ -13,6 +13,8 @@ def test_frequencies_annotator_parse_hit():
                            'afr': freq,
                            'amr': freq,
                            'eur': freq}},
+        'gnomad_exome': {'af': {'af_afr': freq}},
+        'gnomad_genome': {'af': {'af_afr': freq}},
 
         'dbnsfp': {'1000gp3': {'ac': count,
                                'af': freq,
@@ -113,6 +115,9 @@ def test_frequencies_annotator_parse_hit():
         assert G['dbNSFP_ExAC'][population] == rounded_freq
 
     assert G['dbNSFP_twinsUK']['General'] == rounded_freq
+
+    assert G['gnomad_exome']['African (AFR)'] == rounded_freq
+    assert G['gnomad_genome']['African (AFR)'] == rounded_freq
 
 
 def test_parse_hit_with_few_data():
