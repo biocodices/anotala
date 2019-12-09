@@ -6,7 +6,8 @@ from anotala.annotators.base_classes import MyVariantAnnotator
 class FrequenciesAnnotator(MyVariantAnnotator):
     SOURCE_NAME = 'frequencies'
     SCOPES = 'dbsnp.rsid dbnsfp.rsid'.split()
-    FIELDS = ('dbsnp.alleles dbnsfp.1000gp3 dbnsfp.exac '
+    FIELDS = ('dbsnp.alleles gnomad_exome.af gnomad_genome.af '
+              'dbnsfp.1000gp3 dbnsfp.exac '
               'dbnsfp.esp6500 dbnsfp.twinsuk.af cadd.1000g').split()
 
     @staticmethod
